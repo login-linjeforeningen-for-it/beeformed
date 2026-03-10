@@ -58,7 +58,8 @@ export default function SubmissionsPage({ submissions, currentOrderBy, currentSo
                                         default: return 'blue'
                                     }
                                 }
-                            }
+                            },
+                            { key: 'scanned_at', label: 'Scanned At', sortable: true}
                         ]}
                         disableEdit={true}
                         currentOrderBy={currentOrderBy}
