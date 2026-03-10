@@ -59,7 +59,7 @@ export default function SubmissionsPage({ submissions, currentOrderBy, currentSo
                                     }
                                 }
                             },
-                            { key: 'scanned_at', label: 'Scanned At', sortable: true}
+                            { key: 'scanned_at', label: 'Scanned At', sortable: true, nullLabel: 'Not Scanned' }
                         ]}
                         disableEdit={true}
                         currentOrderBy={currentOrderBy}

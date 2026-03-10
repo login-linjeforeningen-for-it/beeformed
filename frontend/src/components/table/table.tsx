@@ -12,6 +12,7 @@ type Column = {
     key: string
     label: string
     sortable?: boolean
+    nullLabel?: string
     highlightColor?: color |
         ((row: Record<string, unknown>) => color | undefined)
 }
@@ -235,7 +236,9 @@ export default function Table({
                                     : column.highlightColor
                                 return (
                                     <td key={column.key} className={`whitespace-nowrap ${color ? `text-${color}-500` : ''}`}>
-                                        {String(row[column.key])}
+                                        {row[column.key] == null
+                                            ? (column.nullLabel ?? '')
+                                            : String(row[column.key])}
                                     </td>
                                 )
                             })}
