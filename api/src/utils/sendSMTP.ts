@@ -10,7 +10,7 @@ type MailOptions = {
     html?: string
 }
 
-const retryDelays = [60 * 1000, 5 * 60 * 1000, 5 * 60 * 1000]
+const retryDelays = [60 * 1000, 5 * 60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000]
 
 const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
     host: config.SMTP_HOST,
