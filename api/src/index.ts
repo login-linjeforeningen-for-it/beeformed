@@ -6,6 +6,7 @@ import path from 'path'
 
 import getIndex from './handlers/index/getIndex.ts'
 import getFavicon from './handlers/favicon/getFavicon.ts'
+import { processEmailQueue } from './utils/sendSMTP.ts'
 
 const fastify = Fastify({
     logger: true
@@ -26,6 +27,7 @@ fastify.get('/favicon.ico', getFavicon)
 async function main() {
     try {
         await fastify.listen({ port, host: '0.0.0.0' })
+        await processEmailQueue()
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)

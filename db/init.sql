@@ -72,6 +72,18 @@ CREATE TABLE form_permissions (
     UNIQUE(form_id, user_id, "group")
 );
 
+-- Email queue
+CREATE TABLE email_queue (
+    id SERIAL PRIMARY KEY,
+    "to" TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    text TEXT NOT NULL,
+    html TEXT,
+    retry_count INTEGER DEFAULT 0,
+    last_attempted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX idx_forms_user_id ON forms(user_id);
 CREATE INDEX idx_form_fields_form_id ON form_fields(form_id);
