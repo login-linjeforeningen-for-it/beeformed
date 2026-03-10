@@ -45,7 +45,7 @@ CREATE TABLE form_fields (
 CREATE TABLE submissions (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     form_id INTEGER REFERENCES forms(id) ON DELETE CASCADE,
-    user_id TEXT REFERENCES users(user_id),
+    user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     status submission_status DEFAULT 'registered',
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     scanned_at TIMESTAMP
@@ -66,7 +66,7 @@ CREATE TABLE form_permissions (
     form_id INTEGER REFERENCES forms(id) ON DELETE CASCADE,
     user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     "group" TEXT,
-    granted_by TEXT REFERENCES users(user_id),
+    granted_by TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(form_id, user_id, "group")

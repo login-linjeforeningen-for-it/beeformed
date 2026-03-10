@@ -1,10 +1,10 @@
 import { PageContainer } from '@components/container/page'
-import { getUser, deleteUser } from '@utils/api'
-import Button from '@components/button/button'
+import { getUser } from '@utils/api'
 import { FilePlusIcon, Files, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { FormPopup } from '@components/form/popup'
 import { formatDateTime } from '@utils/dateTime'
+import Confirm from '@components/inputs/confirm'
 
 export default async function Page() {
 
@@ -46,15 +46,7 @@ export default async function Page() {
                         <p>{user.email}</p>
                         <p>Created {formatDateTime(user.created_at)}</p>
                     </div>
-                    <Button
-                        href='/api/logout'
-                        onAction={deleteUser}
-                        errorMessage='Failed to delete user'
-                        successMessage='User deleted successfully'
-                        className='mb-4 px-4 py-2 bg-red-800 rounded w-fit'
-                    >
-                        Delete User
-                    </Button>
+                    <Confirm />
                 </>
             ) : (
                 <div className='highlighted-section'>
