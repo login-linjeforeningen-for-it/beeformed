@@ -1,7 +1,7 @@
 services:
     beeformed:
         container_name: beeformed
-        image: beeformed_frontend
+        image: beeformed
         build:
             context: ./frontend
             dockerfile: Dockerfile
