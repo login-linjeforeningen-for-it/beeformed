@@ -17,6 +17,8 @@ export default function Navbar() {
             token={token}
             disableLanguageToggle={true}
             lang={undefined}
+            loginPath={config.authPath.login}
+            logoutPath={config.authPath.logout}
             theme={'dark'}
         >
             <NavItem

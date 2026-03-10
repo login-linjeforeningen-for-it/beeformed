@@ -18,7 +18,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "uibee": "^2.9.0",
+    "uibee": "^2.9.3",
     "utilbee": "^1.4.1"
   },
   "devDependencies": {

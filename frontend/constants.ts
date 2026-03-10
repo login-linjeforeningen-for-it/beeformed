@@ -16,11 +16,11 @@ const config = {
         discord: 'https://discord.gg/login-ntnu'
 
     },
-    auth: {
-        login: '/api/login',
-        redirect: '/api/callback',
-        token: '/api/token',
-        logout: '/api/logout',
+    authPath: {
+        login: '/api/auth/login',
+        callback: '/api/auth/callback',
+        token: '/api/auth/token',
+        logout: '/api/auth/logout',
     },
     authentik: {
         clientId: env.AUTH_CLIENT_ID,
