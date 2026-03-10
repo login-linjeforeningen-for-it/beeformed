@@ -9,7 +9,7 @@ const requiredEnvironmentVariables = [
     'DB_HOST',
     'DB_PASSWORD',
     'DB_PORT',
-    'NEXT_PUBLIC_BASE_URL'
+    'FRONTEND_URL'
 ]
 
 const smtpVariables = [
@@ -64,7 +64,7 @@ const config = {
     SMTP_PORT: Number(env.SMTP_PORT) || 465,
     SMTP_SECURE: env.SMTP_SECURE === 'true',
     SMTP_FROM: env.SMTP_FROM || '',
-    FRONTEND_URL: env.NEXT_PUBLIC_BASE_URL
+    FRONTEND_URL: env.FRONTEND_URL
 }
 
 export default config
