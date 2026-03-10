@@ -1,14 +1,14 @@
-FROM node:lts-alpine
+FROM oven/bun:alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json bun.lock ./
 
-RUN npm install
+RUN bun install --frozen-lockfile
 
 COPY . .
 
-RUN npm run build
+RUN bun run build
 
 EXPOSE 3000
 

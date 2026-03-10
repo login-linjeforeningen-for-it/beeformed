@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -47,7 +46,9 @@
       "@parent/*": [
         "./*"
       ]
-    }
+    },
+    "forceConsistentCasingInFileNames": true,
+    "types": ["bun"]
   },
   "include": [
     "next-env.d.ts",
