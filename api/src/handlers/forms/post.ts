@@ -15,6 +15,10 @@ export default async function createForm(req: FastifyRequest, res: FastifyReply)
         return res.status(400).send({ error: 'user_id, slug, title, published_at, and expires_at are required' })
     }
 
+    if (!/^[a-z0-9-_]+$/.test(body.slug)) {
+        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
+    }
+
     const publishedAt = new Date(body.published_at)
     const expiresAt = new Date(body.expires_at)
     if (isNaN(publishedAt.getTime()) || isNaN(expiresAt.getTime())) {

@@ -6,6 +6,7 @@ import { updateForm } from '@components/form/actions/form'
 import { postForm } from '@utils/api'
 import { Input, Switch, Textarea } from 'uibee/components'
 import { useRouter } from 'next/navigation'
+import { CalendarClock, FileText, Settings } from 'lucide-react'
 
 export default function EditFormPage({ form }: { form?: GetFormProps }) {
     const router = useRouter()
@@ -29,6 +30,12 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
         try {
             if (form) {
                 const formDataObj = new FormData(e.target as HTMLFormElement)
+                // Ensure slug is lowercase
+                const slug = formDataObj.get('slug')
+                if (slug && typeof slug === 'string') {
+                    formDataObj.set('slug', slug.toLowerCase())
+                }
+
                 const result = await updateForm(null, formDataObj)
 
                 if (typeof result === 'string') {
@@ -41,7 +48,7 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                 }
             } else {
                 const data = {
-                    slug: formData.slug,
+                    slug: formData.slug.toLowerCase(),
                     title: formData.title,
                     description: formData.description || null,
                     anonymous_submissions: formData.anonymous_submissions,
@@ -70,88 +77,119 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
 
     return (
         <div className='w-full max-w-2xl'>
-            <h2 className='text-xl font-semibold text-login-50 mb-6'>{form ? 'Edit Form Settings' : ''}</h2>
-
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className='space-y-8'>
                 {form && <input type='hidden' name='id' value={form.id} />}
-                <Input
-                    name='title'
-                    type='text'
-                    label='Title'
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    required
-                />
 
-                <Textarea
-                    name='description'
-                    label='Description'
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    rows={5}
-                />
+                <div className='space-y-4'>
+                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
+                        <FileText className='w-5 h-5 text-login-100' />
+                        <h3 className='font-medium text-lg'>General Details</h3>
+                    </div>
 
-                <Input
-                    name='slug'
-                    type='text'
-                    label='Slug (URL Identifier)'
-                    value={formData.slug}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    required
-                />
+                    <div className='space-y-4 pl-1'>
+                        <Input
+                            name='title'
+                            type='text'
+                            label='Title'
+                            value={formData.title}
+                            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                            required
+                        />
 
-                <Switch
-                    name='anonymous_submissions'
-                    label='Allow anonymous submissions'
-                    checked={formData.anonymous_submissions}
-                    onChange={(e) => setFormData(prev => ({ ...prev, anonymous_submissions: e.target.checked }))}
-                />
+                        <Textarea
+                            name='description'
+                            label='Description'
+                            value={formData.description}
+                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                            rows={5}
+                        />
 
-                {formData.anonymous_submissions !== true &&
-                    <Switch
-                        name='multiple_submissions'
-                        label='Allow multiple submissions per user'
-                        checked={formData.multiple_submissions}
-                        onChange={(e) => setFormData(prev => ({ ...prev, multiple_submissions: e.target.checked }))}
-                    />
-                }
+                        <Input
+                            name='slug'
+                            type='text'
+                            label='Slug (URL Identifier)'
+                            value={formData.slug}
+                            onChange={(e) => {
+                                const value = e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '')
+                                setFormData(prev => ({ ...prev, slug: value }))
+                            }}
+                            required
+                        />
+                    </div>
+                </div>
 
-                <Input
-                    name='limit'
-                    type='number'
-                    label='Submission limit'
-                    value={formData.limit}
-                    onChange={(e) => setFormData(prev => ({ ...prev, limit: e.target.value }))}
-                />
+                <div className='space-y-4'>
+                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
+                        <Settings className='w-5 h-5 text-login-100' />
+                        <h3 className='font-medium text-lg'>Configuration</h3>
+                    </div>
 
-                {formData.limit !== '' &&
-                    <Switch
-                        name='waitlist'
-                        label='Enable waitlist when full'
-                        checked={formData.waitlist}
-                        onChange={(e) => setFormData(prev => ({ ...prev, waitlist: e.target.checked }))}
-                    />
-                }
+                    <div className='space-y-4 pl-1'>
+                        <Switch
+                            name='anonymous_submissions'
+                            label='Allow anonymous submissions'
+                            checked={formData.anonymous_submissions}
+                            onChange={(e) => setFormData(prev => ({ ...prev, anonymous_submissions: e.target.checked }))}
+                        />
 
-                <Input
-                    name='published_at'
-                    type='datetime-local'
-                    label='Publish date'
-                    value={formData.published_at}
-                    onChange={(e) => setFormData(prev => ({ ...prev, published_at: e.target.value }))}
-                    required
-                />
+                        <Switch
+                            name='multiple_submissions'
+                            label='Allow multiple submissions per user'
+                            disabled={formData.anonymous_submissions}
+                            checked={formData.anonymous_submissions ? true : formData.multiple_submissions}
+                            onChange={(e) => setFormData(prev => ({ ...prev, multiple_submissions: e.target.checked }))}
+                        />
 
-                <Input
-                    name='expires_at'
-                    type='datetime-local'
-                    label='Expiration date'
-                    value={formData.expires_at}
-                    onChange={(e) => setFormData(prev => ({ ...prev, expires_at: e.target.value }))}
-                    required
-                />
+                        <div className='pt-2'>
+                            <Input
+                                name='limit'
+                                type='number'
+                                label='Submission limit'
+                                value={formData.limit}
+                                onChange={(e) => setFormData(prev => ({ ...prev, limit: e.target.value }))}
+                                placeholder='Unlimited'
+                            />
+                        </div>
 
-                <div className='flex space-x-3 pt-4'>
+                        <Switch
+                            name='waitlist'
+                            label='Enable waitlist when full'
+                            checked={formData.waitlist}
+                            disabled={formData.limit === '' || parseInt(formData.limit) <= 0}
+                            onChange={(e) => setFormData(prev => ({ ...prev, waitlist: e.target.checked }))}
+                        />
+
+                    </div>
+                </div>
+
+                <div className='space-y-4'>
+                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
+                        <CalendarClock className='w-5 h-5 text-login-100' />
+                        <h3 className='font-medium text-lg'>Availability</h3>
+                    </div>
+
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 pl-1'>
+                        <Input
+                            name='published_at'
+                            type='datetime-local'
+                            label='Publish date'
+                            value={formData.published_at}
+                            onChange={(e) => setFormData(prev => ({ ...prev, published_at: e.target.value }))}
+                            required
+                        />
+
+                        <Input
+                            name='expires_at'
+                            type='datetime-local'
+                            label='Expiration date'
+                            value={formData.expires_at}
+                            onChange={(e) => setFormData(prev => ({ ...prev, expires_at: e.target.value }))}
+                            required
+                        />
+                    </div>
+                </div>
+
+                <div className='flex space-x-3 pt-6 border-t border-login-800/30 mt-8'>
                     {!form && (
                         <button
                             type='button'
