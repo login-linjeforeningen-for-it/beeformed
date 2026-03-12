@@ -15,7 +15,8 @@ export default function Navbar() {
     return (
         <NavBar
             token={token}
-            disableLanguageToggle={true}
+            disableLanguageToggle
+            disableThemeToggle
             lang={undefined}
             loginPath={config.authPath.login}
             logoutPath={config.authPath.logout}
