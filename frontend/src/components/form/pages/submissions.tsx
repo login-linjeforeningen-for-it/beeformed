@@ -2,10 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Table, MenuButton } from 'uibee/components'
+import { Table, MenuButton, Pagination } from 'uibee/components'
 import { Eye } from 'lucide-react'
 import SearchInput from '@components/search/search'
-import Pagination from '@components/pagination/pagination'
 import { formatDateTime } from '@utils/dateTime'
 
 type SubmissionsPageProps = {
@@ -26,7 +25,7 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
     }))
 
     return (
-        <div className='pb-4 flex flex-col w-full h-full'>
+        <div className='flex flex-col w-full h-full'>
             <div className='flex justify-between mb-4'>
                 <SearchInput placeholder='Search submissions...' />
                 {formId && (
