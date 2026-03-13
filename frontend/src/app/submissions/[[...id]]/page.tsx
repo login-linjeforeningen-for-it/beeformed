@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import SearchInput from '@components/search/search'
 import { Pagination } from 'uibee/components'
 import FormRenderer from '@components/form/renderer'
-import SubmissionsTable from './SubmissionsTable'
+import SubmissionsTable from '../../../components/tables/submissions'
 import { formatDateTime } from '@utils/dateTime'
 
 export default async function Page(
