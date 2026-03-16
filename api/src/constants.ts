@@ -16,7 +16,8 @@ const smtpVariables = [
     'SMTP_HOST',
     'SMTP_PORT',
     'SMTP_SECURE',
-    'SMTP_FROM'
+    'SMTP_FROM',
+    'SMTP_NAME'
 ]
 
 const disableSMTP = process.env.DISABLE_SMTP === 'true'
@@ -61,6 +62,7 @@ const config = {
     CACHE_TTL: 1000,
     DISABLE_SMTP: disableSMTP,
     SMTP_HOST: env.SMTP_HOST,
+    SMTP_NAME: env.SMTP_NAME,
     SMTP_PORT: Number(env.SMTP_PORT) || 465,
     SMTP_SECURE: env.SMTP_SECURE === 'true',
     SMTP_FROM: env.SMTP_FROM || '',

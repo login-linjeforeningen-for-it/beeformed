@@ -13,6 +13,7 @@ type MailOptions = {
 const retryDelays = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 30 * 60 * 1000] // 1m, 5m, 15m, 30m
 
 const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
+    name: config.SMTP_NAME,
     host: config.SMTP_HOST,
     port: Number(config.SMTP_PORT),
     secure: config.SMTP_SECURE,
