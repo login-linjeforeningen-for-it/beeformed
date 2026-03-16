@@ -10,7 +10,7 @@ type MailOptions = {
     html?: string
 }
 
-const retryDelays = [60 * 1000, 5 * 60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000]
+const retryDelays = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 30 * 60 * 1000] // 1m, 5m, 15m, 30m
 
 const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
     host: config.SMTP_HOST,
@@ -74,7 +74,8 @@ async function retryFromQueue(id: number, mailOptions: MailOptions, retryIndex: 
         if (nextIndex < retryDelays.length) {
             setTimeout(() => retryFromQueue(id, mailOptions, nextIndex), retryDelays[nextIndex])
         } else {
-            console.error(`Queued email (id=${id}) exhausted all retries, kept in database for inspection`)
+            console.error(`Queued email (id=${id}) exhausted all retries, deleting from database`)
+            await run(`DELETE FROM email_queue WHERE id = $1`, [id])
         }
     }
 }
@@ -82,6 +83,8 @@ async function retryFromQueue(id: number, mailOptions: MailOptions, retryIndex: 
 export async function processEmailQueue(): Promise<void> {
     if (config.DISABLE_SMTP) return
     try {
+        await run(`DELETE FROM email_queue WHERE retry_count >= $1`, [retryDelays.length])
+
         const result = await run(
             `SELECT id, "to", subject, text, html, retry_count FROM email_queue WHERE retry_count < $1`,
             [retryDelays.length]
