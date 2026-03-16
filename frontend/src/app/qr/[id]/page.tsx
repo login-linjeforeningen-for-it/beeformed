@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { PageContainer } from '@/components/container/page'
-import Button from '@/components/button/button'
 import jsQR from 'jsqr'
-import { AlertCircle, Loader2, ScanLine, User, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { AlertCircle, Loader2, User, Clock, CheckCircle2, XCircle, RotateCcw, ScanQrCode } from 'lucide-react'
 import { scanSubmission } from '@/utils/api'
 import { useParams } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
+import { Button } from 'uibee/components'
 
 export default function Page() {
     const params = useParams()
@@ -172,11 +172,11 @@ export default function Page() {
                             </div>
                             <p className='text-sm text-login-200 mb-6'>{error}</p>
                             <Button
-                                onAction={() => { setError(null); setScannedData(null) }}
-                                className='bg-login-800 hover:bg-login-700 text-white px-6 py-2 rounded-lg text-sm'
-                            >
-                                Try Again
-                            </Button>
+                                text='Try Again'
+                                icon={<RotateCcw />}
+                                onClick={() => { setError(null); setScannedData(null) }}
+                                variant='secondary'
+                            />
                         </div>
                     )}
 
@@ -237,13 +237,11 @@ export default function Page() {
                             </div>
 
                             <Button
-                                onAction={handleContinue}
-                                className='w-full py-4 bg-login/90 hover:bg-login text-white font-bold rounded-xl
-                                active:scale-95 transition-all flex items-center justify-center gap-2'
-                            >
-                                <ScanLine className='w-4 h-4' />
-                                Scan Next
-                            </Button>
+                                text='Scan Next'
+                                icon={<ScanQrCode />}
+                                variant='primary'
+                                onClick={handleContinue}
+                            />
                         </div>
                     )}
                 </div>

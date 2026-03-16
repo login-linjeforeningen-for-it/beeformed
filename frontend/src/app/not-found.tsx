@@ -1,10 +1,10 @@
 'use client'
 
 import config from '@config'
-import Button from '@components/button/button'
 import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Button } from 'uibee/components'
 
 export default function NotFoundPage() {
     const router = useRouter()
@@ -19,18 +19,16 @@ export default function NotFoundPage() {
                     height={1200}
                 />
             </div>
-            <div className='block w-full mt-4 800px:w-fit 800px:m-auto 800px:text-left 800px:pr-4'>
+            <div className='flex flex-col gap-4 w-full mt-4 800px:w-fit 800px:m-auto 800px:text-left 800px:pr-4'>
                 <h1 className='text-[2rem]'>It's empty here...</h1>
-                <p className='p--regular'>
+                <p>
                     This site does not exist. This will not be fixed until TekKom gets more pizza...
                 </p>
                 <Button
-                    onAction={async () => { router.back(); return {} }}
-                    leadingIcon={<ArrowLeft className='' />}
-                    className='bg-login/90 w-fit py-1.5 px-2 my-4 rounded-md'
-                >
-                    Go back
-                </Button>
+                    text='Go back'
+                    onClick={async () => { router.back(); return {} }}
+                    icon={<ArrowLeft className='' />}
+                />
             </div>
         </div>
     )

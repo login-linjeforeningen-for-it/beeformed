@@ -1,7 +1,7 @@
 import { PageContainer } from '@components/container/page'
 import { getSubmission, getUserSubmissions, getPublicForm } from '@utils/api'
 import { notFound } from 'next/navigation'
-import SearchInput from '@components/search/search'
+import SearchInput from '@components/inputs/search'
 import { Pagination } from 'uibee/components'
 import FormRenderer from '@components/form/renderer'
 import SubmissionsTable from '../../../components/tables/submissions'

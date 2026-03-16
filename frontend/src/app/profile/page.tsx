@@ -3,7 +3,7 @@ import { getUser, getForms, getUserSubmissions } from '@utils/api'
 import { FilePlus, Files, FileText, User as UserIcon, Calendar, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { formatDateTime } from '@utils/dateTime'
-import Confirm from '@components/inputs/confirm'
+import Confirm from '@components/button/confirm'
 import React from 'react'
 
 export default async function Page() {

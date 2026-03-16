@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Table, MenuButton, Pagination } from 'uibee/components'
 import { Eye } from 'lucide-react'
-import SearchInput from '@components/search/search'
+import SearchInput from '@components/inputs/search'
 import { formatDateTime } from '@utils/dateTime'
 
 type SubmissionsPageProps = {
