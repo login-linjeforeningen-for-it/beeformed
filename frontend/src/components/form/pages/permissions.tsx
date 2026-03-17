@@ -92,7 +92,7 @@ export default function EditPermissionsPage({ permissions, formId }: { permissio
                         <p className='text-red-400 text-sm'>Email or Group, not both.</p>
                     )}
 
-                    <div className='flex space-x-3 pt-4'>
+                    <div className='flex flex-col sm:flex-row gap-3 pt-4'>
                         <button
                             type='submit'
                             disabled={loading || neitherFilled || bothFilled}

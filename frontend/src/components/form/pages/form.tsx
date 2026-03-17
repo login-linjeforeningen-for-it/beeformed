@@ -183,7 +183,7 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                     </div>
                 </div>
 
-                <div className='flex space-x-3 pt-6 border-t border-login-800/30 mt-8'>
+                <div className='flex flex-col sm:flex-row gap-3 pt-6 border-t border-login-800/30 mt-8'>
                     {!form && (
                         <button
                             type='button'

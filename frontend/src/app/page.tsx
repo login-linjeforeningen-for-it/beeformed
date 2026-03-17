@@ -12,7 +12,7 @@ export default async function Home() {
     }
 
     return (
-        <div className='w-full min-h-full flex items-center justify-center'>
+        <div className='w-full min-h-full flex items-start sm:items-center justify-center px-4 py-6 sm:py-10'>
             <LoginPage
                 title='Nettskjema'
                 redirectPath={config.authPath.login}

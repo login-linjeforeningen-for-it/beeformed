@@ -135,7 +135,7 @@ export default async function Page({ params, searchParams }: PageProps) {
                 <ShareButton slug={formData.slug} />
             </div>
             <div className='pt-6 pb-4 flex flex-col h-full'>
-                <div className='flex justify-between h-full'>
+                <div className='flex justify-between h-full min-w-0'>
                     {renderContent(data)}
                 </div>
             </div>
@@ -147,7 +147,7 @@ function LinkButton({ href, highlight, children }: { href: string, highlight: bo
     return (
         <Link
             href={href}
-            className={`px-4 py-2 rounded transition-colors ${highlight ?
+            className={`px-3 sm:px-4 py-2 rounded transition-colors text-sm sm:text-base ${highlight ?
                 'bg-login text-white' :
                 'bg-login-700 text-login-100 hover:bg-login-600'
             }`}

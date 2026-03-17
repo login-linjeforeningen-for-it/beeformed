@@ -65,16 +65,16 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
     const sortedFields = fields.sort((a, b) => a.field_order - b.field_order)
 
     return (
-        <div className='pt-20 pb-4 flex flex-col w-full h-full'>
-            <div className='flex justify-between mb-4 items-center'>
+        <div className='pt-8 md:pt-20 pb-4 flex flex-col w-full h-full'>
+            <div className='flex flex-col sm:flex-row justify-between mb-4 items-stretch sm:items-center gap-3'>
                 <Button
                     text='Back'
                     onClick={() => router.back()}
                     icon={<ArrowLeft className='size-5' />}
                     className='px-4 py-2 h-10.5'
                 />
-                <div className='flex gap-2 items-start'>
-                    <div className='w-48'>
+                <div className='flex flex-col sm:flex-row gap-2 items-stretch sm:items-start'>
+                    <div className='w-full sm:w-48'>
                         <Select
                             name='statusFilter'
                             placeholder='Select Status'
@@ -94,7 +94,7 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
                         text='Download CSV'
                         variant='secondary'
                         icon={<></>}
-                        className='px-4 py-2 h-10.5 bg-login-500/50! border-login-500!'
+                        className='px-4 py-2 h-10.5 bg-login-500/50! border-login-500! w-full sm:w-auto'
                     />
                 </div>
             </div>
@@ -106,7 +106,7 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
                     }).filter(val => val !== null && val !== '')
 
                     return (
-                        <div key={field.id} className='bg-login-700 p-6 rounded-lg border border-login-500'>
+                        <div key={field.id} className='bg-login-700 p-4 sm:p-6 rounded-lg border border-login-500'>
                             <div className='mb-4 border-b border-login-500 pb-2'>
                                 <h2 className='text-lg font-semibold text-login-50'>{field.title}</h2>
                                 {field.description && <p className='text-login-200 text-sm mt-1'>{field.description}</p>}

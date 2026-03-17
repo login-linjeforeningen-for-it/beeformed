@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <header className='fixed top-0 w-full h-fit z-50'>
                     <Navbar />
                 </header>
-                <main className='min-h-screen flex pt-22 w-full'>
+                <main className='min-h-screen flex pt-20 md:pt-22 w-full overflow-x-hidden'>
                     {children}
                 </main>
                 <Footer />

@@ -83,7 +83,7 @@ export default async function Page(
 
         return (
             <PageContainer title='My Submissions'>
-                <div className='pt-20 pb-4 flex flex-col h-full'>
+                <div className='pt-8 md:pt-20 pb-4 flex flex-col h-full'>
                     <div className='flex flex-1 flex-col min-h-0 overflow-hidden'>
                         <div className='flex justify-between mb-4'>
                             <SearchInput

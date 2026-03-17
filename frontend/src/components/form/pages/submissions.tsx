@@ -25,7 +25,7 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
 
     return (
         <div className='flex flex-col w-full h-full'>
-            <div className='flex justify-between mb-4'>
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4'>
                 <SearchInput
                     placeholder='Search submissions...'
                     variant='minimal'
@@ -33,7 +33,8 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
                 {formId && (
                     <Link
                         href={`/form/${formId}/all-submissions`}
-                        className='bg-login text-white px-4 py-2 rounded hover:bg-login-600 transition-colors ml-4 flex items-center'
+                        className='bg-login text-white px-4 py-2 rounded hover:bg-login-600
+                            transition-colors sm:ml-4 flex items-center justify-center'
                     >
                         View All
                     </Link>
