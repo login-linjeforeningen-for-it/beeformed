@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { Table, MenuButton } from 'uibee/components'
-import { Edit, Trash, Settings, Shield, List, QrCode, Share } from 'lucide-react'
+import { Edit, Trash, Settings, Shield, List, QrCode, Share, Copy } from 'lucide-react'
 import { toast } from 'uibee/components'
-import { deleteForm } from '@utils/api'
+import { deleteForm, duplicateForm } from '@utils/api'
 
 type FormsTableProps = {
     data: object[]
@@ -20,7 +20,25 @@ export default function FormsTable({ data, variant = 'minimal' }: FormsTableProp
         permissions: (id: string) => router.push(`/form/${id}/permissions`),
         submissions: (id: string) => router.push(`/form/${id}/submissions`),
         scanner: (id: string) => router.push(`/qr/${id}`),
-        delete: (id: string) => { deleteForm(id); router.refresh() },
+        delete: async (id: string) => {
+            try {
+                await deleteForm(id)
+                toast.success('Form deleted')
+                router.refresh()
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : 'Unable to delete form')
+            }
+        },
+        duplicate: async (id: string) => {
+            try {
+                const duplicated = await duplicateForm(id)
+                toast.success('Form duplicated')
+                router.push(`/form/${duplicated.id}`)
+                router.refresh()
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : 'Unable to duplicate form')
+            }
+        },
         share: (slug: string) => {
             const link = `${window.location.origin}/f/${slug}`
             navigator.clipboard.writeText(link)
@@ -70,6 +88,12 @@ export default function FormsTable({ data, variant = 'minimal' }: FormsTableProp
                         text='Scanner'
                         hotKey='Q'
                         onClick={() => actions.scanner(id)}
+                    />
+                    <MenuButton
+                        icon={<Copy />}
+                        text='Duplicate'
+                        hotKey='U'
+                        onClick={() => actions.duplicate(id)}
                     />
                     <MenuButton
                         icon={<Share />}

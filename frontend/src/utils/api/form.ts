@@ -44,3 +44,7 @@ export async function putForm(formId: number, data: PutFormProps) {
 export async function deleteForm(formId: string) {
     return apiRequest({ method: 'DELETE', path: `forms/${formId}` })
 }
+
+export async function duplicateForm(formId: string): Promise<{ id: number }> {
+    return apiRequest({ method: 'POST', path: `forms/${formId}/duplicate` })
+}

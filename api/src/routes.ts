@@ -19,7 +19,8 @@ import {
     getForm,
     getPublicForm,
     updateForm,
-    deleteForm
+    deleteForm,
+    duplicateForm
 } from './handlers/forms/index.ts'
 
 import {
@@ -63,6 +64,7 @@ export default async function apiRoutes(fastify: FastifyInstance) {
     fastify.get('/forms/:id/public', getPublicForm)
     fastify.put('/forms/:id', { preHandler: [authMiddleware, permissionMiddleware] }, updateForm)
     fastify.delete('/forms/:id', { preHandler: [authMiddleware, permissionMiddleware] }, deleteForm)
+    fastify.post('/forms/:id/duplicate', { preHandler: [authMiddleware, permissionMiddleware] }, duplicateForm)
 
     // Form Permissions
     fastify.get('/forms/:id/permissions', { preHandler: [authMiddleware, permissionMiddleware] }, getFormPermission)
