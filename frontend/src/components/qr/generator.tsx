@@ -19,6 +19,7 @@ export default function QRCodeGenerator({ data, size = 150 }: QRCodeGeneratorPro
             data,
             {
                 width: size,
+                margin: 5,
                 color: {
                     dark: '#000000',
                     light: '#FFFFFF'

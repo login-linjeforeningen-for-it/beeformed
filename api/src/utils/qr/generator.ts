@@ -12,7 +12,7 @@ export async function generateQRCodeImage({ data }: { data: string }): Promise<G
     try {
         const options = {
             errorCorrectionLevel: 'M' as const,
-            margin: 1,
+            margin: 5,
             width: 320,
             color: {
                 dark: '#000000',

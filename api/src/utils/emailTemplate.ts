@@ -223,8 +223,8 @@ function generateEmailHTML(content: EmailContent, qrCodeImageDataUrl?: string | 
 
                     ${qrCodeImageDataUrl ? `
                     <div class="qr-code" style="text-align: center; margin: 20px 0;">
-                        <div style="padding: 15px; display: inline-block; border-radius: 8px;">
-                            <img src="${qrCodeImageDataUrl}" alt="QR code" style="display:block;max-width:260px;width:100%;height:auto;" />
+                        <div style="padding: 15px; display: inline-block; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                            <img src="${qrCodeImageDataUrl}" alt="QR code (unblock to view)" style="display:block;max-width:260px;width:100%;height:auto;border-radius:8px;" />
                         </div>
                         ${submissionId ? `<p style="font-size: 12px; color: #5e5e5e; margin-top: 5px;">ID: ${submissionId}</p>` : ''}
                     </div>
