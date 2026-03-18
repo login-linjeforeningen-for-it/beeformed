@@ -1,11 +1,11 @@
-FROM node:lts-alpine
+FROM oven/bun:alpine
 
 WORKDIR /usr/src/app
 
-COPY package.json package-lock.json ./
+COPY package.json bun.lock ./
 
-RUN npm install
+RUN bun install --frozen-lockfile
 
 COPY . .
 
-CMD ["npm", "start"]
+CMD ["bun", "run", "start"]
