@@ -1,9 +1,9 @@
 {
   "name": "beeformed-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "dev": "tsx --watch src/index.ts",
+    "dev": "bun --watch src/index.ts",
     "start": "bun run src/index.ts"
   },
   "keywords": [],
@@ -16,7 +16,6 @@
     "nodemailer": "^8.0.2",
     "pg": "^8.20.0",
     "qrcode": "^1.5.4",
-    "tsx": "^4.21.0",
     "utilbee": "^1.4.1"
   },
   "devDependencies": {
