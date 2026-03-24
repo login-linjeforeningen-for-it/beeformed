@@ -20,6 +20,10 @@ const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
     port: Number(config.SMTP_PORT),
     secure: config.SMTP_SECURE,
     pool: true,
+    ...(config.SMTP_USER && config.SMTP_PASSWORD ? { auth: {
+        user: config.SMTP_USER,
+        pass: config.SMTP_PASSWORD
+    }} : {})
 })
 
 export default async function send({ to, subject, text, html, attachments }: MailOptions): Promise<string> {

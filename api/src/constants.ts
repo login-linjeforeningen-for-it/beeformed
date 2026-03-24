@@ -66,6 +66,8 @@ const config = {
     SMTP_PORT: Number(env.SMTP_PORT) || 465,
     SMTP_SECURE: env.SMTP_SECURE === 'true',
     SMTP_FROM: env.SMTP_FROM || '',
+    SMTP_USER: env.SMTP_USER || '',
+    SMTP_PASSWORD: env.SMTP_PASSWORD || '',
     FRONTEND_URL: env.FRONTEND_URL
 }
 
