@@ -250,7 +250,7 @@ function generateEmailHTML(content: EmailContent, qrCodeImageDataUrl?: string | 
                         <a href="${COMPANY_INFO.socialLinks.discord}">Discord</a> |
                         <a href="${COMPANY_INFO.socialLinks.github}">GitHub</a>
                     </p>
-                    <p>Denne e-posten ble sendt fra BeeFormed - vårt nettskjemasystem.</p>
+                    <p>Denne e-posten ble sendt fra BeeFormed - vårt skjemasystem.</p>
                 </div>
             </div>
         </body>
@@ -281,7 +281,7 @@ function generateEmailText(content: EmailContent): string {
     text += `Instagram: ${COMPANY_INFO.socialLinks.instagram}\n`
     text += `Discord: ${COMPANY_INFO.socialLinks.discord}\n`
     text += `GitHub: ${COMPANY_INFO.socialLinks.github}\n\n`
-    text += 'Denne e-posten ble sendt fra BeeFormed - vårt nettskjemasystem.\n'
+    text += 'Denne e-posten ble sendt fra BeeFormed - vårt skjemasystem.\n'
     text += `Hvis du har spørsmål, kontakt oss på ${COMPANY_INFO.email}`
 
     return text
