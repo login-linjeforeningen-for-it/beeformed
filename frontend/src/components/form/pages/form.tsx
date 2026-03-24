@@ -96,6 +96,7 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                             value={formData.description}
                             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                             rows={5}
+                            type='markdown'
                         />
 
                         <Input
