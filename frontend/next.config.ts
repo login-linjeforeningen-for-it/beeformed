@@ -4,6 +4,9 @@ import { envLoad } from 'utilbee'
 envLoad({ path: '../.env' })
 
 const nextConfig: NextConfig = {
+    experimental: {
+        authInterrupts: true,
+    },
     images: {
         remotePatterns: [
             {
