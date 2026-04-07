@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import jsQR from 'jsqr'
 import { AlertCircle, Loader2, User, Clock, CheckCircle2, XCircle, RotateCcw, ScanQrCode } from 'lucide-react'
-import { scanSubmission } from '@/utils/api'
+import { scanSubmission, searchSubmissions } from '@/utils/api'
 import { useParams } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
 import { Button, PageContainer } from 'uibee/components'
@@ -20,6 +20,10 @@ export default function Page() {
     const [submission, setSubmission] = useState<Submission | null>(null)
     const [loadingSubmission, setLoadingSubmission] = useState(false)
     const [isScanning, setIsScanning] = useState(false)
+    const [cameraError, setCameraError] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [searchResults, setSearchResults] = useState<GetSubmissionsProps['data']>([])
+    const [searching, setSearching] = useState(false)
     const animationFrameId = useRef<number | null>(null)
 
     const stopScan = useCallback(() => {
@@ -108,23 +112,25 @@ export default function Page() {
         } catch (err) {
             console.error('Error accessing camera:', err)
             setError('Could not access camera. Please ensure permissions are granted.')
+            setCameraError(true)
             setIsScanning(false)
         }
     }, [stopScan, fetchSubmission])
 
     useEffect(() => {
-        if (!scannedData) {
+        if (!scannedData && !cameraError) {
             startScan()
         }
         return () => {
             stopScan()
         }
-    }, [startScan, stopScan, scannedData])
+    }, [startScan, stopScan, scannedData, cameraError])
 
     function handleContinue() {
         setError(null)
         setScannedData(null)
         setSubmission(null)
+        setCameraError(false)
     }
 
     function getStatusColor(status: string) {
@@ -135,6 +141,48 @@ export default function Page() {
             case 'rejected': return 'text-red-500 bg-red-500/10'
             default: return 'text-login-200 bg-login-900'
         }
+    }
+
+    const handleSearch = useCallback(async () => {
+        if (!formId) {
+            setError('Invalid form ID')
+            return
+        }
+
+        const term = searchTerm.trim()
+        if (!term) {
+            setError('Type a name or email to search')
+            setSearchResults([])
+            return
+        }
+
+        setError(null)
+        setSearching(true)
+
+        try {
+            const result = await searchSubmissions(formId, term, 10)
+            setSearchResults(result.data || [])
+
+            if (!result.data || result.data.length === 0) {
+                setError('No matching submissions found')
+            }
+        } catch (err) {
+            console.error(err)
+            if (err instanceof Error) {
+                setError(err.message)
+            } else {
+                setError('Search failed')
+            }
+        } finally {
+            setSearching(false)
+        }
+    }, [formId, searchTerm])
+
+    async function handleSelectSubmission(submissionId: string) {
+        setError(null)
+        setSearchResults([])
+        setScannedData(submissionId)
+        await fetchSubmission(submissionId)
     }
 
     function getStatusIcon(status: string) {
@@ -180,7 +228,7 @@ export default function Page() {
                             <Button
                                 text='Try Again'
                                 icon={<RotateCcw />}
-                                onClick={() => { setError(null); setScannedData(null) }}
+                                onClick={() => { setError(null); setScannedData(null); setCameraError(false) }}
                                 variant='secondary'
                             />
                         </div>
@@ -252,10 +300,71 @@ export default function Page() {
                     )}
                 </div>
 
-                {!error && !scannedData && !loadingSubmission && (
-                    <p className='text-sm text-login-300 text-center animate-pulse'>
-                        Point your camera at a QR code
-                    </p>
+                {!scannedData && !loadingSubmission && (
+                    <div className='flex flex-col items-center gap-4 w-full'>
+                        <p className='text-sm text-login-300 text-center animate-pulse'>
+                            Point your camera at a QR code or search for a submission below
+                        </p>
+
+                        <div className='w-full'>
+                            <label className='text-xs uppercase tracking-[0.18em] text-login-500 mb-2 block'>
+                                Search by name or email
+                            </label>
+                            <div className='flex flex-col gap-2 sm:flex-row'>
+                                <input
+                                    type='text'
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault()
+                                            handleSearch()
+                                        }
+                                    }}
+                                    placeholder='Search submissions...'
+                                    className='flex-1 rounded-2xl border border-login-800 bg-login-950 px-4 py-3
+                                        text-login-50 outline-none focus:border-login focus:ring-2 focus:ring-login/30'
+                                />
+                                <button
+                                    type='button'
+                                    onClick={handleSearch}
+                                    disabled={searching}
+                                    className='w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-login text-sm
+                                        font-semibold text-white px-4 py-3 transition hover:bg-login/90 disabled:cursor-not-allowed
+                                        disabled:opacity-50 sm:w-auto'
+                                >
+                                    {searching ? 'Searching...' : 'Find'}
+                                </button>
+                            </div>
+
+                            {searchResults.length > 0 && (
+                                <div className='mt-4 space-y-2 max-h-96 overflow-y-auto w-full'>
+                                    {searchResults.map(result => (
+                                        <button
+                                            key={result.id}
+                                            type='button'
+                                            onClick={() => handleSelectSubmission(result.id)}
+                                            className='w-full rounded-2xl border border-login-800 bg-login-900 p-4 text-left transition
+                                                hover:border-login'
+                                        >
+                                            <div className='flex items-center justify-between gap-2'>
+                                                <div className='text-sm text-login-200'>
+                                                    <div className='font-semibold text-white'>{result.user_name || 'Anonymous'}</div>
+                                                    <div className='text-login-500'>{result.user_email || 'No email'}</div>
+                                                </div>
+                                                <span className='rounded-full bg-login-800 px-3 py-1 text-xs uppercase tracking-[0.18em]
+                                                    text-login-300'
+                                                >
+                                                    {result.status}
+                                                </span>
+                                            </div>
+                                            <div className='mt-2 text-xs text-login-500'>ID: {result.id}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
         </PageContainer>

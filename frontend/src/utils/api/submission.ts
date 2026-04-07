@@ -18,6 +18,13 @@ export async function getSubmissions(
     return apiRequest({ method: 'GET', path: `forms/${formId}/submissions?${queryParts.toString()}` })
 }
 
+export async function searchSubmissions(formId: string, search: string, limit = 10): Promise<GetSubmissionsProps> {
+    const queryParts = new URLSearchParams()
+    queryParts.append('search', search)
+    queryParts.append('limit', String(limit))
+    return apiRequest({ method: 'GET', path: `forms/${formId}/submissions?${queryParts.toString()}` })
+}
+
 export async function postSubmission(formId: string, data: PostSubmissionProps) {
     return apiRequest({ method: 'POST', path: `forms/${formId}/submissions`, data })
 }
