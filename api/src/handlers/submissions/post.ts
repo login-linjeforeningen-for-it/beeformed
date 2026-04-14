@@ -1,8 +1,38 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import run, { runInTransaction } from '#db'
+import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import config from '#constants'
+
+function isRequiredSwitchValue(value: unknown): boolean {
+    if (typeof value === 'boolean') return value
+    if (typeof value === 'number') return value === 1
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase()
+        return ['true', '1', 'yes', 'on'].includes(normalized)
+    }
+    return false
+}
+
+function hasRequiredFieldValue(field: { field_type: string; options: string[] | null }, value: unknown): boolean {
+    if (field.field_type === 'checkbox' && (!Array.isArray(field.options) || field.options.length === 0)) {
+        return isRequiredSwitchValue(value)
+    }
+
+    if (Array.isArray(value)) {
+        return value.some(item => String(item).trim().length > 0)
+    }
+
+    if (value === null || value === undefined) return false
+    return String(value).trim().length > 0
+}
+
+function serializeFieldValue(value: unknown): string | null {
+    if (value === null || value === undefined) return null
+    if (Array.isArray(value)) return value.map(item => String(item)).join(',')
+    if (typeof value === 'object') return JSON.stringify(value)
+    return String(value)
+}
 
 export default async function createSubmission(req: FastifyRequest, res: FastifyReply) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,6 +52,13 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
                 throw error
             }
             const form = formResult.rows[0]
+            const submissionFields = Array.isArray(body?.fields) ? body.fields : null
+
+            if (!submissionFields) {
+                const error = new Error('fields must be an array')
+                ;(error as any).statusCode = 400
+                throw error
+            }
 
             if (!form.anonymous_submissions && !req.user?.id) {
                 const error = new Error('Authentication required');
@@ -57,9 +94,52 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
             const submissionResult = await client.query(submissionSql, [formId, userId, status])
             const submissionId = submissionResult.rows[0].id
 
+            type FormFieldRow = { id: number; title: string; required: boolean; field_type: string; options: string[] | null }
+            const fieldsFromForm: FormFieldRow[] = Array.isArray(form.fields) ? form.fields : []
+            const formFieldById = new Map<number, FormFieldRow>()
+            for (const field of fieldsFromForm) {
+                formFieldById.set(Number(field.id), field)
+            }
+
+            const valuesByFieldId = new Map<number, unknown>()
+            for (const fieldInput of submissionFields) {
+                if (!fieldInput || typeof fieldInput !== 'object') {
+                    const error = new Error('Each submitted field must be an object')
+                    ;(error as any).statusCode = 400
+                    throw error
+                }
+
+                const fieldId = Number((fieldInput as { field_id?: unknown }).field_id)
+                if (!Number.isInteger(fieldId)) {
+                    const error = new Error('field_id must be an integer')
+                    ;(error as any).statusCode = 400
+                    throw error
+                }
+
+                const formField = formFieldById.get(fieldId)
+                if (!formField) {
+                    const error = new Error(`Field ${fieldId} does not belong to this form`)
+                    ;(error as any).statusCode = 400
+                    throw error
+                }
+
+                valuesByFieldId.set(fieldId, (fieldInput as { value?: unknown }).value)
+            }
+
+            const missingRequiredTitles = fieldsFromForm
+                .filter(field => field.required)
+                .filter(field => !hasRequiredFieldValue(field, valuesByFieldId.get(field.id)))
+                .map(field => field.title)
+
+            if (missingRequiredTitles.length > 0) {
+                const error = new Error(`Missing required fields: ${missingRequiredTitles.join(', ')}`)
+                ;(error as any).statusCode = 400
+                throw error
+            }
+
             const dataSql = await loadSQL('submissions/postData.sql')
-            for (const { field_id, value } of body.fields || []) {
-                await client.query(dataSql, [submissionId, field_id, value])
+            for (const [fieldId, value] of valuesByFieldId.entries()) {
+                await client.query(dataSql, [submissionId, fieldId, serializeFieldValue(value)])
             }
             
             return { submissionId, form, status }

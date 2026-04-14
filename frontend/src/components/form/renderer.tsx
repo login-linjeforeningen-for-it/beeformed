@@ -42,6 +42,31 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
     const showFields = ( !isFull || form.waitlist ) && ( !blockMultiple || submission )
     const router = useRouter()
 
+    function hasRequiredValue(field: FormField, rawValue: string | undefined): boolean {
+        if (!field.required) return true
+
+        const value = (rawValue ?? '').trim()
+
+        if (field.field_type === 'checkbox' && (!Array.isArray(field.options) || field.options.length === 0)) {
+            return value.toLowerCase() === 'true'
+        }
+
+        return value.length > 0
+    }
+
+    function validateRequiredFields(): string[] {
+        const missing: string[] = []
+
+        for (const field of form.fields) {
+            if (!field.required) continue
+            if (!hasRequiredValue(field, formData[field.id])) {
+                missing.push(field.title)
+            }
+        }
+
+        return missing
+    }
+
     const [formData, setFormData] = useState<Record<string, string>>(() => {
         if (submission) {
             const data: Record<string, string> = {}
@@ -60,6 +85,12 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         if (submission) return
+
+        const missingRequired = validateRequiredFields()
+        if (missingRequired.length > 0) {
+            toast.error(`Please fill required fields: ${missingRequired.join(', ')}`)
+            return
+        }
 
         setLoading(true)
 
