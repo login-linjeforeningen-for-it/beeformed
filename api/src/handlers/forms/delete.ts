@@ -7,7 +7,7 @@ export default async function deleteForm(req: FastifyRequest, res: FastifyReply)
     const params = req.params as any
     const { id } = params
 
-    if (!req.user?.groups || !req.user.groups.includes('QueenBee')) {
+    if (!req.user?.groups || !req.user.groups.includes('Aktiv')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 

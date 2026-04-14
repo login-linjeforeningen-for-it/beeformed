@@ -5,7 +5,7 @@ import { forbidden } from 'next/navigation'
 
 export default async function CreateFormPage() {
     const groups = (await cookies()).get('user_groups')?.value.split(',') || []
-    if (!groups.map((g: string) => g.toLowerCase()).includes('queenbee')) {
+    if (!groups.map((g: string) => g.toLowerCase()).includes('aktiv')) {
         return forbidden()
     }
 

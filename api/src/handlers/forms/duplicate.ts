@@ -29,7 +29,7 @@ export default async function duplicateForm(req: FastifyRequest, res: FastifyRep
     const sourceFormId = Number(params.id)
     const userId = req.user?.id
 
-    if (req.user?.groups && !req.user.groups.includes('QueenBee')) {
+    if (req.user?.groups && !req.user.groups.includes('Aktiv')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 

@@ -7,7 +7,7 @@ export default async function createForm(req: FastifyRequest, res: FastifyReply)
     const body = req.body as any
     const user_id = req.user!.id
 
-    if (req.user?.groups && !req.user.groups.includes('QueenBee')) {
+    if (req.user?.groups && !req.user.groups.includes('Aktiv')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 
