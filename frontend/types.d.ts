@@ -23,6 +23,37 @@ declare global {
         total: number
     }
 
+    type Template = Form & {
+        source_form_id?: number | null
+    }
+
+    type GetTemplateProps = Template & {
+        id: string
+        created_at: string
+        updated_at: string
+        creator_name?: string
+        creator_email?: string
+        fields?: {
+            id: string
+            field_type: string
+            title: string
+            description: string | null
+            required: boolean
+            options: string[] | null
+            validation: Record<string, any> | null
+            field_order: number
+        }[]
+    }
+
+    type GetTemplatesProps = {
+        data: GetTemplateProps[]
+        total: number
+    }
+
+    type PostTemplateProps = Template
+
+    type PutTemplateProps = Template
+
     type PostFormProps = Form
 
     type PutFormProps = Form
@@ -72,6 +103,16 @@ declare global {
         data: FieldProps
     }[]
 
+    type TemplateFieldProps = Omit<FieldProps, 'form_id'> & {
+        template_id: string
+    }
+
+    type PatchTemplateFieldsProps = {
+        operation: 'create' | 'update' | 'delete'
+        id?: number
+        data: TemplateFieldProps
+    }[]
+
     // Permissions
     type PermissionProps = {
         group: string | null
@@ -92,6 +133,19 @@ declare global {
     }
 
     type PostPermissionProps = PermissionProps
+
+    type GetTemplatePermissionProps = PermissionProps & {
+        id: string
+        template_id: string
+        granted_by_email: string
+        created_at: string
+        updated_at: string
+    }
+
+    type GetTemplatePermissionsProps = {
+        data: GetTemplatePermissionProps[]
+        total: number
+    }
 
     // Submissions
     type SubmissionProps = {

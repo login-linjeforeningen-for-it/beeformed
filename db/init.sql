@@ -72,6 +72,50 @@ CREATE TABLE form_permissions (
     UNIQUE(form_id, user_id, "group")
 );
 
+-- Form templates
+CREATE TABLE form_templates (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
+    source_form_id INTEGER REFERENCES forms(id) ON DELETE SET NULL,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    anonymous_submissions BOOLEAN DEFAULT FALSE,
+    "limit" INTEGER,
+    waitlist BOOLEAN DEFAULT FALSE,
+    multiple_submissions BOOLEAN DEFAULT FALSE,
+    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Template fields
+CREATE TABLE template_fields (
+    id SERIAL PRIMARY KEY,
+    template_id INTEGER REFERENCES form_templates(id) ON DELETE CASCADE,
+    field_type field_type_enum NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    required BOOLEAN DEFAULT FALSE,
+    options TEXT[],
+    validation JSONB,
+    field_order INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Template permissions
+CREATE TABLE template_permissions (
+    id SERIAL PRIMARY KEY,
+    template_id INTEGER REFERENCES form_templates(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
+    "group" TEXT,
+    granted_by TEXT REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(template_id, user_id, "group")
+);
+
 -- Email queue
 CREATE TABLE email_queue (
     id SERIAL PRIMARY KEY,
@@ -91,3 +135,8 @@ CREATE INDEX idx_submissions_form_id ON submissions(form_id);
 CREATE INDEX idx_submission_data_submission_id ON submission_data(submission_id);
 CREATE INDEX idx_form_permissions_form_id ON form_permissions(form_id);
 CREATE INDEX idx_form_permissions_user_id ON form_permissions(user_id);
+CREATE INDEX idx_form_templates_user_id ON form_templates(user_id);
+CREATE INDEX idx_form_templates_source_form_id ON form_templates(source_form_id);
+CREATE INDEX idx_template_fields_template_id ON template_fields(template_id);
+CREATE INDEX idx_template_permissions_template_id ON template_permissions(template_id);
+CREATE INDEX idx_template_permissions_user_id ON template_permissions(user_id);

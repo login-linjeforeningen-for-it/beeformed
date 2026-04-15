@@ -33,6 +33,11 @@ export default function Navbar() {
                 Forms
             </NavItem>
             <NavItem
+                href='/templates'
+            >
+                Templates
+            </NavItem>
+            <NavItem
                 href='/submissions'
             >
                 Submissions
