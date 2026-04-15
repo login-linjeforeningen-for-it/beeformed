@@ -26,15 +26,15 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
 
 export default async function createFormFromTemplate(req: FastifyRequest, res: FastifyReply) {
     const params = req.params as { id?: string }
-    const sourceTemplateId = Number(params.id)
+    const sourceTemplateId = params.id
     const userId = req.user?.id
 
     if (req.user?.groups && !req.user.groups.includes('QueenBee')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 
-    if (!params.id || Number.isNaN(sourceTemplateId)) {
-        return res.status(400).send({ error: 'Valid template id is required' })
+    if (!sourceTemplateId) {
+        return res.status(400).send({ error: 'Template id is required' })
     }
 
     if (!userId) {

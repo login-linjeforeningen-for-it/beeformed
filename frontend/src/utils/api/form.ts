@@ -33,11 +33,11 @@ export async function getPublicForm(formId: string): Promise<GetPublicFormProps>
     return apiRequest({ method: 'GET', path: `forms/${formId}/public` })
 }
 
-export async function postForm(data: PostFormProps): Promise<{id: number}> {
+export async function postForm(data: PostFormProps): Promise<{id: string}> {
     return apiRequest({ method: 'POST', path: 'forms', data })
 }
 
-export async function putForm(formId: number, data: PutFormProps) {
+export async function putForm(formId: string, data: PutFormProps) {
     return apiRequest({ method: 'PUT', path: `forms/${formId}`, data })
 }
 
@@ -45,6 +45,6 @@ export async function deleteForm(formId: string) {
     return apiRequest({ method: 'DELETE', path: `forms/${formId}` })
 }
 
-export async function duplicateForm(formId: string): Promise<{ id: number }> {
+export async function duplicateForm(formId: string): Promise<{ id: string }> {
     return apiRequest({ method: 'POST', path: `forms/${formId}/duplicate` })
 }

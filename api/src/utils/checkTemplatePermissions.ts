@@ -1,7 +1,7 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 
-export async function checkTemplatePermission(templateId: number, userId: string, groups: string[] = []): Promise<boolean> {
+export async function checkTemplatePermission(templateId: string, userId: string, groups: string[] = []): Promise<boolean> {
     try {
         const sql = await loadSQL('template-permissions/checkPermission.sql')
         const result = await run(sql, [templateId, userId, groups])

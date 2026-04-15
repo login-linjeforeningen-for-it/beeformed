@@ -40,7 +40,7 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
             }
 
             if (template?.id) {
-                await putTemplate(Number(template.id), data)
+                await putTemplate(template.id, data)
                 toast.success('Template updated successfully!')
                 router.refresh()
             } else {

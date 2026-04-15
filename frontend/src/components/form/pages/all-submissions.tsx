@@ -101,7 +101,7 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
             <div className='flex-1 overflow-y-auto space-y-6'>
                 {sortedFields.map(field => {
                     const answers = filteredSubmissions.map(s => {
-                        const answer = s.answers?.find(a => Number(a.field_id) === Number(field.id))
+                        const answer = s.answers?.find(a => a.field_id === field.id)
                         return answer ? answer.value : null
                     }).filter(val => val !== null && val !== '')
 

@@ -24,7 +24,7 @@ declare global {
     }
 
     type Template = Form & {
-        source_form_id?: number | null
+        source_form_id?: string | null
     }
 
     type GetTemplateProps = Template & {
@@ -59,7 +59,7 @@ declare global {
     type PutFormProps = Form
 
     type GetPublicFormProps = Form & {
-        id: number
+        id: string
         creator_email: string
         creator_name: string
         registered_count: string
@@ -99,7 +99,7 @@ declare global {
 
     type PatchFieldsProps = {
         operation: 'create' | 'update' | 'delete'
-        id?: number
+        id?: string
         data: FieldProps
     }[]
 
@@ -109,7 +109,7 @@ declare global {
 
     type PatchTemplateFieldsProps = {
         operation: 'create' | 'update' | 'delete'
-        id?: number
+        id?: string
         data: TemplateFieldProps
     }[]
 
@@ -149,13 +149,13 @@ declare global {
 
     // Submissions
     type SubmissionProps = {
-        field_id?: number | null
+        field_id?: string | null
         value?: string | null
     }
 
     type Submission = {
         id: string
-        form_id: number
+        form_id: string
         form_title: string
         user_email: string | null
         user_name: string | null
@@ -175,14 +175,14 @@ declare global {
             scanned_at: string | null
             expires_at: string
             submitted_at: string
-            answers?: { field_id: number; value: string }[]
+            answers?: { field_id: string; value: string }[]
         }[]
         total: number
         fields?: GetFieldsProps
     }
 
     type PostSubmissionProps = {
-        fields: { field_id: number; value: string }[]
+        fields: { field_id: string; value: string }[]
     }
 }
 

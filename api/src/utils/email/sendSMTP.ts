@@ -57,7 +57,7 @@ async function enqueueEmail(mailOptions: MailOptions): Promise<void> {
             `INSERT INTO email_queue ("to", subject, text, html) VALUES ($1, $2, $3, $4) RETURNING id`,
             [mailOptions.to, mailOptions.subject, mailOptions.text, mailOptions.html ?? null]
         )
-        const id: number = result.rows[0]?.id
+        const id: string = result.rows[0]?.id
         if (id) {
             setTimeout(() => retryFromQueue(id, mailOptions, 0), retryDelays[0])
         }
@@ -66,7 +66,7 @@ async function enqueueEmail(mailOptions: MailOptions): Promise<void> {
     }
 }
 
-async function retryFromQueue(id: number, mailOptions: MailOptions, retryIndex: number): Promise<void> {
+async function retryFromQueue(id: string, mailOptions: MailOptions, retryIndex: number): Promise<void> {
     try {
         await run(
             `UPDATE email_queue SET retry_count = $1, last_attempted_at = NOW() WHERE id = $2`,

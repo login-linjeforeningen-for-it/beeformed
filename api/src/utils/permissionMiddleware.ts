@@ -15,7 +15,7 @@ export default async function permissionMiddleware(req: FastifyRequest, res: Fas
         return res.status(400).send({ error: 'Missing form ID' })
     }
 
-    const hasPermission = await checkPermission(parseInt(id), userId, userGroups)
+    const hasPermission = await checkPermission(id, userId, userGroups)
 
     if (!hasPermission) {
         return res.status(403).send({ error: 'Forbidden' })

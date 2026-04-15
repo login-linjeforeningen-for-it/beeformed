@@ -12,7 +12,7 @@ CREATE TABLE users (
 
 -- Forms
 CREATE TABLE forms (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     slug TEXT UNIQUE NOT NULL,
     title TEXT NOT NULL,
@@ -29,8 +29,8 @@ CREATE TABLE forms (
 
 -- Form fields
 CREATE TABLE form_fields (
-    id SERIAL PRIMARY KEY,
-    form_id INTEGER REFERENCES forms(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    form_id UUID REFERENCES forms(id) ON DELETE CASCADE,
     field_type field_type_enum NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
@@ -44,7 +44,7 @@ CREATE TABLE form_fields (
 -- Form submissions
 CREATE TABLE submissions (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    form_id INTEGER REFERENCES forms(id) ON DELETE CASCADE,
+    form_id UUID REFERENCES forms(id) ON DELETE CASCADE,
     user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     status submission_status DEFAULT 'registered',
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -53,17 +53,17 @@ CREATE TABLE submissions (
 
 -- Submission data
 CREATE TABLE submission_data (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     submission_id UUID REFERENCES submissions(id) ON DELETE CASCADE,
-    field_id INTEGER REFERENCES form_fields(id) ON DELETE CASCADE,
+    field_id UUID REFERENCES form_fields(id) ON DELETE CASCADE,
     value TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Form permissions
 CREATE TABLE form_permissions (
-    id SERIAL PRIMARY KEY,
-    form_id INTEGER REFERENCES forms(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    form_id UUID REFERENCES forms(id) ON DELETE CASCADE,
     user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     "group" TEXT,
     granted_by TEXT REFERENCES users(user_id) ON DELETE CASCADE,
@@ -74,9 +74,9 @@ CREATE TABLE form_permissions (
 
 -- Form templates
 CREATE TABLE form_templates (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
-    source_form_id INTEGER REFERENCES forms(id) ON DELETE SET NULL,
+    source_form_id UUID REFERENCES forms(id) ON DELETE SET NULL,
     slug TEXT UNIQUE NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
@@ -92,8 +92,8 @@ CREATE TABLE form_templates (
 
 -- Template fields
 CREATE TABLE template_fields (
-    id SERIAL PRIMARY KEY,
-    template_id INTEGER REFERENCES form_templates(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    template_id UUID REFERENCES form_templates(id) ON DELETE CASCADE,
     field_type field_type_enum NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
@@ -106,8 +106,8 @@ CREATE TABLE template_fields (
 
 -- Template permissions
 CREATE TABLE template_permissions (
-    id SERIAL PRIMARY KEY,
-    template_id INTEGER REFERENCES form_templates(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    template_id UUID REFERENCES form_templates(id) ON DELETE CASCADE,
     user_id TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     "group" TEXT,
     granted_by TEXT REFERENCES users(user_id) ON DELETE CASCADE,
@@ -118,7 +118,7 @@ CREATE TABLE template_permissions (
 
 -- Email queue
 CREATE TABLE email_queue (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     "to" TEXT NOT NULL,
     subject TEXT NOT NULL,
     text TEXT NOT NULL,

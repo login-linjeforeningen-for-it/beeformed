@@ -4,9 +4,9 @@ import { loadSQL } from '#utils/sql.ts'
 
 interface BulkOperation {
     operation: 'create' | 'update' | 'delete'
-    id?: number
+    id?: string
     data?: Partial<{
-        form_id: number
+        form_id: string
         field_type: string
         title: string
         description?: string
@@ -32,7 +32,7 @@ export default async function bulkFormFields(req: FastifyRequest, res: FastifyRe
                 created: [] as any[],
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 updated: [] as any[],
-                deleted: [] as number[]
+                deleted: [] as string[]
             }
 
             // Handle deletes

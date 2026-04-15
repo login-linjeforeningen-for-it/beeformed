@@ -29,11 +29,11 @@ export async function getTemplate(templateId: string): Promise<GetTemplateProps>
     return apiRequest({ method: 'GET', path: `templates/${templateId}` })
 }
 
-export async function postTemplate(data: PostTemplateProps): Promise<{id: number}> {
+export async function postTemplate(data: PostTemplateProps): Promise<{id: string}> {
     return apiRequest({ method: 'POST', path: 'templates', data })
 }
 
-export async function putTemplate(templateId: number, data: PutTemplateProps) {
+export async function putTemplate(templateId: string, data: PutTemplateProps) {
     return apiRequest({ method: 'PUT', path: `templates/${templateId}`, data })
 }
 
@@ -41,11 +41,11 @@ export async function deleteTemplate(templateId: string) {
     return apiRequest({ method: 'DELETE', path: `templates/${templateId}` })
 }
 
-export async function createTemplateFromForm(formId: string): Promise<{ id: number }> {
+export async function createTemplateFromForm(formId: string): Promise<{ id: string }> {
     return apiRequest({ method: 'POST', path: `forms/${formId}/templates` })
 }
 
-export async function createFormFromTemplate(templateId: string): Promise<{ id: number }> {
+export async function createFormFromTemplate(templateId: string): Promise<{ id: string }> {
     return apiRequest({ method: 'POST', path: `templates/${templateId}/duplicate` })
 }
 

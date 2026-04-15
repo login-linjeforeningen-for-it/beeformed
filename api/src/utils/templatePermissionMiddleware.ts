@@ -15,7 +15,7 @@ export default async function templatePermissionMiddleware(req: FastifyRequest, 
         return res.status(400).send({ error: 'Missing template ID' })
     }
 
-    const hasPermission = await checkTemplatePermission(parseInt(id), userId, userGroups)
+    const hasPermission = await checkTemplatePermission(id, userId, userGroups)
 
     if (!hasPermission) {
         return res.status(403).send({ error: 'Forbidden' })

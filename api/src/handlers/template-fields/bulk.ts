@@ -4,9 +4,9 @@ import { loadSQL } from '#utils/sql.ts'
 
 interface BulkOperation {
     operation: 'create' | 'update' | 'delete'
-    id?: number
+    id?: string
     data?: Partial<{
-        template_id: number
+        template_id: string
         field_type: string
         title: string
         description?: string
@@ -29,7 +29,7 @@ export default async function bulkTemplateFields(req: FastifyRequest, res: Fasti
             const results = {
                 created: [] as unknown[],
                 updated: [] as unknown[],
-                deleted: [] as number[]
+                deleted: [] as string[]
             }
 
             for (const op of operations.filter(op => op.operation === 'delete')) {

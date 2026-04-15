@@ -5,8 +5,7 @@ import {
     getRequiredString,
     getOptionalString,
     getRequiredNumber,
-    getBoolean,
-    getOptionalNumber
+    getBoolean
 } from '@utils/validate'
 
 type FormState =
@@ -49,7 +48,7 @@ export async function updateFields(_: FieldsState, formData: FormData): Promise<
 
         for (const index of fieldIndices) {
             const operation = getRequiredString(formData, `field_${index}_operation`)
-            const id = getOptionalNumber(formData, `field_${index}_id`) ?? undefined
+            const id = getOptionalString(formData, `field_${index}_id`) ?? undefined
 
             if (operation === 'delete') {
                 fields.push({

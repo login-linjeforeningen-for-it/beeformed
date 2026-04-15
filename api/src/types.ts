@@ -11,7 +11,7 @@ declare global {
     }
 
     interface Form {
-        id: number
+        id: string
         user_id: string
         slug: string
         title: string
@@ -26,8 +26,8 @@ declare global {
     }
 
     interface FormField {
-        id: number
-        form_id: number
+        id: string
+        form_id: string
         field_type: string
         label: string
         placeholder?: string
@@ -40,8 +40,8 @@ declare global {
     }
 
     interface FormPermission {
-        id: number
-        form_id: number
+        id: string
+        form_id: string
         user_id: string
         group?: string
         permission_type: string
@@ -52,10 +52,10 @@ declare global {
 
     interface Submission {
         id: string
-        form_id: number
+        form_id: string
         user_id?: string
         submitted_at: Date
         // field_id/value can be NULL in db, reflect that in types
-        data?: { field_id: number | null; value: string | null }[]
+        data?: { field_id: string | null; value: string | null }[]
     }
 }

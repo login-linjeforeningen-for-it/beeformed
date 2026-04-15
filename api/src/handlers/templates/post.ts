@@ -4,7 +4,7 @@ import { loadSQL } from '#utils/sql.ts'
 
 export default async function createTemplate(req: FastifyRequest, res: FastifyReply) {
     const body = req.body as {
-        source_form_id?: number | null
+        source_form_id?: string | null
         slug?: string
         title?: string
         description?: string | null

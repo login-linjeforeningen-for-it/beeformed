@@ -105,7 +105,7 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                     if (field.id) {
                         operations.push({
                             operation: 'delete',
-                            id: Number(field.id),
+                            id: field.id,
                             data: {} as TemplateFieldProps
                         })
                     }
@@ -126,7 +126,7 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                 if (field.id) {
                     operations.push({
                         operation: 'update',
-                        id: Number(field.id),
+                        id: field.id,
                         data
                     })
                 } else {

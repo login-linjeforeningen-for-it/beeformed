@@ -96,11 +96,11 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
 
         try {
             const fields = form.fields.map(field => ({
-                field_id: parseInt(field.id),
+                field_id: field.id,
                 value: formData[field.id] || ''
             }))
 
-            const result = await postSubmission(form.id, { fields }) as { id: string | number }
+            const result = await postSubmission(form.id, { fields }) as { id: string }
 
             toast.success('Form submitted successfully!')
             setFormData({})

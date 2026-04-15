@@ -5,7 +5,7 @@ import { checkPermission } from '#utils/checkPermissions.ts'
 
 export default async function scanSubmission(req: FastifyRequest, res: FastifyReply) {
     const { id } = req.params as { id: string }
-    const { form_id } = req.body as { form_id: number }
+    const { form_id } = req.body as { form_id: string }
     const userId = req.user!.id
 
     if (!id) {
@@ -26,7 +26,7 @@ export default async function scanSubmission(req: FastifyRequest, res: FastifyRe
 
         const submission = subRes.rows[0]
 
-        if (submission.form_id !== Number(form_id)) {
+        if (submission.form_id !== form_id) {
             return res.status(400).send({ error: 'This submission belongs to a different form' })
         }
 

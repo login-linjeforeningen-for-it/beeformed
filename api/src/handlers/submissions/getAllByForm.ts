@@ -16,7 +16,7 @@ export default async function getSubmissionsByForm(req: FastifyRequest, res: Fas
     }
 
     try {
-        const hasPermission = await checkPermission(parseInt(formId), userId, req.user!.groups || [])
+        const hasPermission = await checkPermission(formId, userId, req.user!.groups || [])
         if (!hasPermission) {
             return res.status(403).send({ error: 'Forbidden' })
         }

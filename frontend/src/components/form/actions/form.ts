@@ -5,7 +5,6 @@ import {
     getRequiredString,
     getOptionalString,
     getOptionalNumber,
-    getRequiredNumber,
     getBoolean,
     getRequiredDateTime
 } from '@utils/validate'
@@ -36,7 +35,7 @@ export async function updateForm(_: PutFormState, formData: FormData): Promise<P
     try {
         const props = extractFormProps(formData)
 
-        const id = getRequiredNumber(formData, 'id')
+        const id = getRequiredString(formData, 'id')
 
         await putForm(id, props)
         return null

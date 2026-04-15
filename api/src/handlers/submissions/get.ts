@@ -13,7 +13,7 @@ export default async function getSubmission(req: FastifyRequest, res: FastifyRep
 
     try {
         const sql = await loadSQL('submissions/get.sql')
-        const result = await run(sql, [id, userId, formId ? parseInt(formId) : null])
+        const result = await run(sql, [id, userId, formId || null])
         const entity = result.rows.length > 0 ? result.rows[0] : null
         
         if (!entity && formId) {

@@ -94,14 +94,14 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
             const submissionResult = await client.query(submissionSql, [formId, userId, status])
             const submissionId = submissionResult.rows[0].id
 
-            type FormFieldRow = { id: number; title: string; required: boolean; field_type: string; options: string[] | null }
+            type FormFieldRow = { id: string; title: string; required: boolean; field_type: string; options: string[] | null }
             const fieldsFromForm: FormFieldRow[] = Array.isArray(form.fields) ? form.fields : []
-            const formFieldById = new Map<number, FormFieldRow>()
+            const formFieldById = new Map<string, FormFieldRow>()
             for (const field of fieldsFromForm) {
-                formFieldById.set(Number(field.id), field)
+                formFieldById.set(field.id, field)
             }
 
-            const valuesByFieldId = new Map<number, unknown>()
+            const valuesByFieldId = new Map<string, unknown>()
             for (const fieldInput of submissionFields) {
                 if (!fieldInput || typeof fieldInput !== 'object') {
                     const error = new Error('Each submitted field must be an object')
@@ -109,9 +109,10 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
                     throw error
                 }
 
-                const fieldId = Number((fieldInput as { field_id?: unknown }).field_id)
-                if (!Number.isInteger(fieldId)) {
-                    const error = new Error('field_id must be an integer')
+                const fieldIdRaw = (fieldInput as { field_id?: unknown }).field_id
+                const fieldId = typeof fieldIdRaw === 'string' ? fieldIdRaw.trim() : ''
+                if (!fieldId) {
+                    const error = new Error('field_id must be a non-empty string')
                     ;(error as any).statusCode = 400
                     throw error
                 }
