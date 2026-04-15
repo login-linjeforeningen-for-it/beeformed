@@ -1,6 +1,8 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { buildFilteredQuery } from '#utils/sql.ts'
+import { buildListResponse } from '#utils/http/listResponse.ts'
+import { isInvalidOrderByError, sendInternalServerError } from '#utils/http/errors.ts'
 
 export default async function getSharedForms(req: FastifyRequest, res: FastifyReply) {
     const query = req.query as {
@@ -15,15 +17,11 @@ export default async function getSharedForms(req: FastifyRequest, res: FastifyRe
         const { sql, params } = await buildFilteredQuery('forms/getShared.sql', [req.user!.id, req.user!.groups], query, 'f')
 
         const result = await run(sql, params)
-        const data = result.rows
-        const total = data.length > 0 ? (data[0] as Record<string, unknown>).total_count as number : 0
-
-        res.send({ data, total })
+        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
     } catch (error) {
-        if (error instanceof Error && error.message === 'Invalid order_by parameter') {
+        if (isInvalidOrderByError(error)) {
             return res.status(400).send({ error: error.message })
         }
-        console.error('Error getting shared forms:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error getting shared forms:', error)
     }
 }

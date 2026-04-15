@@ -3,9 +3,9 @@ import type { FastifyInstance } from 'fastify'
 import getIndex from './handlers/index/getIndex.ts'
 import getPing from './handlers/ping/get.ts'
 
-import authMiddleware from './utils/authMiddleware.ts'
-import permissionMiddleware from './utils/permissionMiddleware.ts'
-import templatePermissionMiddleware from './utils/templatePermissionMiddleware.ts'
+import authMiddleware from './utils/auth/authMiddleware.ts'
+import permissionMiddleware from './utils/permissions/permissionMiddleware.ts'
+import templatePermissionMiddleware from './utils/permissions/templatePermissionMiddleware.ts'
 
 import {
     createUser,

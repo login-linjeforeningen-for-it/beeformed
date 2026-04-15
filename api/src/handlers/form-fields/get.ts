@@ -1,22 +1,18 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
+import { requireRouteParam } from '#utils/http/request.ts'
 
 export default async function getFormFields(req: FastifyRequest, res: FastifyReply) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = req.params as any
-    const { id } = params
-
-    if (!id) {
-        return res.status(400).send({ error: 'id is required' })
-    }
+    const id = requireRouteParam(req, res, { error: 'id is required' })
+    if (!id) return
 
     try {
         const sql = await loadSQL('form-fields/get.sql')
         const result = await run(sql, [id])
         res.send(result.rows)
     } catch (error) {
-        console.error('Error reading entity:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error reading entity:', error)
     }
 }

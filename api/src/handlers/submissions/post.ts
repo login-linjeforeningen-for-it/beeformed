@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import config from '#constants'
+import { sendInternalServerError } from '#utils/http/errors.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
     if (typeof value === 'boolean') return value
@@ -154,14 +154,14 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
                     title: form.title,
                     status: status,
                     ownerEmail: form.creator_email,
-                    actionUrl: `${config.FRONTEND_URL}/submissions/${submissionId}`,
+                    actionUrl: `${req.server.appConfig.FRONTEND_URL}/submissions/${submissionId}`,
                     actionText: 'View Submission',
                     submissionId: submissionId
 
                 })
             }
         } catch (emailError) {
-            console.error('Error sending confirmation email:', emailError)
+            req.log.error({ err: emailError }, 'Error sending confirmation email')
         }
 
         res.status(201).send({ id: submissionId })
@@ -169,7 +169,6 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
         if (error.statusCode) {
             return res.status(error.statusCode).send({ error: error.message })
         }
-        console.error('Error creating submission:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error creating submission:', error)
     }
 }

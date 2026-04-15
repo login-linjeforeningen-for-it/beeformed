@@ -50,6 +50,7 @@ if (!disableSMTP) {
 }
 
 const config = {
+    PORT: Number(process.env.PORT) || 8080,
     USERINFO_URL: `${env.AUTH_URL}/application/o/userinfo/`,
     DB: env.DB,
     DB_USER: env.DB_USER,

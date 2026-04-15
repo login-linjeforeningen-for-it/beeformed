@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
 
 interface BulkOperation {
     operation: 'create' | 'update' | 'delete'
@@ -101,7 +102,6 @@ export default async function bulkTemplateFields(req: FastifyRequest, res: Fasti
 
         res.status(200).send(results)
     } catch (error) {
-        console.error('Error in bulk save:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error in bulk save:', error)
     }
 }

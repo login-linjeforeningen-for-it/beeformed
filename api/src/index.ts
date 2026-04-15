@@ -1,9 +1,9 @@
 import cors from '@fastify/cors'
 import Fastify from 'fastify'
-import apiRoutes from './routes.ts'
 import fs from 'fs'
 import path from 'path'
-
+import config from '#constants'
+import apiRoutes from './routes.ts'
 import getIndex from './handlers/index/getIndex.ts'
 import getFavicon from './handlers/favicon/getFavicon.ts'
 import { processEmailQueue } from './utils/email/sendSMTP.ts'
@@ -17,12 +17,13 @@ fastify.register(cors, {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD']
 })
 
-const port = Number(process.env.PORT) || 8080
-
+fastify.decorate('appConfig', config)
 fastify.decorate('favicon', fs.readFileSync(path.join(process.cwd(), 'public', 'favicon.ico')))
 fastify.register(apiRoutes, { prefix: '/api' })
 fastify.get('/', getIndex)
 fastify.get('/favicon.ico', getFavicon)
+
+const port = config.PORT
 
 async function main() {
     try {

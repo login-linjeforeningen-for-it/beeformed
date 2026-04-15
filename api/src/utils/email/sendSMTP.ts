@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer'
 import { createEmailTemplate, type EmailContent } from '#utils/email/emailTemplate.ts'
 import run from '#db'
 import type Mail from 'nodemailer/lib/mailer/index.js'
+import { logUtilityError } from '#utils/http/errors.ts'
 
 type MailOptions = {
     to: string
@@ -62,7 +63,7 @@ async function enqueueEmail(mailOptions: MailOptions): Promise<void> {
             setTimeout(() => retryFromQueue(id, mailOptions, 0), retryDelays[0])
         }
     } catch (err) {
-        console.error('Failed to queue email in database:', err)
+        logUtilityError('Failed to queue email in database:', err)
     }
 }
 
@@ -76,12 +77,12 @@ async function retryFromQueue(id: string, mailOptions: MailOptions, retryIndex: 
         await run(`DELETE FROM email_queue WHERE id = $1`, [id])
         console.log(`Queued email (id=${id}) sent successfully on retry ${retryIndex + 1}`)
     } catch (error) {
-        console.error(`Retry ${retryIndex + 1} failed for queued email (id=${id}):`, error)
+        logUtilityError(`Retry ${retryIndex + 1} failed for queued email (id=${id}):`, error)
         const nextIndex = retryIndex + 1
         if (nextIndex < retryDelays.length) {
             setTimeout(() => retryFromQueue(id, mailOptions, nextIndex), retryDelays[nextIndex])
         } else {
-            console.error(`Queued email (id=${id}) exhausted all retries, deleting from database`)
+            logUtilityError(`Queued email (id=${id}) exhausted all retries, deleting from database`)
             await run(`DELETE FROM email_queue WHERE id = $1`, [id])
         }
     }
@@ -108,7 +109,7 @@ export async function processEmailQueue(): Promise<void> {
             retryFromQueue(row.id, mailOptions, row.retry_count)
         }
     } catch (err) {
-        console.error('Failed to process email queue from database:', err)
+        logUtilityError('Failed to process email queue from database:', err)
     }
 }
 

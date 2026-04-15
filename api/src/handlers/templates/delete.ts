@@ -1,17 +1,16 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
+import { hasRequiredGroup } from '#utils/validation/validators.ts'
+import { requireRouteParam } from '#utils/http/request.ts'
 
 export default async function deleteTemplate(req: FastifyRequest, res: FastifyReply) {
-    const params = req.params as { id?: string }
-    const { id } = params
+    const id = requireRouteParam(req, res, { error: 'id is required' })
+    if (!id) return
 
-    if (!req.user?.groups || !req.user.groups.includes('QueenBee')) {
+    if (!hasRequiredGroup(req.user?.groups, 'QueenBee')) {
         return res.status(403).send({ error: 'Forbidden' })
-    }
-
-    if (!id) {
-        return res.status(400).send({ error: 'id is required' })
     }
 
     try {
@@ -24,7 +23,6 @@ export default async function deleteTemplate(req: FastifyRequest, res: FastifyRe
 
         res.status(204).send()
     } catch (error) {
-        console.error('Error deleting entity:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error deleting entity:', error)
     }
 }

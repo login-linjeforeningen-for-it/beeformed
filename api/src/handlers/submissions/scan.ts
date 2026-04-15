@@ -1,16 +1,15 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { checkPermission } from '#utils/checkPermissions.ts'
+import { checkPermission } from '#utils/permissions/checkPermissions.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
+import { requireRouteParam } from '#utils/http/request.ts'
 
 export default async function scanSubmission(req: FastifyRequest, res: FastifyReply) {
-    const { id } = req.params as { id: string }
+    const id = requireRouteParam(req, res, { error: 'id is required' })
+    if (!id) return
     const { form_id } = req.body as { form_id: string }
     const userId = req.user!.id
-
-    if (!id) {
-        return res.status(400).send({ error: 'id is required' })
-    }
 
     if (!form_id) {
         return res.status(400).send({ error: 'form_id is required' })
@@ -54,7 +53,6 @@ export default async function scanSubmission(req: FastifyRequest, res: FastifyRe
         })
 
     } catch (error) {
-        console.error('Error scanning submission:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error scanning submission:', error)
     }
 }

@@ -1,21 +1,22 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import checkToken from '#utils/checkToken.ts'
+import checkToken from '#utils/auth/checkToken.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
+import { requireRouteParam } from '#utils/http/request.ts'
 
 export default async function getPublicForm(req: FastifyRequest, res: FastifyReply) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = req.params as any
-    const { id } = params
-
-    if (!id) {
-        return res.status(400).send({ error: 'id is required' })
-    }
+    const id = requireRouteParam(req, res, { error: 'id is required' })
+    if (!id) return
 
     let userId: string | null = null
-    const authHeader = req.headers['authorization']
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const authHeaderRaw = req.headers['authorization']
+    const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
+    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
         const tokenResult = await checkToken(req, res)
+        if (tokenResult.error === 'Internal server error') {
+            return res.status(500).send({ error: 'Internal server error' })
+        }
         if (res.sent) return
         if (tokenResult.valid && tokenResult.userInfo) {
             userId = tokenResult.userInfo.sub
@@ -28,7 +29,6 @@ export default async function getPublicForm(req: FastifyRequest, res: FastifyRep
         const entity = result.rows.length > 0 ? result.rows[0] : null
         res.send(entity)
     } catch (error) {
-        console.error('Error reading entity:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error reading entity:', error)
     }
 }

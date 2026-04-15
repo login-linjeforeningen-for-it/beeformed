@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import config from '#constants'
+import { sendInternalServerError } from '#utils/http/errors.ts'
 
 export default async function deleteSubmission(req: FastifyRequest, res: FastifyReply) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +39,7 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
                 title: submission.form_title,
                 status: isOwner ? 'cancelled' : 'rejected',
                 ownerEmail: submission.form_owner_email,
-                actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
+                actionUrl: `${req.server.appConfig.FRONTEND_URL}/f/${submission.form_slug}`,
                 actionText: 'View Form',
                 submissionId: submission.id
             })
@@ -65,7 +65,7 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
                             title: submission.form_title,
                             status: 'bumped',
                             ownerEmail: submission.form_owner_email,
-                            actionUrl: `${config.FRONTEND_URL}/submissions/${nextPerson.id}`,
+                            actionUrl: `${req.server.appConfig.FRONTEND_URL}/submissions/${nextPerson.id}`,
                             actionText: 'View Submission',
                             submissionId: nextPerson.id
                         })
@@ -80,7 +80,6 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
         res.send({ success: true, message: 'Submission cancelled' })
 
     } catch (error) {
-        console.error('Error deleting submission:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error deleting submission:', error)
     }
 }

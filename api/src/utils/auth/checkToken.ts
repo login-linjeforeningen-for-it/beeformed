@@ -1,7 +1,4 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import config from '#constants'
-
-const { USERINFO_URL } = config
 
 type CheckTokenResponse = {
     valid: boolean
@@ -15,9 +12,11 @@ type CheckTokenResponse = {
 }
 
 export default async function checkToken( req: FastifyRequest, res: FastifyReply ): Promise<CheckTokenResponse> {
-    const authHeader = req.headers['authorization']
+    const { USERINFO_URL } = req.server.appConfig
+    const authHeaderRaw = req.headers['authorization']
+    const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
         return {
             valid: false,
             error: 'Missing or invalid Authorization header'
@@ -48,9 +47,9 @@ export default async function checkToken( req: FastifyRequest, res: FastifyReply
         }
     } catch (err) {
         res.log.error(err)
-        return res.status(500).send({
+        return {
             valid: false,
             error: 'Internal server error'
-        })
+        }
     }
 }

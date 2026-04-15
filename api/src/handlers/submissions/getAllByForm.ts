@@ -1,7 +1,9 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
-import { checkPermission } from '#utils/checkPermissions.ts'
+import { checkPermission } from '#utils/permissions/checkPermissions.ts'
 import { loadSQL, buildFilteredQuery } from '#utils/sql.ts'
+import { buildListResponse } from '#utils/http/listResponse.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
 
 export default async function getSubmissionsByForm(req: FastifyRequest, res: FastifyReply) {
     const { id: formId } = req.params as { id: string }
@@ -49,18 +51,19 @@ export default async function getSubmissionsByForm(req: FastifyRequest, res: Fas
             }
         )
         const result = await run(sql, params)
-        const data = result.rows
-        const total = data.length > 0 ? (data[0] as Record<string, unknown>).total_count as number : 0
+        const responseBody = buildListResponse(result.rows as Record<string, unknown>[])
 
         if (query.include_answers === 'true') {
             const fieldsSql = await loadSQL('form-fields/get.sql')
             const fieldsResult = await run(fieldsSql, [formId])
-            return res.send({ data, total, fields: fieldsResult.rows })
+            return res.send({
+                ...responseBody,
+                fields: fieldsResult.rows
+            })
         }
 
-        res.send({ data, total })
+        return res.send(responseBody)
     } catch (error) {
-        console.error('Error getting submissions:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error getting submissions:', error)
     }
 }

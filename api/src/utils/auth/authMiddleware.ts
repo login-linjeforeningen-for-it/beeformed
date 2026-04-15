@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import checkToken from '#utils/checkToken.ts'
+import checkToken from '#utils/auth/checkToken.ts'
 
 declare module 'fastify' {
     interface FastifyRequest {
@@ -14,8 +14,15 @@ declare module 'fastify' {
 
 export default async function authMiddleware(req: FastifyRequest, res: FastifyReply) {
     const tokenResult = await checkToken(req, res)
+
+    if (tokenResult.error === 'Internal server error') {
+        res.status(500).send({ error: 'Internal server error' })
+        return
+    }
+
     if (!tokenResult.valid || !tokenResult.userInfo || !tokenResult.userInfo.sub) {
-        return res.status(401).send({ error: tokenResult.error || 'Invalid user information' })
+        res.status(401).send({ error: tokenResult.error || 'Invalid user information' })
+        return
     }
 
     req.user = {

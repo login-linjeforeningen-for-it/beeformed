@@ -1,6 +1,8 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { buildFilteredQuery } from '#utils/sql.ts'
+import { buildListResponse } from '#utils/http/listResponse.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
 
 export default async function getSubmissionsByUser(req: FastifyRequest, res: FastifyReply) {
     const userId = req.user!.id
@@ -37,12 +39,8 @@ export default async function getSubmissionsByUser(req: FastifyRequest, res: Fas
             }
         )
         const result = await run(sql, params)
-        const data = result.rows
-        const total = data.length > 0 ? (data[0] as Record<string, unknown>).total_count as number : 0
-
-        res.send({ data, total })
+        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
     } catch (error) {
-        console.error('Error reading entity:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error reading entity:', error)
     }
 }

@@ -2,7 +2,8 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import config from '#constants'
+import { sendInternalServerError } from '#utils/http/errors.ts'
+import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
 
 export default async function updateForm(req: FastifyRequest, res: FastifyReply) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,21 +15,16 @@ export default async function updateForm(req: FastifyRequest, res: FastifyReply)
         return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
     }
 
-    if (!/^[a-z0-9-_]+$/.test(body.slug)) {
+    if (!isValidSlug(body.slug)) {
         return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
 
-    const publishedAt = new Date(body.published_at)
-    const expiresAt = new Date(body.expires_at)
-    if (isNaN(publishedAt.getTime()) || isNaN(expiresAt.getTime())) {
-        return res.status(400).send({ error: 'publish date and expires_at must be valid dates' })
+    const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
+    if (!publicationWindow.valid) {
+        return res.status(400).send({ error: publicationWindow.error })
     }
-    else if (publishedAt >= expiresAt) {
-        return res.status(400).send({ error: 'expire date must be later than published_at' })
-    }
-    else if (expiresAt.getTime() - new Date().getTime() > 365 * 24 * 60 * 60 * 1000) {
-        return res.status(400).send({ error: 'expire date cannot be more than one year in the future' })
-    }
+
+    const { publishedAt, expiresAt } = publicationWindow
 
     try {
         const newLimit = body.limit ? Number(body.limit) : null
@@ -63,7 +59,7 @@ export default async function updateForm(req: FastifyRequest, res: FastifyReply)
                         status: 'bumped',
                         ownerEmail: body.owner_email,
                         submissionId: submission.id,
-                        actionUrl: `${config.FRONTEND_URL}/submissions/${submission.id}`,
+                        actionUrl: `${req.server.appConfig.FRONTEND_URL}/submissions/${submission.id}`,
                         actionText: 'View Submission'
                     })
                 }
@@ -92,7 +88,6 @@ export default async function updateForm(req: FastifyRequest, res: FastifyReply)
 
         res.send(result.rows[0])
     } catch (error) {
-        console.error('Error updating entity:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error updating entity:', error)
     }
 }

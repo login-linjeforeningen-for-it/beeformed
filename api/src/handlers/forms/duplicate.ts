@@ -1,6 +1,9 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
+import { sendInternalServerError } from '#utils/http/errors.ts'
+import { hasRequiredGroup } from '#utils/validation/validators.ts'
+import { requireRouteParam } from '#utils/http/request.ts'
 
 type SourceForm = {
     slug: string
@@ -25,16 +28,12 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
 }
 
 export default async function duplicateForm(req: FastifyRequest, res: FastifyReply) {
-    const params = req.params as { id?: string }
-    const sourceFormId = params.id
+    const sourceFormId = requireRouteParam(req, res, { error: 'Form id is required' })
+    if (!sourceFormId) return
     const userId = req.user?.id
 
-    if (req.user?.groups && !req.user.groups.includes('Aktiv')) {
+    if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'Aktiv')) {
         return res.status(403).send({ error: 'Forbidden' })
-    }
-
-    if (!sourceFormId) {
-        return res.status(400).send({ error: 'Form id is required' })
     }
 
     if (!userId) {
@@ -108,7 +107,6 @@ export default async function duplicateForm(req: FastifyRequest, res: FastifyRep
 
         res.status(201).send(duplicatedForm)
     } catch (error) {
-        console.error('Error duplicating form:', error)
-        res.status(500).send({ error: 'Internal server error' })
+        return sendInternalServerError(res, 'Error duplicating form:', error)
     }
 }
