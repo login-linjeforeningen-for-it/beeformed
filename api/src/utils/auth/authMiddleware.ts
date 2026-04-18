@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import checkToken from '#utils/auth/checkToken.ts'
+import { touchUserActivity } from '#utils/users/inactiveCleanup.ts'
 
 declare module 'fastify' {
     interface FastifyRequest {
@@ -31,4 +32,8 @@ export default async function authMiddleware(req: FastifyRequest, res: FastifyRe
         email: tokenResult.userInfo.email,
         groups: tokenResult.userInfo.groups || []
     }
+
+    void touchUserActivity(req.user.id).catch((error: unknown) => {
+        req.log.warn({ error, userId: req.user?.id }, 'Failed to update user activity')
+    })
 }

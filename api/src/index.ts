@@ -7,6 +7,7 @@ import apiRoutes from './routes.ts'
 import getIndex from './handlers/index/getIndex.ts'
 import getFavicon from './handlers/favicon/getFavicon.ts'
 import { processEmailQueue } from './utils/email/sendSMTP.ts'
+import { startInactiveUserCleanup } from './utils/users/inactiveCleanup.ts'
 
 const fastify = Fastify({
     logger: true
@@ -29,6 +30,7 @@ async function main() {
     try {
         await fastify.listen({ port, host: '0.0.0.0' })
         await processEmailQueue()
+        await startInactiveUserCleanup()
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)

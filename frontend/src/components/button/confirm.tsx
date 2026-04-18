@@ -21,8 +21,9 @@ export default function Confirm() {
 
             <ConfirmPopup
                 isOpen={isOpen}
-                header='Delete Form User'
-                description={`Are you sure you want to delete this user? This action cannot be undone.
+                header='Delete Account'
+                description={`Are you sure you want to delete your account? This action cannot be undone.
+                    Inactive accounts are also removed automatically after 6 months.
                     NB! This will not delete your SSO account (authentik)`}
                 confirmText='Delete'
                 cancelText='Cancel'
@@ -31,10 +32,10 @@ export default function Confirm() {
                         setIsOpen(false)
                         try {
                             await deleteUser()
-                            toast.success('User deleted successfully')
+                            toast.success('Account deleted successfully')
                             router.push('/')
                         } catch (error) {
-                            toast.error(error instanceof Error ? error.message : 'An error occurred while deleting the user')
+                            toast.error(error instanceof Error ? error.message : 'An error occurred while deleting the account')
                         }
                     }
                 }

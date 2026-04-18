@@ -69,7 +69,15 @@ const config = {
     SMTP_FROM: env.SMTP_FROM || '',
     SMTP_USER: process.env.SMTP_USER || '',
     SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
-    FRONTEND_URL: env.FRONTEND_URL
+    FRONTEND_URL: env.FRONTEND_URL,
+    COMPANY_INFO: {
+        name: 'Login - Linjeforeningen for IT',
+        nameShort: 'Login',
+        logo: 'https://cdn.login.no/img/logo/logo.svg',
+        website: 'https://login.no',
+        email: 'kontakt@login.no',
+        primaryColor: '#fd8738'
+    }
 }
 
 export default config

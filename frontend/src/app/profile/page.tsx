@@ -122,6 +122,9 @@ export default async function Page() {
                                 <p className='text-sm text-login-400 mt-1'>
                                     Permanently remove your account and all of your content.
                                 </p>
+                                <p className='text-xs text-login-400/90 mt-2'>
+                                    Accounts inactive for more than 6 months are automatically deleted.
+                                </p>
                             </div>
                             <Confirm />
                         </div>

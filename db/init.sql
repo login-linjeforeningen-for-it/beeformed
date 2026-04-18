@@ -7,7 +7,9 @@ CREATE TABLE users (
     user_id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    inactivity_warning_sent_at TIMESTAMP
 );
 
 -- Forms
@@ -135,6 +137,8 @@ CREATE INDEX idx_submissions_form_id ON submissions(form_id);
 CREATE INDEX idx_submission_data_submission_id ON submission_data(submission_id);
 CREATE INDEX idx_form_permissions_form_id ON form_permissions(form_id);
 CREATE INDEX idx_form_permissions_user_id ON form_permissions(user_id);
+CREATE INDEX idx_users_last_active_at ON users(last_active_at);
+CREATE INDEX idx_users_inactivity_warning_sent_at ON users(inactivity_warning_sent_at);
 CREATE INDEX idx_form_templates_user_id ON form_templates(user_id);
 CREATE INDEX idx_form_templates_source_form_id ON form_templates(source_form_id);
 CREATE INDEX idx_template_fields_template_id ON template_fields(template_id);

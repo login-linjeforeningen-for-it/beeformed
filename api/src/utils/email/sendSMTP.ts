@@ -1,6 +1,6 @@
 import config from '#constants'
 import nodemailer from 'nodemailer'
-import { createEmailTemplate, type EmailContent } from '#utils/email/emailTemplate.ts'
+import { createSubmissionEmailTemplate } from './submissionTemplate.ts'
 import run from '#db'
 import type Mail from 'nodemailer/lib/mailer/index.js'
 import { logUtilityError } from '#utils/http/errors.ts'
@@ -114,7 +114,7 @@ export async function processEmailQueue(): Promise<void> {
 }
 
 export async function sendTemplatedMail(to: string, content: EmailContent): Promise<string> {
-    const template = await createEmailTemplate(content)
+    const template = await createSubmissionEmailTemplate(content)
     return send({
         to,
         subject: template.subject,

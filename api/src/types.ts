@@ -8,6 +8,8 @@ declare global {
         email: string
         name?: string
         created_at: Date
+        last_active_at: Date
+        inactivity_warning_sent_at: Date | null
     }
 
     interface Form {
@@ -58,4 +60,31 @@ declare global {
         // field_id/value can be NULL in db, reflect that in types
         data?: { field_id: string | null; value: string | null }[]
     }
+
+    type EmailTemplate = {
+    subject: string
+    html: string
+    text: string
+    attachments?: Array<{
+        filename: string
+        content: Buffer
+        contentType: string
+    }>
+}
+
+    type EmailContent = {
+        title: string
+        status: 'registered' | 'waitlisted' | 'rejected' | 'cancelled' | 'bumped'
+        ownerEmail: string
+        actionUrl?: string
+        actionText?: string
+        submissionId: string
+    }
+
+    type AccountDeletionWarningEmailContent = {
+        name?: string | null
+        warningDays: number
+        actionUrl: string
+    }
+
 }
