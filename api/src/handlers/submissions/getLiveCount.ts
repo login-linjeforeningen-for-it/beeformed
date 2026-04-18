@@ -2,7 +2,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 
-export default async function liveCountHandler(req: FastifyRequest, reply: FastifyReply) {
+export default async function getLiveCount(req: FastifyRequest, reply: FastifyReply) {
     const { id: formId } = req.params as { id: string }
 
     const sql = await loadSQL('submissions/liveCount.sql')

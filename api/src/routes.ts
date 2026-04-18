@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 
-import getIndex from './handlers/index/getIndex.ts'
+import getIndex from './handlers/index/get.ts'
 import getPing from './handlers/ping/get.ts'
 
 import authMiddleware from './utils/auth/authMiddleware.ts'
@@ -65,7 +65,7 @@ import {
     deleteSubmission,
     scanSubmission
 } from './handlers/submissions/index.ts'
-import liveCountHandler from './handlers/submissions/liveCount.ts'
+import getLiveCount from './handlers/submissions/getLiveCount.ts'
 
 export default async function apiRoutes(fastify: FastifyInstance) {
     // index
@@ -117,7 +117,7 @@ export default async function apiRoutes(fastify: FastifyInstance) {
     fastify.get('/templates/:id/fields', { preHandler: [authMiddleware, templatePermissionMiddleware] }, getTemplateFields)
     fastify.patch('/templates/:id/fields', { preHandler: [authMiddleware, templatePermissionMiddleware] }, bulkTemplateFields)
 
-    fastify.get('/forms/:id/live', liveCountHandler)
+    fastify.get('/forms/:id/live', getLiveCount)
 
     // Submissions
     fastify.get('/forms/:id/submissions', { preHandler: [authMiddleware, permissionMiddleware] }, getSubmissionsByForm)
