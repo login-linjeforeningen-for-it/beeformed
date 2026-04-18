@@ -1,7 +1,7 @@
 'use server'
 
-import apiRequest from './apiWrapper'
-import { FilterProps } from './types'
+import apiRequest from './request'
+import { FilterProps } from '../types'
 
 export async function getTemplates({search, offset, limit, orderBy, sort}: FilterProps = {}): Promise<GetTemplatesProps> {
     const queryParts = new URLSearchParams()
@@ -29,42 +29,10 @@ export async function getTemplate(templateId: string): Promise<GetTemplateProps>
     return apiRequest({ method: 'GET', path: `templates/${templateId}` })
 }
 
-export async function postTemplate(data: PostTemplateProps): Promise<{id: string}> {
-    return apiRequest({ method: 'POST', path: 'templates', data })
-}
-
-export async function putTemplate(templateId: string, data: PutTemplateProps) {
-    return apiRequest({ method: 'PUT', path: `templates/${templateId}`, data })
-}
-
-export async function deleteTemplate(templateId: string) {
-    return apiRequest({ method: 'DELETE', path: `templates/${templateId}` })
-}
-
-export async function createTemplateFromForm(formId: string): Promise<{ id: string }> {
-    return apiRequest({ method: 'POST', path: `forms/${formId}/templates` })
-}
-
-export async function createFormFromTemplate(templateId: string): Promise<{ id: string }> {
-    return apiRequest({ method: 'POST', path: `templates/${templateId}/duplicate` })
-}
-
 export async function getTemplateFields(templateId: string): Promise<GetFieldsProps> {
     return apiRequest({ method: 'GET', path: `templates/${templateId}/fields` })
 }
 
-export async function patchTemplateFields(templateId: string, data: PatchTemplateFieldsProps) {
-    return apiRequest({ method: 'PATCH', path: `templates/${templateId}/fields`, data })
-}
-
 export async function getTemplatePermissions(templateId: string): Promise<GetTemplatePermissionsProps> {
     return apiRequest({ method: 'GET', path: `templates/${templateId}/permissions` })
-}
-
-export async function postTemplatePermission(templateId: string, data: PostPermissionProps) {
-    return apiRequest({ method: 'POST', path: `templates/${templateId}/permissions`, data })
-}
-
-export async function deleteTemplatePermission(templateId: string, permissionId: string) {
-    return apiRequest({ method: 'DELETE', path: `templates/${templateId}/permissions/${permissionId}` })
 }

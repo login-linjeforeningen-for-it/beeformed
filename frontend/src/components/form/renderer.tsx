@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Alert, toast, Input, Textarea, Select, Radio, Checkbox, Switch } from 'uibee/components'
-import { postSubmission } from '@utils/api'
+import { postSubmission } from '@utils/api/client'
 
 interface FormField {
     id: string

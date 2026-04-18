@@ -1,4 +1,4 @@
-import { getForms, getSharedForms } from '@utils/api'
+import { getForms, getSharedForms } from '@utils/api/server'
 import { Pagination, PageContainer, SearchInput } from 'uibee/components'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'

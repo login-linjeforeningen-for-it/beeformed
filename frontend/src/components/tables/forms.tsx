@@ -10,7 +10,7 @@ import {
     createTemplateFromForm,
     createFormFromTemplate,
     deleteTemplate
-} from '@utils/api'
+} from '@utils/api/client'
 
 type FormsTableProps = {
     data: object[]

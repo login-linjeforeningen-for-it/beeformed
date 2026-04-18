@@ -1,5 +1,5 @@
 import { PageContainer } from 'uibee/components'
-import { getTemplate, getTemplateFields, getTemplatePermissions } from '@utils/api'
+import { getTemplate, getTemplateFields, getTemplatePermissions } from '@utils/api/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import EditTemplateFieldsPage from '@components/template/pages/fields'

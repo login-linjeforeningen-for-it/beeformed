@@ -1,4 +1,4 @@
-import { getTemplates, getSharedTemplates } from '@utils/api'
+import { getTemplates, getSharedTemplates } from '@utils/api/server'
 import { Pagination, PageContainer, SearchInput } from 'uibee/components'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'

@@ -1,6 +1,6 @@
 'use client'
 
-import { cancelSubmission } from '@utils/api'
+import { cancelSubmission } from '@utils/api/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { MenuButton, Table, toast } from 'uibee/components'

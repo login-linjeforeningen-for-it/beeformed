@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { Textarea, toast, Input, Switch, Select } from 'uibee/components'
 import { GripVertical, X, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { patchTemplateFields } from '@utils/api'
+import { patchTemplateFields } from '@utils/api/client'
 
 export default function EditTemplateFieldsPage({ fields, templateId }: { fields: GetFieldsProps; templateId: string }) {
     const router = useRouter()

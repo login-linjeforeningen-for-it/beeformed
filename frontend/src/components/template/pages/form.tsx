@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast, Input, Switch, Textarea } from 'uibee/components'
 import { useRouter } from 'next/navigation'
 import { CalendarClock, FileText, Settings } from 'lucide-react'
-import { postTemplate, putTemplate } from '@utils/api'
+import { postTemplate, putTemplate } from '@utils/api/client'
 
 export default function EditTemplatePage({ template }: { template?: GetTemplateProps }) {
     const router = useRouter()

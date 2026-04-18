@@ -1,4 +1,4 @@
-import { getPublicForm } from '@utils/api'
+import { getPublicForm } from '@utils/api/server'
 import FormRenderer from '@components/form/renderer'
 import { Alert, MarkdownRender, PageContainer } from 'uibee/components'
 

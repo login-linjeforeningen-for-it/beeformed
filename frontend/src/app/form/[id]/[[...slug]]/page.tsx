@@ -1,7 +1,7 @@
 import { PageContainer } from 'uibee/components'
 import EditFormPage from '@components/form/pages/form'
 import EditFieldsPage from '@components/form/pages/fields'
-import { getFields, getForm, getPermissions, getSubmissions } from '@utils/api'
+import { getFields, getForm, getPermissions, getSubmissions } from '@utils/api/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import EditPermissionsPage from '@components/form/pages/permissions'

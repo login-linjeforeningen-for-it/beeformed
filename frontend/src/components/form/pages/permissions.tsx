@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast, Input, Table, MenuButton } from 'uibee/components'
 import { Trash } from 'lucide-react'
-import { deletePermission, postPermission } from '@utils/api'
+import { deletePermission, postPermission } from '@utils/api/client'
 import { formatDateTime } from '@utils/dateTime'
 
 export default function EditPermissionsPage({ permissions, formId }: { permissions: GetPermissionsProps, formId: string }) {
@@ -41,9 +41,9 @@ export default function EditPermissionsPage({ permissions, formId }: { permissio
         }
     }
 
-    function handleDeletePermission(formId: string, permissionId: string) {
+    async function handleDeletePermission(formId: string, permissionId: string) {
         try {
-            deletePermission(formId, permissionId)
+            await deletePermission(formId, permissionId)
             toast.success('Permission deleted successfully!')
             router.refresh()
         } catch (error) {

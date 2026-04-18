@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast, Input, Table, MenuButton } from 'uibee/components'
 import { Trash } from 'lucide-react'
-import { deleteTemplatePermission, postTemplatePermission } from '@utils/api'
+import { deleteTemplatePermission, postTemplatePermission } from '@utils/api/client'
 import { formatDateTime } from '@utils/dateTime'
 
 export default function EditTemplatePermissionsPage({

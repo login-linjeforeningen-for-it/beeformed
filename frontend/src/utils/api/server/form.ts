@@ -1,7 +1,7 @@
 'use server'
 
-import apiRequest from './apiWrapper'
-import { FilterProps } from './types'
+import apiRequest from './request'
+import { FilterProps } from '../types'
 
 export async function getForms({search, offset, limit, orderBy, sort}: FilterProps = {}): Promise<GetFormsProps> {
     const queryParts = new URLSearchParams()
@@ -31,20 +31,4 @@ export async function getForm(formId: string): Promise<GetFormProps> {
 
 export async function getPublicForm(formId: string): Promise<GetPublicFormProps> {
     return apiRequest({ method: 'GET', path: `forms/${formId}/public` })
-}
-
-export async function postForm(data: PostFormProps): Promise<{id: string}> {
-    return apiRequest({ method: 'POST', path: 'forms', data })
-}
-
-export async function putForm(formId: string, data: PutFormProps) {
-    return apiRequest({ method: 'PUT', path: `forms/${formId}`, data })
-}
-
-export async function deleteForm(formId: string) {
-    return apiRequest({ method: 'DELETE', path: `forms/${formId}` })
-}
-
-export async function duplicateForm(formId: string): Promise<{ id: string }> {
-    return apiRequest({ method: 'POST', path: `forms/${formId}/duplicate` })
 }

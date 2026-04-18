@@ -1,4 +1,4 @@
-import { getSubmission, getUserSubmissions, getPublicForm } from '@utils/api'
+import { getSubmission, getUserSubmissions, getPublicForm } from '@utils/api/server'
 import { notFound } from 'next/navigation'
 import { Pagination, PageContainer, SearchInput } from 'uibee/components'
 import FormRenderer from '@components/form/renderer'

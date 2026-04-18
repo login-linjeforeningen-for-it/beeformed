@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import jsQR from 'jsqr'
 import { AlertCircle, Loader2, User, Clock, CheckCircle2, XCircle, RotateCcw, ScanQrCode } from 'lucide-react'
-import { scanSubmission, searchSubmissions } from '@/utils/api'
+import { scanSubmission, searchSubmissions } from '@utils/api/client'
 import { useParams } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
 import { Button, PageContainer } from 'uibee/components'

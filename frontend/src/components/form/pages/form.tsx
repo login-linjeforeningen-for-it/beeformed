@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'uibee/components'
-import { updateForm } from '@components/form/actions/form'
-import { postForm } from '@utils/api'
+import { postForm, putForm } from '@utils/api/client'
 import { Input, Switch, Textarea } from 'uibee/components'
 import { useRouter } from 'next/navigation'
 import { CalendarClock, FileText, Settings } from 'lucide-react'
@@ -28,35 +27,23 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
         setLoading(true)
 
         try {
-            if (form) {
-                const formDataObj = new FormData(e.target as HTMLFormElement)
-                // Ensure slug is lowercase
-                const slug = formDataObj.get('slug')
-                if (slug && typeof slug === 'string') {
-                    formDataObj.set('slug', slug.toLowerCase())
-                }
+            const data = {
+                slug: formData.slug.toLowerCase(),
+                title: formData.title,
+                description: formData.description || null,
+                anonymous_submissions: formData.anonymous_submissions,
+                limit: formData.limit ? parseInt(formData.limit) : null,
+                waitlist: formData.waitlist,
+                multiple_submissions: formData.multiple_submissions,
+                published_at: formData.published_at,
+                expires_at: formData.expires_at
+            }
 
-                const result = await updateForm(null, formDataObj)
-
-                if (typeof result === 'string') {
-                    toast.error(result)
-                } else {
-                    toast.success('Form updated successfully!')
-                    router.refresh()
-                }
+            if (form?.id) {
+                await putForm(form.id, data)
+                toast.success('Form updated successfully!')
+                router.refresh()
             } else {
-                const data = {
-                    slug: formData.slug.toLowerCase(),
-                    title: formData.title,
-                    description: formData.description || null,
-                    anonymous_submissions: formData.anonymous_submissions,
-                    limit: formData.limit ? parseInt(formData.limit) : null,
-                    waitlist: formData.waitlist,
-                    multiple_submissions: formData.multiple_submissions,
-                    published_at: formData.published_at,
-                    expires_at: formData.expires_at
-                }
-
                 const result = await postForm(data)
 
                 toast.success('Form created successfully!')

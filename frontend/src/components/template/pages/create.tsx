@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input, toast } from 'uibee/components'
-import { postTemplate } from '@utils/api'
+import { postTemplate } from '@utils/api/client'
 
 function toDateTimeLocal(date: Date): string {
     const pad = (n: number) => String(n).padStart(2, '0')

@@ -1,6 +1,6 @@
 'use client'
 
-import { deleteUser } from '@utils/api'
+import { deleteUser } from '@utils/api/client'
 import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'

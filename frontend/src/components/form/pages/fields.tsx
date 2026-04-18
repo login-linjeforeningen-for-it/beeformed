@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Textarea, toast } from 'uibee/components'
-import { updateFields } from '@components/form/actions/field'
+import { patchFields } from '@utils/api/client'
 import { Input, Switch, Select } from 'uibee/components'
 import { GripVertical, X, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -101,15 +101,54 @@ export default function EditFieldsPage({ fields, formId }: { fields: GetFieldsPr
         setLoading(true)
 
         try {
-            const formDataObj = new FormData(e.target as HTMLFormElement)
-            const result = await updateFields(null, formDataObj)
+            const operations: PatchFieldsProps = []
 
-            if (typeof result === 'string') {
-                toast.error(result)
-            } else {
-                toast.success('Fields updated successfully!')
-                router.refresh()
+            for (const field of fieldsData as (GetFieldProps & {
+                id?: string | null
+                operation?: 'create' | 'update'
+                deleted?: boolean
+            })[]) {
+                const fieldId = field.id ? String(field.id) : undefined
+
+                if (field.deleted) {
+                    if (fieldId) {
+                        operations.push({
+                            operation: 'delete',
+                            id: fieldId,
+                            data: {} as FieldProps
+                        })
+                    }
+                    continue
+                }
+
+                const data: FieldProps = {
+                    form_id: formId,
+                    field_type: field.field_type,
+                    title: field.title,
+                    description: field.description,
+                    required: field.required,
+                    options: Array.isArray(field.options) ? field.options : null,
+                    validation: field.validation,
+                    field_order: field.field_order
+                }
+
+                if (fieldId && field.operation !== 'create') {
+                    operations.push({
+                        operation: 'update',
+                        id: fieldId,
+                        data
+                    })
+                } else {
+                    operations.push({
+                        operation: 'create',
+                        data
+                    })
+                }
             }
+
+            await patchFields(formId, operations)
+            toast.success('Fields updated successfully!')
+            router.refresh()
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'An unexpected error occurred')
         } finally {
@@ -130,12 +169,7 @@ export default function EditFieldsPage({ fields, formId }: { fields: GetFieldsPr
             <input type='hidden' name='formId' value={formId} />
             {fieldsData.map((field, index) => {
                 if ((field as { deleted?: boolean }).deleted) {
-                    return (
-                        <div key={index} style={{ display: 'none' }}>
-                            <input type='hidden' name={`field_${index}_id`} value={field.id} />
-                            <input type='hidden' name={`field_${index}_operation`} value='delete' />
-                        </div>
-                    )
+                    return null
                 }
 
                 return [
