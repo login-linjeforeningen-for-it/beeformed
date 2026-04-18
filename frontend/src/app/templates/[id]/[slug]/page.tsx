@@ -6,13 +6,12 @@ import EditTemplateFieldsPage from '@components/template/pages/fields'
 import EditTemplatePermissionsPage from '@components/template/pages/permissions'
 
 type PageProps = {
-    params: Promise<{ id: string, slug?: string[] | string }>
+    params: Promise<{ id: string, slug: string }>
 }
 
 export default async function Page({ params }: PageProps) {
     const { id, slug } = await params
-    const rawType = Array.isArray(slug) ? slug[0] : slug || 'fields'
-    const type = rawType === 'settings' ? 'fields' : rawType
+    const type = slug === 'settings' ? 'fields' : slug
 
     let data
     let templateData

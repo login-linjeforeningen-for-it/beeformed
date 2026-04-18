@@ -46,7 +46,7 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
             } else {
                 const result = await postTemplate(data)
                 toast.success('Template created successfully!')
-                router.push(`/templates/${result.id}`)
+                router.push(`/templates/${result.id}/fields`)
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'An unexpected error occurred')
