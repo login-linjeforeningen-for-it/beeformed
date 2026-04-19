@@ -19,5 +19,5 @@ SELECT
 FROM forms f
 LEFT JOIN users u ON f.user_id = u.user_id
 LEFT JOIN form_fields ff ON f.id = ff.form_id
-WHERE f.id = $1
+WHERE (f.id::text = $1 OR f.slug = $1)
 GROUP BY f.id, u.name, u.email;
