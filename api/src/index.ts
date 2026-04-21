@@ -15,7 +15,7 @@ const fastify = Fastify({
 
 fastify.register(cors, {
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
 })
 
 fastify.decorate('appConfig', config)
