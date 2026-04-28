@@ -1,14 +1,15 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
-import { requireRouteParam } from '#utils/http/request.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getSubmission(req: FastifyRequest, res: FastifyReply) {
-    const id = requireRouteParam(req, res, { error: 'id is required' })
-    if (!id) return
-    const { formId } = req.query as { formId?: string }
-    const userId = req.user!.id
+export default async function getSubmission(req: AuthRequest) {
+    const queryParams: any = Object.fromEntries(new URL(req.url).searchParams.entries());
+
+    const id = (req as any).params.id || (req as any).params.id;
+    if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
+    const { formId } = queryParams as { formId?: string }
+    const userId = req.user.id
 
     try {
         const sql = await loadSQL('submissions/get.sql')
@@ -16,11 +17,11 @@ export default async function getSubmission(req: FastifyRequest, res: FastifyRep
         const entity = result.rows.length > 0 ? result.rows[0] : null
         
         if (!entity && formId) {
-            return res.status(404).send({ error: 'Submission not found or does not belong to this form' })
+            return Response.json({ error: 'Submission not found or does not belong to this form' }, { status: 404 })
         }
         
-        res.send(entity)
+        return Response.json(entity)
     } catch (error) {
-        return sendInternalServerError(res, 'Error reading entity:', error)
+        return sendInternalServerError('Error reading entity:', error)
     }
 }

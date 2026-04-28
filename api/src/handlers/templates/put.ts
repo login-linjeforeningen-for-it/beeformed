@@ -1,12 +1,10 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
-import { requireRouteParam } from '#utils/http/request.ts'
 
-export default async function updateTemplate(req: FastifyRequest, res: FastifyReply) {
-    const body = req.body as {
+export default async function updateTemplate(req: Request) {
+    const body = await req.json() as  {
         slug?: string
         title?: string
         description?: string | null
@@ -17,20 +15,20 @@ export default async function updateTemplate(req: FastifyRequest, res: FastifyRe
         published_at?: string
         expires_at?: string
     }
-    const id = requireRouteParam(req, res, { error: 'id is required' })
-    if (!id) return
+    const id = (req as any).params.id || (req as any).params.id;
+    if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
+        return Response.json({ error: 'slug, title, published_at and expires_at are required' }, { status: 400 })
     }
 
     if (!isValidSlug(body.slug)) {
-        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
+        return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
     }
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
-        return res.status(400).send({ error: publicationWindow.error })
+        return Response.json({ error: publicationWindow.error }, { status: 400 })
     }
 
     const publishedAt = publicationWindow.publishedAt as Date
@@ -54,11 +52,11 @@ export default async function updateTemplate(req: FastifyRequest, res: FastifyRe
         const result = await run(sql, sqlParams)
 
         if (result.rows.length === 0) {
-            return res.status(404).send({ error: 'Entity not found' })
+            return Response.json({ error: 'Entity not found' }, { status: 404 })
         }
 
-        res.send(result.rows[0])
+        return Response.json(result.rows[0])
     } catch (error) {
-        return sendInternalServerError(res, 'Error updating entity:', error)
+        return sendInternalServerError('Error updating entity:', error)
     }
 }

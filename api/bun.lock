@@ -5,16 +5,14 @@
     "": {
       "name": "beeformed-api",
       "dependencies": {
-        "@fastify/cors": "^11.2.0",
-        "fastify": "^5.8.4",
-        "nodemailer": "^8.0.4",
+        "nodemailer": "^8.0.7",
         "pg": "^8.20.0",
         "qrcode": "^1.5.4",
-        "utilbee": "^1.4.1",
+        "utilbee": "^1.4.5",
       },
       "devDependencies": {
-        "@types/bun": "^1.3.11",
-        "@types/node": "^25.5.0",
+        "@types/bun": "^1.3.13",
+        "@types/node": "^25.6.0",
         "@types/nodemailer": "^7.0.11",
         "@types/pg": "^8.20.0",
         "@types/qrcode": "^1.5.6",
@@ -39,20 +37,6 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.6.1", "", { "dependencies": { "@eslint/core": "^1.1.1", "levn": "^0.4.1" } }, ""],
 
-    "@fastify/ajv-compiler": ["@fastify/ajv-compiler@4.0.5", "", { "dependencies": { "ajv": "^8.12.0", "ajv-formats": "^3.0.1", "fast-uri": "^3.0.0" } }, ""],
-
-    "@fastify/cors": ["@fastify/cors@11.2.0", "", { "dependencies": { "fastify-plugin": "^5.0.0", "toad-cache": "^3.7.0" } }, ""],
-
-    "@fastify/error": ["@fastify/error@4.2.0", "", {}, ""],
-
-    "@fastify/fast-json-stringify-compiler": ["@fastify/fast-json-stringify-compiler@5.0.3", "", { "dependencies": { "fast-json-stringify": "^6.0.0" } }, ""],
-
-    "@fastify/forwarded": ["@fastify/forwarded@3.0.1", "", {}, ""],
-
-    "@fastify/merge-json-schemas": ["@fastify/merge-json-schemas@0.2.1", "", { "dependencies": { "dequal": "^2.0.3" } }, ""],
-
-    "@fastify/proxy-addr": ["@fastify/proxy-addr@5.1.0", "", { "dependencies": { "@fastify/forwarded": "^3.0.0", "ipaddr.js": "^2.1.0" } }, ""],
-
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, ""],
 
     "@humanfs/node": ["@humanfs/node@0.16.7", "", { "dependencies": { "@humanfs/core": "^0.19.1", "@humanwhocodes/retry": "^0.4.0" } }, ""],
@@ -60,8 +44,6 @@
     "@humanwhocodes/module-importer": ["@humanwhocodes/module-importer@1.0.1", "", {}, ""],
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, ""],
-
-    "@pinojs/redact": ["@pinojs/redact@0.4.0", "", {}, ""],
 
     "@stylistic/eslint-plugin": ["@stylistic/eslint-plugin@5.10.0", "", { "dependencies": { "@eslint-community/eslint-utils": "^4.9.1", "@typescript-eslint/types": "^8.56.0", "eslint-visitor-keys": "^4.2.1", "espree": "^10.4.0", "estraverse": "^5.3.0", "picomatch": "^4.0.3" }, "peerDependencies": { "eslint": "^9.0.0 || ^10.0.0" } }, ""],
 
@@ -101,23 +83,15 @@
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.57.1", "", { "dependencies": { "@typescript-eslint/types": "8.57.1", "eslint-visitor-keys": "^5.0.0" } }, ""],
 
-    "abstract-logging": ["abstract-logging@2.0.1", "", {}, ""],
-
     "acorn": ["acorn@8.16.0", "", { "bin": "bin/acorn" }, ""],
 
     "acorn-jsx": ["acorn-jsx@5.3.2", "", { "peerDependencies": { "acorn": "^6.0.0 || ^7.0.0 || ^8.0.0" } }, ""],
 
-    "ajv": ["ajv@8.18.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, ""],
-
-    "ajv-formats": ["ajv-formats@3.0.1", "", { "dependencies": { "ajv": "^8.0.0" }, "peerDependencies": { "ajv": "^8.0.0" } }, ""],
+    "ajv": ["ajv@6.14.0", "", { "dependencies": { "fast-deep-equal": "^3.1.1", "fast-json-stable-stringify": "^2.0.0", "json-schema-traverse": "^0.4.1", "uri-js": "^4.2.2" } }, ""],
 
     "ansi-regex": ["ansi-regex@5.0.1", "", {}, ""],
 
     "ansi-styles": ["ansi-styles@4.3.0", "", { "dependencies": { "color-convert": "^2.0.1" } }, ""],
-
-    "atomic-sleep": ["atomic-sleep@1.0.0", "", {}, ""],
-
-    "avvio": ["avvio@9.2.0", "", { "dependencies": { "@fastify/error": "^4.0.0", "fastq": "^1.17.1" } }, ""],
 
     "balanced-match": ["balanced-match@4.0.4", "", {}, ""],
 
@@ -133,8 +107,6 @@
 
     "color-name": ["color-name@1.1.4", "", {}, ""],
 
-    "cookie": ["cookie@1.1.1", "", {}, ""],
-
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, ""],
 
     "debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" } }, ""],
@@ -142,8 +114,6 @@
     "decamelize": ["decamelize@1.2.0", "", {}, ""],
 
     "deep-is": ["deep-is@0.1.4", "", {}, ""],
-
-    "dequal": ["dequal@2.0.3", "", {}, ""],
 
     "dijkstrajs": ["dijkstrajs@1.0.3", "", {}, ""],
 
@@ -167,31 +137,15 @@
 
     "esutils": ["esutils@2.0.3", "", {}, ""],
 
-    "fast-decode-uri-component": ["fast-decode-uri-component@1.0.1", "", {}, ""],
-
     "fast-deep-equal": ["fast-deep-equal@3.1.3", "", {}, ""],
 
     "fast-json-stable-stringify": ["fast-json-stable-stringify@2.1.0", "", {}, ""],
 
-    "fast-json-stringify": ["fast-json-stringify@6.3.0", "", { "dependencies": { "@fastify/merge-json-schemas": "^0.2.0", "ajv": "^8.12.0", "ajv-formats": "^3.0.1", "fast-uri": "^3.0.0", "json-schema-ref-resolver": "^3.0.0", "rfdc": "^1.2.0" } }, ""],
-
     "fast-levenshtein": ["fast-levenshtein@2.0.6", "", {}, ""],
-
-    "fast-querystring": ["fast-querystring@1.1.2", "", { "dependencies": { "fast-decode-uri-component": "^1.0.1" } }, ""],
-
-    "fast-uri": ["fast-uri@3.1.0", "", {}, ""],
-
-    "fastify": ["fastify@5.8.5", "", { "dependencies": { "@fastify/ajv-compiler": "^4.0.5", "@fastify/error": "^4.0.0", "@fastify/fast-json-stringify-compiler": "^5.0.0", "@fastify/proxy-addr": "^5.0.0", "abstract-logging": "^2.0.1", "avvio": "^9.0.0", "fast-json-stringify": "^6.0.0", "find-my-way": "^9.0.0", "light-my-request": "^6.0.0", "pino": "^9.14.0 || ^10.1.0", "process-warning": "^5.0.0", "rfdc": "^1.3.1", "secure-json-parse": "^4.0.0", "semver": "^7.6.0", "toad-cache": "^3.7.0" } }, "sha512-Yqptv59pQzPgQUSIm87hMqHJmdkb1+GPxdE6vW6FRyVE9G86mt7rOghitiU4JHRaTyDUk9pfeKmDeu70lAwM4Q=="],
-
-    "fastify-plugin": ["fastify-plugin@5.1.0", "", {}, ""],
-
-    "fastq": ["fastq@1.20.1", "", { "dependencies": { "reusify": "^1.0.4" } }, ""],
 
     "fdir": ["fdir@6.5.0", "", { "peerDependencies": { "picomatch": "^3 || ^4" } }, ""],
 
     "file-entry-cache": ["file-entry-cache@8.0.0", "", { "dependencies": { "flat-cache": "^4.0.0" } }, ""],
-
-    "find-my-way": ["find-my-way@9.5.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-querystring": "^1.0.0", "safe-regex2": "^5.0.0" } }, ""],
 
     "find-up": ["find-up@4.1.0", "", { "dependencies": { "locate-path": "^5.0.0", "path-exists": "^4.0.0" } }, ""],
 
@@ -207,8 +161,6 @@
 
     "imurmurhash": ["imurmurhash@0.1.4", "", {}, ""],
 
-    "ipaddr.js": ["ipaddr.js@2.3.0", "", {}, ""],
-
     "is-extglob": ["is-extglob@2.1.1", "", {}, ""],
 
     "is-fullwidth-code-point": ["is-fullwidth-code-point@3.0.0", "", {}, ""],
@@ -219,17 +171,13 @@
 
     "json-buffer": ["json-buffer@3.0.1", "", {}, ""],
 
-    "json-schema-ref-resolver": ["json-schema-ref-resolver@3.0.0", "", { "dependencies": { "dequal": "^2.0.3" } }, ""],
-
-    "json-schema-traverse": ["json-schema-traverse@1.0.0", "", {}, ""],
+    "json-schema-traverse": ["json-schema-traverse@0.4.1", "", {}, ""],
 
     "json-stable-stringify-without-jsonify": ["json-stable-stringify-without-jsonify@1.0.1", "", {}, ""],
 
     "keyv": ["keyv@4.5.4", "", { "dependencies": { "json-buffer": "3.0.1" } }, ""],
 
     "levn": ["levn@0.4.1", "", { "dependencies": { "prelude-ls": "^1.2.1", "type-check": "~0.4.0" } }, ""],
-
-    "light-my-request": ["light-my-request@6.6.0", "", { "dependencies": { "cookie": "^1.0.1", "process-warning": "^4.0.0", "set-cookie-parser": "^2.6.0" } }, ""],
 
     "locate-path": ["locate-path@5.0.0", "", { "dependencies": { "p-locate": "^4.1.0" } }, ""],
 
@@ -240,8 +188,6 @@
     "natural-compare": ["natural-compare@1.4.0", "", {}, ""],
 
     "nodemailer": ["nodemailer@8.0.7", "", {}, "sha512-pkjE4mkBzQjdJT4/UmlKl3pX0rC9fZmjh7c6C9o7lv66Ac6w9WCnzPzhbPNxwZAzlF4mdq4CSWB5+FbK6FWCow=="],
-
-    "on-exit-leak-free": ["on-exit-leak-free@2.1.2", "", {}, ""],
 
     "optionator": ["optionator@0.9.4", "", { "dependencies": { "deep-is": "^0.1.3", "fast-levenshtein": "^2.0.6", "levn": "^0.4.1", "prelude-ls": "^1.2.1", "type-check": "^0.4.0", "word-wrap": "^1.2.5" } }, ""],
 
@@ -273,12 +219,6 @@
 
     "picomatch": ["picomatch@4.0.4", "", {}, "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A=="],
 
-    "pino": ["pino@10.3.1", "", { "dependencies": { "@pinojs/redact": "^0.4.0", "atomic-sleep": "^1.0.0", "on-exit-leak-free": "^2.1.0", "pino-abstract-transport": "^3.0.0", "pino-std-serializers": "^7.0.0", "process-warning": "^5.0.0", "quick-format-unescaped": "^4.0.3", "real-require": "^0.2.0", "safe-stable-stringify": "^2.3.1", "sonic-boom": "^4.0.1", "thread-stream": "^4.0.0" }, "bin": "bin.js" }, ""],
-
-    "pino-abstract-transport": ["pino-abstract-transport@3.0.0", "", { "dependencies": { "split2": "^4.0.0" } }, ""],
-
-    "pino-std-serializers": ["pino-std-serializers@7.1.0", "", {}, ""],
-
     "pngjs": ["pngjs@5.0.0", "", {}, ""],
 
     "postgres-array": ["postgres-array@2.0.0", "", {}, ""],
@@ -291,45 +231,21 @@
 
     "prelude-ls": ["prelude-ls@1.2.1", "", {}, ""],
 
-    "process-warning": ["process-warning@5.0.0", "", {}, ""],
-
     "punycode": ["punycode@2.3.1", "", {}, ""],
 
     "qrcode": ["qrcode@1.5.4", "", { "dependencies": { "dijkstrajs": "^1.0.1", "pngjs": "^5.0.0", "yargs": "^15.3.1" }, "bin": "bin/qrcode" }, ""],
 
-    "quick-format-unescaped": ["quick-format-unescaped@4.0.4", "", {}, ""],
-
-    "real-require": ["real-require@0.2.0", "", {}, ""],
-
     "require-directory": ["require-directory@2.1.1", "", {}, ""],
 
-    "require-from-string": ["require-from-string@2.0.2", "", {}, ""],
-
     "require-main-filename": ["require-main-filename@2.0.0", "", {}, ""],
-
-    "ret": ["ret@0.5.0", "", {}, ""],
-
-    "reusify": ["reusify@1.1.0", "", {}, ""],
-
-    "rfdc": ["rfdc@1.4.1", "", {}, ""],
-
-    "safe-regex2": ["safe-regex2@5.1.0", "", { "dependencies": { "ret": "~0.5.0" }, "bin": "bin/safe-regex2.js" }, ""],
-
-    "safe-stable-stringify": ["safe-stable-stringify@2.5.0", "", {}, ""],
-
-    "secure-json-parse": ["secure-json-parse@4.1.0", "", {}, ""],
 
     "semver": ["semver@7.7.4", "", { "bin": "bin/semver.js" }, ""],
 
     "set-blocking": ["set-blocking@2.0.0", "", {}, ""],
 
-    "set-cookie-parser": ["set-cookie-parser@2.7.2", "", {}, ""],
-
     "shebang-command": ["shebang-command@2.0.0", "", { "dependencies": { "shebang-regex": "^3.0.0" } }, ""],
 
     "shebang-regex": ["shebang-regex@3.0.0", "", {}, ""],
-
-    "sonic-boom": ["sonic-boom@4.2.1", "", { "dependencies": { "atomic-sleep": "^1.0.0" } }, ""],
 
     "split2": ["split2@4.2.0", "", {}, ""],
 
@@ -337,11 +253,7 @@
 
     "strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, ""],
 
-    "thread-stream": ["thread-stream@4.0.0", "", { "dependencies": { "real-require": "^0.2.0" } }, ""],
-
     "tinyglobby": ["tinyglobby@0.2.15", "", { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.3" } }, ""],
-
-    "toad-cache": ["toad-cache@3.7.0", "", {}, ""],
 
     "ts-api-utils": ["ts-api-utils@2.4.0", "", { "peerDependencies": { "typescript": ">=4.8.4" } }, ""],
 
@@ -387,23 +299,17 @@
 
     "@typescript-eslint/visitor-keys/eslint-visitor-keys": ["eslint-visitor-keys@5.0.1", "", {}, ""],
 
-    "eslint/ajv": ["ajv@6.14.0", "", { "dependencies": { "fast-deep-equal": "^3.1.1", "fast-json-stable-stringify": "^2.0.0", "json-schema-traverse": "^0.4.1", "uri-js": "^4.2.2" } }, ""],
-
     "eslint/eslint-visitor-keys": ["eslint-visitor-keys@5.0.1", "", {}, ""],
 
     "eslint/espree": ["espree@11.2.0", "", { "dependencies": { "acorn": "^8.16.0", "acorn-jsx": "^5.3.2", "eslint-visitor-keys": "^5.0.1" } }, ""],
 
     "eslint/find-up": ["find-up@5.0.0", "", { "dependencies": { "locate-path": "^6.0.0", "path-exists": "^4.0.0" } }, ""],
 
-    "light-my-request/process-warning": ["process-warning@4.0.1", "", {}, ""],
-
     "@types/nodemailer/@types/node/undici-types": ["undici-types@7.18.2", "", {}, ""],
 
     "@types/pg/@types/node/undici-types": ["undici-types@7.18.2", "", {}, ""],
 
     "@types/qrcode/@types/node/undici-types": ["undici-types@7.18.2", "", {}, ""],
-
-    "eslint/ajv/json-schema-traverse": ["json-schema-traverse@0.4.1", "", {}, ""],
 
     "eslint/find-up/locate-path": ["locate-path@6.0.0", "", { "dependencies": { "p-locate": "^5.0.0" } }, ""],
 

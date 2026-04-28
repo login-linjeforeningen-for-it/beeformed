@@ -1,11 +1,13 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/http/listResponse.ts'
 import { isInvalidOrderByError, sendInternalServerError } from '#utils/http/errors.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getSharedTemplates(req: FastifyRequest, res: FastifyReply) {
-    const query = req.query as {
+export default async function getSharedTemplates(req: AuthRequest) {
+    const queryParams: any = Object.fromEntries(new URL(req.url).searchParams.entries());
+
+    const query = queryParams as {
         search?: string
         limit?: string
         offset?: string
@@ -14,14 +16,14 @@ export default async function getSharedTemplates(req: FastifyRequest, res: Fasti
     }
 
     try {
-        const { sql, params } = await buildFilteredQuery('templates/getShared.sql', [req.user!.id, req.user!.groups], query, 't')
+        const { sql, params } = await buildFilteredQuery('templates/getShared.sql', [req.user.id, req.user.groups], query, 't')
 
         const result = await run(sql, params)
-        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
+        return Response.json(buildListResponse(result.rows as Record<string, unknown>[]))
     } catch (error) {
         if (isInvalidOrderByError(error)) {
-            return res.status(400).send({ error: error.message })
+            return Response.json({ error: error.message }, { status: 400 })
         }
-        return sendInternalServerError(res, 'Error getting shared templates:', error)
+        return sendInternalServerError('Error getting shared templates:', error)
     }
 }

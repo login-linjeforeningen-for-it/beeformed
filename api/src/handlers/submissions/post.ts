@@ -1,8 +1,9 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
     if (typeof value === 'boolean') return value
@@ -34,9 +35,9 @@ function serializeFieldValue(value: unknown): string | null {
     return String(value)
 }
 
-export default async function createSubmission(req: FastifyRequest, res: FastifyReply) {
+export default async function createSubmission(req: AuthRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = req.body as any
+    const body = await req.json() as  any
     const { id: formId } = req.params as { id: string }
 
     try {
@@ -66,7 +67,7 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
                 throw error
             }
 
-            const userId = form.anonymous_submissions ? null : req.user!.id
+            const userId = form.anonymous_submissions ? null : req.user.id
             let status = 'registered'
             
             if (!form.anonymous_submissions && !form.multiple_submissions && userId) {
@@ -154,21 +155,21 @@ export default async function createSubmission(req: FastifyRequest, res: Fastify
                     title: form.title,
                     status: status,
                     ownerEmail: form.creator_email,
-                    actionUrl: `${req.server.appConfig.FRONTEND_URL}/submissions/${submissionId}`,
+                    actionUrl: `${config.FRONTEND_URL}/submissions/${submissionId}`,
                     actionText: 'View Submission',
                     submissionId: submissionId
 
                 })
             }
         } catch (emailError) {
-            req.log.error({ err: emailError }, 'Error sending confirmation email')
+            console.error({ err: emailError }, 'Error sending confirmation email')
         }
 
-        res.status(201).send({ id: submissionId })
+        return Response.json({ id: submissionId }, { status: 201 })
     } catch (error: any) {
         if (error.statusCode) {
-            return res.status(error.statusCode).send({ error: error.message })
+            return Response.json({ error: error.message }, { status: error.statusCode })
         }
-        return sendInternalServerError(res, 'Error creating submission:', error)
+        return sendInternalServerError('Error creating submission:', error)
     }
 }

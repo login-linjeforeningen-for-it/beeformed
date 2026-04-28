@@ -1,27 +1,27 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import config from '#constants'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
 
-export default async function updateForm(req: FastifyRequest, res: FastifyReply) {
+export default async function updateForm(req: Request) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = req.body as any
+    const body = await req.json() as  any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = req.params as any
+    const params = (req as any).params
 
     if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
+        return Response.json({ error: 'slug, title, published_at and expires_at are required' }, { status: 400 })
     }
 
     if (!isValidSlug(body.slug)) {
-        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
+        return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
     }
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
-        return res.status(400).send({ error: publicationWindow.error })
+        return Response.json({ error: publicationWindow.error }, { status: 400 })
     }
 
     const { publishedAt, expiresAt } = publicationWindow
@@ -34,7 +34,7 @@ export default async function updateForm(req: FastifyRequest, res: FastifyReply)
         const registeredCount = countResult.rows[0].count
 
         if (newLimit !== null && newLimit < registeredCount) {
-            return res.status(400).send({ error: 'Limit cannot be lower than the number of registered submissions' })
+            return Response.json({ error: 'Limit cannot be lower than the number of registered submissions' }, { status: 400 })
         }
 
         let spotsToFill = 0
@@ -59,7 +59,7 @@ export default async function updateForm(req: FastifyRequest, res: FastifyReply)
                         status: 'bumped',
                         ownerEmail: body.owner_email,
                         submissionId: submission.id,
-                        actionUrl: `${req.server.appConfig.FRONTEND_URL}/submissions/${submission.id}`,
+                        actionUrl: `${config.FRONTEND_URL}/submissions/${submission.id}`,
                         actionText: 'View Submission'
                     })
                 }
@@ -83,11 +83,11 @@ export default async function updateForm(req: FastifyRequest, res: FastifyReply)
         const result = await run(sql, sqlParams)
 
         if (result.rows.length === 0) {
-            return res.status(404).send({ error: 'Entity not found' })
+            return Response.json({ error: 'Entity not found' }, { status: 404 })
         }
 
-        res.send(result.rows[0])
+        return Response.json(result.rows[0])
     } catch (error) {
-        return sendInternalServerError(res, 'Error updating entity:', error)
+        return sendInternalServerError('Error updating entity:', error)
     }
 }

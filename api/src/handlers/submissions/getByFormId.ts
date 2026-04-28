@@ -1,14 +1,16 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { checkPermission } from '#utils/permissions/checkPermissions.ts'
 import { loadSQL, buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/http/listResponse.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getSubmissionsByForm(req: FastifyRequest, res: FastifyReply) {
+export default async function getSubmissionsByForm(req: AuthRequest) {
+    const queryParams: any = Object.fromEntries(new URL(req.url).searchParams.entries());
+
     const { id: formId } = req.params as { id: string }
-    const userId = req.user!.id
-    const query = req.query as {
+    const userId = req.user.id
+    const query = queryParams as {
         search?: string
         limit?: string
         offset?: string
@@ -18,9 +20,9 @@ export default async function getSubmissionsByForm(req: FastifyRequest, res: Fas
     }
 
     try {
-        const hasPermission = await checkPermission(formId, userId, req.user!.groups || [])
+        const hasPermission = await checkPermission(formId, userId, req.user.groups || [])
         if (!hasPermission) {
-            return res.status(403).send({ error: 'Forbidden' })
+            return Response.json({ error: 'Forbidden' }, { status: 403 })
         }
 
         const orderBy = query.order_by || 'submitted_at'
@@ -33,7 +35,7 @@ export default async function getSubmissionsByForm(req: FastifyRequest, res: Fas
             scanned_at: 's.scanned_at'
         }
         if (!orderMap[orderBy]) {
-            return res.status(400).send({ error: 'Invalid order_by parameter' })
+            return Response.json({ error: 'Invalid order_by parameter' }, { status: 400 })
         }
 
         const sqlFile = query.include_answers === 'true'
@@ -56,14 +58,14 @@ export default async function getSubmissionsByForm(req: FastifyRequest, res: Fas
         if (query.include_answers === 'true') {
             const fieldsSql = await loadSQL('form-fields/get.sql')
             const fieldsResult = await run(fieldsSql, [formId])
-            return res.send({
+            return Response.json({
                 ...responseBody,
                 fields: fieldsResult.rows
             })
         }
 
-        return res.send(responseBody)
+        return Response.json(responseBody)
     } catch (error) {
-        return sendInternalServerError(res, 'Error getting submissions:', error)
+        return sendInternalServerError('Error getting submissions:', error)
     }
 }

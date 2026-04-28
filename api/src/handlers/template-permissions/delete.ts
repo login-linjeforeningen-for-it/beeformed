@@ -1,23 +1,22 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
-import { requireRouteParam } from '#utils/http/request.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function deleteTemplatePermission(req: FastifyRequest, res: FastifyReply) {
-    const id = requireRouteParam(req, res, { error: 'id is required' })
-    if (!id) return
+export default async function deleteTemplatePermission(req: AuthRequest) {
+    const id = (req as any).params.id || (req as any).params.id;
+    if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     try {
         const sql = await loadSQL('template-permissions/delete.sql')
-        const result = await run(sql, [id, req.user!.id])
+        const result = await run(sql, [id, req.user.id])
 
         if (result.rowCount === 0) {
-            return res.status(404).send({ error: 'Entity not found or permission denied' })
+            return Response.json({ error: 'Entity not found or permission denied' }, { status: 404 })
         }
 
-        res.status(204).send()
+        return new Response(null, { status: 204 })
     } catch (error) {
-        return sendInternalServerError(res, 'Error deleting entity:', error)
+        return sendInternalServerError('Error deleting entity:', error)
     }
 }

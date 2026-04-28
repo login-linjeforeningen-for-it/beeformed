@@ -1,9 +1,8 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 import { hasRequiredGroup } from '#utils/validation/validators.ts'
-import { requireRouteParam } from '#utils/http/request.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 type SourceTemplate = {
     slug: string
@@ -27,17 +26,17 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
     return copyIndex === 1 ? `${baseSlug}-copy` : `${baseSlug}-copy-${copyIndex}`
 }
 
-export default async function createFormFromTemplate(req: FastifyRequest, res: FastifyReply) {
-    const sourceTemplateId = requireRouteParam(req, res, { error: 'Template id is required' })
-    if (!sourceTemplateId) return
+export default async function createFormFromTemplate(req: AuthRequest) {
+    const sourceTemplateId = (req as any).params.id || (req as any).params.sourceTemplateId;
+    if (!sourceTemplateId) return Response.json({ error: 'sourceTemplateId is required' }, { status: 400 })
     const userId = req.user?.id
 
     if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
-        return res.status(403).send({ error: 'Forbidden' })
+        return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     if (!userId) {
-        return res.status(401).send({ error: 'Unauthorized' })
+        return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     try {
@@ -102,11 +101,11 @@ export default async function createFormFromTemplate(req: FastifyRequest, res: F
         })
 
         if (!createdForm) {
-            return res.status(404).send({ error: 'Template not found' })
+            return Response.json({ error: 'Template not found' }, { status: 404 })
         }
 
-        res.status(201).send(createdForm)
+        return Response.json(createdForm, { status: 201 })
     } catch (error) {
-        return sendInternalServerError(res, 'Error creating form from template:', error)
+        return sendInternalServerError('Error creating form from template:', error)
     }
 }

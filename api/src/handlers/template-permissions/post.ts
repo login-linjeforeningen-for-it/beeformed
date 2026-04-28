@@ -1,8 +1,8 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import { handlePermissionGrant } from '#utils/permissions/permissionGrants.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function createTemplatePermission(req: FastifyRequest, res: FastifyReply) {
-    return handlePermissionGrant(req, res, {
+export default async function createTemplatePermission(req: AuthRequest) {
+    return handlePermissionGrant(req, {
         resourceTable: 'form_templates',
         resourceLabel: 'Template',
         requiredResourceIdMessage: 'template_id and granted_by are required',

@@ -1,12 +1,13 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import config from '#constants'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function deleteSubmission(req: FastifyRequest, res: FastifyReply) {
+export default async function deleteSubmission(req: AuthRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = req.params as any
+    const params = (req as any).params
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const user = req.user as any
 
@@ -15,19 +16,19 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
         const getResult = await run(getSql, [params.id])
 
         if (getResult.rows.length === 0) {
-            return res.status(404).send({ error: 'Submission not found' })
+            return Response.json({ error: 'Submission not found' }, { status: 404 })
         }
 
         const submission = getResult.rows[0]
 
         if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
-             return res.status(403).send({ error: 'You do not have permission to delete this submission' })
+             return Response.json({ error: 'You do not have permission to delete this submission' }, { status: 403 })
         }
 
         const now = new Date()
         const expiresAt = new Date(submission.expires_at)
         if (now > expiresAt) {
-             return res.status(400).send({ error: 'Cannot remove submission after form has closed' })
+             return Response.json({ error: 'Cannot remove submission after form has closed' }, { status: 400 })
         }
 
         const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
@@ -39,7 +40,7 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
                 title: submission.form_title,
                 status: isOwner ? 'cancelled' : 'rejected',
                 ownerEmail: submission.form_owner_email,
-                actionUrl: `${req.server.appConfig.FRONTEND_URL}/f/${submission.form_slug}`,
+                actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
                 actionText: 'View Form',
                 submissionId: submission.id
             })
@@ -65,7 +66,7 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
                             title: submission.form_title,
                             status: 'bumped',
                             ownerEmail: submission.form_owner_email,
-                            actionUrl: `${req.server.appConfig.FRONTEND_URL}/submissions/${nextPerson.id}`,
+                            actionUrl: `${config.FRONTEND_URL}/submissions/${nextPerson.id}`,
                             actionText: 'View Submission',
                             submissionId: nextPerson.id
                         })
@@ -77,9 +78,9 @@ export default async function deleteSubmission(req: FastifyRequest, res: Fastify
         const updateSql = await loadSQL('submissions/updateStatus.sql')
         await run(updateSql, [params.id, 'cancelled'])
 
-        res.send({ success: true, message: 'Submission cancelled' })
+        return Response.json({ success: true, message: 'Submission cancelled' })
 
     } catch (error) {
-        return sendInternalServerError(res, 'Error deleting submission:', error)
+        return sendInternalServerError('Error deleting submission:', error)
     }
 }

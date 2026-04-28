@@ -1,12 +1,10 @@
-import type { FastifyReply } from 'fastify'
-
 export function isInvalidOrderByError(error: unknown): error is Error {
     return error instanceof Error && error.message === 'Invalid order_by parameter'
 }
 
-export function sendInternalServerError(reply: FastifyReply, context: string, error: unknown) {
-    reply.log.error({ err: error }, context)
-    return reply.status(500).send({ error: 'Internal server error' })
+export function sendInternalServerError(context: string, error: unknown) {
+    console.error(context, error)
+    return Response.json({ error: 'Internal server error' }, { status: 500 })
 }
 
 export function logUtilityError(context: string, error?: unknown) {

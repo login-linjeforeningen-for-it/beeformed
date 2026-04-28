@@ -1,7 +1,7 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logUtilityError } from '#utils/http/errors.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 type PermissionChecker = (entityId: string, userId: string, groups?: string[]) => Promise<boolean>
 
@@ -25,27 +25,24 @@ export function createPermissionChecker(sqlPath: string, errorContext: string): 
 }
 
 export function createPermissionMiddleware(options: PermissionMiddlewareOptions) {
-    return async function permissionMiddleware(req: FastifyRequest, res: FastifyReply) {
-        const params = req.params as Record<string, string | undefined>
-        const id = options.idParams.map((key) => params[key]).find((value) => Boolean(value))
-        const userId = req.user?.id
-        const userGroups = req.user?.groups || []
+    return function withPermission<T extends string = string>(handler: (req: AuthRequest<T>) => Response | Promise<Response>) {
+        return async (req: AuthRequest<T>): Promise<Response> => {
+            const params = req.params as Record<string, string | undefined>
+            const id = options.idParams.map((key) => params[key]).find((value) => Boolean(value))
+            const userId = req.user?.id
+            const userGroups = req.user?.groups || []
 
-        if (!userId) {
-            res.status(401).send({ error: 'Unauthorized' })
-            return
-        }
+            if (!id) {
+                return Response.json({ error: options.missingIdMessage }, { status: 400 })
+            }
 
-        if (!id) {
-            res.status(400).send({ error: options.missingIdMessage })
-            return
-        }
+            const hasPermission = await options.checkPermission(id, userId, userGroups)
 
-        const hasPermission = await options.checkPermission(id, userId, userGroups)
+            if (!hasPermission) {
+                return Response.json({ error: 'Forbidden' }, { status: 403 })
+            }
 
-        if (!hasPermission) {
-            res.status(403).send({ error: 'Forbidden' })
-            return
+            return handler(req)
         }
     }
 }

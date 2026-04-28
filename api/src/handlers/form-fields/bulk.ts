@@ -1,4 +1,3 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
@@ -19,11 +18,11 @@ interface BulkOperation {
     }>
 }
 
-export default async function bulkFormFields(req: FastifyRequest, res: FastifyReply) {
-    const operations = req.body as BulkOperation[]
+export default async function bulkFormFields(req: Request) {
+    const operations = await req.json() as  BulkOperation[]
 
     if (!Array.isArray(operations)) {
-        return res.status(400).send({ error: 'Operations must be an array' })
+        return Response.json({ error: 'Operations must be an array' }, { status: 400 })
     }
 
     try {
@@ -106,8 +105,8 @@ export default async function bulkFormFields(req: FastifyRequest, res: FastifyRe
             return results
         })
 
-        res.status(200).send(results)
+        return Response.json(results, { status: 200 })
     } catch (error) {
-        return sendInternalServerError(res, 'Error in bulk save:', error)
+        return sendInternalServerError('Error in bulk save:', error)
     }
 }

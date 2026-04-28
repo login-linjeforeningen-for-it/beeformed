@@ -1,5 +1,3 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
-
-export default async function getPing(req: FastifyRequest, res: FastifyReply) {
-    res.send({ message: 'pong' })
+export default async function getPing(req: Request) {
+    return Response.json({ message: 'pong' })
 }

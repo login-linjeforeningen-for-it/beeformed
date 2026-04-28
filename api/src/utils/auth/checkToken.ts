@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import config from '#constants'
 
 type CheckTokenResponse = {
     valid: boolean
@@ -11,10 +11,9 @@ type CheckTokenResponse = {
     error?: string
 }
 
-export default async function checkToken( req: FastifyRequest, res: FastifyReply ): Promise<CheckTokenResponse> {
-    const { USERINFO_URL } = req.server.appConfig
-    const authHeaderRaw = req.headers['authorization']
-    const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
+export default async function checkToken( req: Request ): Promise<CheckTokenResponse> {
+    const { USERINFO_URL } = config
+    const authHeader = req.headers.get('authorization')
 
     if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
         return {
@@ -43,10 +42,10 @@ export default async function checkToken( req: FastifyRequest, res: FastifyReply
 
         return {
             valid: true,
-            userInfo: userInfo
+            userInfo: userInfo as any
         }
     } catch (err) {
-        res.log.error(err)
+        console.error(err)
         return {
             valid: false,
             error: 'Internal server error'

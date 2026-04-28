@@ -1,12 +1,14 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/http/listResponse.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getSubmissionsByUser(req: FastifyRequest, res: FastifyReply) {
-    const userId = req.user!.id
-    const query = req.query as {
+export default async function getSubmissionsByUser(req: AuthRequest) {
+    const queryParams: any = Object.fromEntries(new URL(req.url).searchParams.entries());
+
+    const userId = req.user.id
+    const query = queryParams as {
         search?: string
         limit?: string
         offset?: string
@@ -25,7 +27,7 @@ export default async function getSubmissionsByUser(req: FastifyRequest, res: Fas
             user_email: 'u.email'
         }
         if (!orderMap[orderBy]) {
-            return res.status(400).send({ error: 'Invalid order_by parameter' })
+            return Response.json({ error: 'Invalid order_by parameter' }, { status: 400 })
         }
 
         const { sql, params } = await buildFilteredQuery(
@@ -39,8 +41,8 @@ export default async function getSubmissionsByUser(req: FastifyRequest, res: Fas
             }
         )
         const result = await run(sql, params)
-        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
+        return Response.json(buildListResponse(result.rows as Record<string, unknown>[]))
     } catch (error) {
-        return sendInternalServerError(res, 'Error reading entity:', error)
+        return sendInternalServerError('Error reading entity:', error)
     }
 }

@@ -1,4 +1,4 @@
-export {}
+export { }
 
 declare global {
     type SQLParamType = string | number | boolean | null | Date | string[]
@@ -57,20 +57,19 @@ declare global {
         form_id: string
         user_id?: string
         submitted_at: Date
-        // field_id/value can be NULL in db, reflect that in types
         data?: { field_id: string | null; value: string | null }[]
     }
 
     type EmailTemplate = {
-    subject: string
-    html: string
-    text: string
-    attachments?: Array<{
-        filename: string
-        content: Buffer
-        contentType: string
-    }>
-}
+        subject: string
+        html: string
+        text: string
+        attachments?: Array<{
+            filename: string
+            content: Buffer
+            contentType: string
+        }>
+    }
 
     type EmailContent = {
         title: string

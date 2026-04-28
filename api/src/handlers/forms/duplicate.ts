@@ -1,9 +1,8 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 import { hasRequiredGroup } from '#utils/validation/validators.ts'
-import { requireRouteParam } from '#utils/http/request.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 type SourceForm = {
     slug: string
@@ -27,17 +26,17 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
     return copyIndex === 1 ? `${baseSlug}-copy` : `${baseSlug}-copy-${copyIndex}`
 }
 
-export default async function duplicateForm(req: FastifyRequest, res: FastifyReply) {
-    const sourceFormId = requireRouteParam(req, res, { error: 'Form id is required' })
-    if (!sourceFormId) return
+export default async function duplicateForm(req: AuthRequest) {
+    const sourceFormId = (req as any).params.id || (req as any).params.sourceFormId;
+    if (!sourceFormId) return Response.json({ error: 'sourceFormId is required' }, { status: 400 })
     const userId = req.user?.id
 
     if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'Aktiv')) {
-        return res.status(403).send({ error: 'Forbidden' })
+        return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     if (!userId) {
-        return res.status(401).send({ error: 'Unauthorized' })
+        return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     try {
@@ -102,11 +101,11 @@ export default async function duplicateForm(req: FastifyRequest, res: FastifyRep
         })
 
         if (!duplicatedForm) {
-            return res.status(404).send({ error: 'Form not found' })
+            return Response.json({ error: 'Form not found' }, { status: 404 })
         }
 
-        res.status(201).send(duplicatedForm)
+        return Response.json(duplicatedForm, { status: 201 })
     } catch (error) {
-        return sendInternalServerError(res, 'Error duplicating form:', error)
+        return sendInternalServerError('Error duplicating form:', error)
     }
 }

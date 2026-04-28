@@ -1,39 +1,40 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { BunRequest } from 'bun'
 import checkToken from '#utils/auth/checkToken.ts'
 import { touchUserActivity } from '#utils/users/inactiveCleanup.ts'
 
-declare module 'fastify' {
-    interface FastifyRequest {
-        user?: {
-            id: string
-            name: string
-            email: string
-            groups: string[]
-        }
-    }
+export type AuthUser = {
+    id: string
+    name: string
+    email: string
+    groups: string[]
 }
 
-export default async function authMiddleware(req: FastifyRequest, res: FastifyReply) {
-    const tokenResult = await checkToken(req, res)
+export type AuthRequest<T extends string = string> = BunRequest<T> & { user: AuthUser }
 
-    if (tokenResult.error === 'Internal server error') {
-        res.status(500).send({ error: 'Internal server error' })
-        return
+export function withAuth<T extends string = string>(handler: (req: AuthRequest<T>) => Response | Promise<Response>) {
+    return async (req: BunRequest<T>): Promise<Response> => {
+        const tokenResult = await checkToken(req as Request)
+
+        if (tokenResult.error === 'Internal server error') {
+            return Response.json({ error: 'Internal server error' }, { status: 500 })
+        }
+
+        if (!tokenResult.valid || !tokenResult.userInfo || !tokenResult.userInfo.sub) {
+            return Response.json({ error: tokenResult.error || 'Invalid user information' }, { status: 401 })
+        }
+
+        const authReq = req as unknown as AuthRequest<T>
+        authReq.user = {
+            id: tokenResult.userInfo.sub,
+            name: tokenResult.userInfo.name,
+            email: tokenResult.userInfo.email,
+            groups: tokenResult.userInfo.groups || []
+        }
+
+        void touchUserActivity(authReq.user.id).catch((error: unknown) => {
+            console.warn('Failed to update user activity', error, authReq.user?.id)
+        })
+
+        return handler(authReq)
     }
-
-    if (!tokenResult.valid || !tokenResult.userInfo || !tokenResult.userInfo.sub) {
-        res.status(401).send({ error: tokenResult.error || 'Invalid user information' })
-        return
-    }
-
-    req.user = {
-        id: tokenResult.userInfo.sub,
-        name: tokenResult.userInfo.name,
-        email: tokenResult.userInfo.email,
-        groups: tokenResult.userInfo.groups || []
-    }
-
-    void touchUserActivity(req.user.id).catch((error: unknown) => {
-        req.log.warn({ error, userId: req.user?.id }, 'Failed to update user activity')
-    })
 }
