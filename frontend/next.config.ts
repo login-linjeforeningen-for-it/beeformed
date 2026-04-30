@@ -11,9 +11,9 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'cdn.login.no',
+                hostname: 's3.login.no',
                 port: '',
-                pathname: '/**',
+                pathname: '/beehive/**',
                 search: '',
             }
         ],

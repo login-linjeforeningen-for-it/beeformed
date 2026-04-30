@@ -5,7 +5,7 @@ const { env } = process
 const config = {
     url: {
         api: env.API_URL,
-        cdn: 'https://cdn.login.no',
+        cdn: 'https://s3.login.no/beehive',
         gitlab: 'https://gitlab.login.no',
         login: 'https://login.no',
         mail: 'kontakt@login.no',

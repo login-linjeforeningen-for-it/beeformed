@@ -73,7 +73,7 @@ const config = {
     COMPANY_INFO: {
         name: 'Login - Linjeforeningen for IT',
         nameShort: 'Login',
-        logo: 'https://cdn.login.no/img/logo/logo.svg',
+        logo: 'https://s3.login.no/beehive/img/logo/logo.svg',
         website: 'https://login.no',
         email: 'kontakt@login.no',
         primaryColor: '#fd8738'
