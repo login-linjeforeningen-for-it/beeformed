@@ -10,7 +10,7 @@ const config = {
         login: 'https://login.no',
         mail: 'kontakt@login.no',
         linkedin: 'https://www.linkedin.com/company/linjeforeningen-login/about',
-        wiki: 'https://wiki.login.no',
+        wiki: 'https://outline.login.no/s/doc',
         facebook: 'https://facebook.com/LogNTNU',
         instagram: 'https://www.instagram.com/login_linjeforening/',
         discord: 'https://discord.gg/login-ntnu'
