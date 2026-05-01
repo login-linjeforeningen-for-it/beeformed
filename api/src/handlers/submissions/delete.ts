@@ -1,5 +1,5 @@
 import config from '#constants'
-import run from '#db'
+import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
@@ -12,27 +12,65 @@ export default async function deleteSubmission(req: AuthRequest) {
     const user = req.user as any
 
     try {
-        const getSql = await loadSQL('submissions/getForDeletion.sql')
-        const getResult = await run(getSql, [params.id])
+        const result = await runInTransaction(async (client) => {
+            const getSql = await loadSQL('submissions/getForDeletion.sql')
+            const getResult = await client.query(getSql, [params.id])
 
-        if (getResult.rows.length === 0) {
-            return Response.json({ error: 'Submission not found' }, { status: 404 })
-        }
+            if (getResult.rows.length === 0) {
+                const error = new Error('Submission not found')
+                ;(error as Error & { statusCode?: number }).statusCode = 404
+                throw error
+            }
 
-        const submission = getResult.rows[0]
+            const submission = getResult.rows[0]
 
-        if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
-             return Response.json({ error: 'You do not have permission to delete this submission' }, { status: 403 })
-        }
+            if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
+                const error = new Error('You do not have permission to delete this submission')
+                ;(error as Error & { statusCode?: number }).statusCode = 403
+                throw error
+            }
 
-        const now = new Date()
-        const expiresAt = new Date(submission.expires_at)
-        if (now > expiresAt) {
-             return Response.json({ error: 'Cannot remove submission after form has closed' }, { status: 400 })
-        }
+            const now = new Date()
+            const expiresAt = new Date(submission.expires_at)
+            if (now > expiresAt) {
+                const error = new Error('Cannot remove submission after form has closed')
+                ;(error as Error & { statusCode?: number }).statusCode = 400
+                throw error
+            }
 
-        const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
-        await run(updateStatusSql, [params.id, 'cancelled'])
+            const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
+            await client.query(updateStatusSql, [params.id, 'cancelled'])
+
+            let promoted: { id: string; email: string | null } | null = null
+            if (submission.status === 'registered' && submission.limit !== null) {
+                const countSql = await loadSQL('submissions/countRegistered.sql')
+                const countResult = await client.query(countSql, [submission.form_id])
+                const registeredCount = Number(countResult.rows[0].count)
+
+                if (registeredCount < submission.limit) {
+                    const nextWaitlistedResult = await client.query(
+                        `SELECT s.id, u.email
+                         FROM submissions s
+                         JOIN users u ON s.user_id = u.user_id
+                         WHERE s.form_id = $1 AND s.status = 'waitlisted'
+                         ORDER BY s.submitted_at ASC
+                         LIMIT 1
+                         FOR UPDATE SKIP LOCKED`,
+                        [submission.form_id]
+                    )
+
+                    if (nextWaitlistedResult.rows.length > 0) {
+                        const nextPerson = nextWaitlistedResult.rows[0] as { id: string; email: string | null }
+                        promoted = nextPerson
+                        await client.query(updateStatusSql, [nextPerson.id, 'registered'])
+                    }
+                }
+            }
+
+            return { submission, promoted }
+        })
+
+        const { submission, promoted } = result
 
         if (submission.user_email) {
             const isOwner = submission.user_id === user.id
@@ -46,41 +84,23 @@ export default async function deleteSubmission(req: AuthRequest) {
             })
         }
 
-        if (submission.status === 'registered' && submission.limit !== null) {
-            const countSql = await loadSQL('submissions/countRegistered.sql')
-            const countResult = await run(countSql, [submission.form_id])
-            const registeredCount = countResult.rows[0].count
-
-            if (registeredCount < submission.limit) {
-                const getWaitlistSql = await loadSQL('submissions/getWaitlistBatch.sql')
-                const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
-                
-                const waitlistResult = await run(getWaitlistSql, [submission.form_id, 1])
-                
-                if (waitlistResult.rows.length > 0) {
-                    const nextPerson = waitlistResult.rows[0]
-                    await run(updateStatusSql, [nextPerson.id, 'registered'])
-                    
-                    if (nextPerson.email) {
-                        await sendTemplatedMail(nextPerson.email, {
-                            title: submission.form_title,
-                            status: 'bumped',
-                            ownerEmail: submission.form_owner_email,
-                            actionUrl: `${config.FRONTEND_URL}/submissions/${nextPerson.id}`,
-                            actionText: 'View Submission',
-                            submissionId: nextPerson.id
-                        })
-                    }
-                }
-            }
+        if (promoted?.email) {
+            await sendTemplatedMail(promoted.email, {
+                title: submission.form_title,
+                status: 'bumped',
+                ownerEmail: submission.form_owner_email,
+                actionUrl: `${config.FRONTEND_URL}/submissions/${promoted.id}`,
+                actionText: 'View Submission',
+                submissionId: promoted.id
+            })
         }
 
-        const updateSql = await loadSQL('submissions/updateStatus.sql')
-        await run(updateSql, [params.id, 'cancelled'])
-
         return Response.json({ success: true, message: 'Submission cancelled' })
-
-    } catch (error) {
+    } catch (error: unknown) {
+        const statusCode = (error as Error & { statusCode?: number }).statusCode
+        if (statusCode) {
+            return Response.json({ error: (error as Error).message }, { status: statusCode })
+        }
         return sendInternalServerError('Error deleting submission:', error)
     }
 }
