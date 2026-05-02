@@ -27,7 +27,7 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
 }
 
 export default async function duplicateForm(req: AuthRequest) {
-    const sourceFormId = (req as any).params.id || (req as any).params.sourceFormId;
+    const sourceFormId = req.params.id || req.params.sourceFormId
     if (!sourceFormId) return Response.json({ error: 'sourceFormId is required' }, { status: 400 })
     const userId = req.user?.id
 

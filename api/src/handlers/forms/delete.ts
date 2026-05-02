@@ -5,7 +5,7 @@ import { hasRequiredGroup } from '#utils/validation/validators.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function deleteForm(req: AuthRequest) {
-    const id = (req as any).params.id || (req as any).params.id;
+    const { id } = req.params
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     if (!hasRequiredGroup(req.user?.groups, 'Aktiv')) {

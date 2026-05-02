@@ -5,7 +5,7 @@ import { sendInternalServerError } from '#utils/http/errors.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function scanSubmission(req: AuthRequest) {
-    const id = (req as any).params.id || (req as any).params.id;
+    const { id } = req.params
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
     const { form_id } = await req.json() as { form_id: string }
     const userId = req.user.id
