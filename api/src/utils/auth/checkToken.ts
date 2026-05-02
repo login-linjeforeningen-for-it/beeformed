@@ -1,4 +1,5 @@
 import config from '#constants'
+import { logUtilityError } from '#utils/http/errors.ts'
 
 type CheckTokenResponse = {
     valid: boolean
@@ -11,8 +12,10 @@ type CheckTokenResponse = {
     error?: string
 }
 
-export default async function checkToken( req: Request ): Promise<CheckTokenResponse> {
-    const { USERINFO_URL } = config
+const tokenCache = new Map<string, { response: CheckTokenResponse; expiresAt: number }>()
+
+export default async function checkToken(req: Request): Promise<CheckTokenResponse> {
+    const { USERINFO_URL, CACHE_TTL } = config
     const authHeader = req.headers.get('authorization')
 
     if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
@@ -24,6 +27,11 @@ export default async function checkToken( req: Request ): Promise<CheckTokenResp
 
     const token = authHeader.split(' ')[1]
 
+    const cached = tokenCache.get(token)
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.response
+    }
+
     try {
         const userInfoRes = await fetch(USERINFO_URL, {
             headers: {
@@ -32,20 +40,27 @@ export default async function checkToken( req: Request ): Promise<CheckTokenResp
         })
 
         if (!userInfoRes.ok) {
-            return {
+            const errorResponse: CheckTokenResponse = {
                 valid: false,
                 error: 'Unauthorized'
             }
+            return errorResponse
         }
 
         const userInfo = await userInfoRes.json()
-
-        return {
+        const response: CheckTokenResponse = {
             valid: true,
             userInfo: userInfo as any
         }
+
+        tokenCache.set(token, {
+            response,
+            expiresAt: Date.now() + CACHE_TTL
+        })
+
+        return response
     } catch (err) {
-        console.error(err)
+        logUtilityError('Token check error:', err)
         return {
             valid: false,
             error: 'Internal server error'
