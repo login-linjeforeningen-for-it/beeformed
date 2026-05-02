@@ -3,18 +3,20 @@ import config from '#constants'
 const { COMPANY_INFO } = config
 
 function renderActionButton(actionUrl: string, actionText: string) {
+    const escapedUrl = Bun.escapeHTML(actionUrl)
+    const escapedText = Bun.escapeHTML(actionText)
     return `
         <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
             <tr>
                 <td align="center" style="padding-top: 12px;">
                     <!--[if mso]>
-                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${actionUrl}" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" stroke="f" fillcolor="${COMPANY_INFO.primaryColor}">
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${escapedUrl}" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" stroke="f" fillcolor="${COMPANY_INFO.primaryColor}">
                         <w:anchorlock/>
-                        <center style="color:#ffffff;font-family:Arial, sans-serif;font-size:14px;font-weight:700;">${actionText}</center>
+                        <center style="color:#ffffff;font-family:Arial, sans-serif;font-size:14px;font-weight:700;">${escapedText}</center>
                     </v:roundrect>
                     <![endif]-->
                     <!--[if !mso]><!-- -->
-                    <a href="${actionUrl}" style="display: inline-block; background-color: ${COMPANY_INFO.primaryColor}; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700; font-size: 14px; line-height: 48px; padding: 0 28px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">${actionText}</a>
+                    <a href="${escapedUrl}" style="display: inline-block; background-color: ${COMPANY_INFO.primaryColor}; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700; font-size: 14px; line-height: 48px; padding: 0 28px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">${escapedText}</a>
                     <!--<![endif]-->
                 </td>
             </tr>
@@ -30,7 +32,10 @@ export function renderEmailLayout(options: {
     actionUrl?: string
     actionText?: string
 }) {
-    const { title, preheader, header, body, actionUrl, actionText } = options
+    const title = Bun.escapeHTML(options.title)
+    const preheader = Bun.escapeHTML(options.preheader)
+    const header = Bun.escapeHTML(options.header)
+    const { body, actionUrl, actionText } = options
 
     return `
         <!DOCTYPE html>

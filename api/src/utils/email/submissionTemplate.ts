@@ -73,11 +73,11 @@ function generateSubmissionEmailHTML(content: EmailContent, qrCodeImageDataUrl?:
             <tr class="stack">
                 <td valign="top" style="padding: 20px; width: 70%;">
                     <p style="margin: 0 0 6px 0; font-size: 9px; line-height: 12px; letter-spacing: 2px; text-transform: uppercase; color: #a1a1a1;">Form Title</p>
-                    <p style="margin: 0; font-size: 16px; line-height: 22px; color: #e5e2e1; font-weight: 500;">${title}</p>
+                    <p style="margin: 0; font-size: 16px; line-height: 22px; color: #e5e2e1; font-weight: 500;">${Bun.escapeHTML(title)}</p>
                 </td>
                 <td valign="top" style="padding: 20px; width: 30%;">
                     <p style="margin: 0 0 6px 0; font-size: 9px; line-height: 12px; letter-spacing: 2px; text-transform: uppercase; color: #a1a1a1;">Status</p>
-                    <span style="display: inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(253, 135, 56, 0.2); background-color: rgba(253, 135, 56, 0.1); color: ${COMPANY_INFO.primaryColor}; font-size: 9px; line-height: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${status}</span>
+                    <span style="display: inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(253, 135, 56, 0.2); background-color: rgba(253, 135, 56, 0.1); color: ${COMPANY_INFO.primaryColor}; font-size: 9px; line-height: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${Bun.escapeHTML(status)}</span>
                 </td>
             </tr>
         </table>
@@ -86,7 +86,7 @@ function generateSubmissionEmailHTML(content: EmailContent, qrCodeImageDataUrl?:
             <tr>
                 <td style="padding: 20px;">
                     <p style="margin: 0 0 6px 0; font-size: 9px; line-height: 12px; letter-spacing: 2px; text-transform: uppercase; color: #a1a1a1;">Reference ID</p>
-                    <p style="margin: 0; font-size: 16px; line-height: 22px; color: #e5e2e1; font-weight: 500;">${submissionId}</p>
+                    <p style="margin: 0; font-size: 16px; line-height: 22px; color: #e5e2e1; font-weight: 500;">${Bun.escapeHTML(submissionId)}</p>
                 </td>
             </tr>
         </table>
@@ -95,9 +95,9 @@ function generateSubmissionEmailHTML(content: EmailContent, qrCodeImageDataUrl?:
             <tr>
                 <td style="padding: 20px;">
                     <p style="margin: 0 0 6px 0; font-size: 9px; line-height: 12px; letter-spacing: 2px; text-transform: uppercase; color: #a1a1a1;">Message</p>
-                    <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 24px; color: #e5e2e1; white-space: pre-line;">${body}</p>
+                    <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 24px; color: #e5e2e1; white-space: pre-line;">${Bun.escapeHTML(body)}</p>
                     <p style="margin: 0 0 6px 0; font-size: 9px; line-height: 12px; letter-spacing: 2px; text-transform: uppercase; color: #a1a1a1;">Form Contact</p>
-                    <p style="margin: 0; font-size: 15px; line-height: 24px; color: #e5e2e1;">${ownerEmail}</p>
+                    <p style="margin: 0; font-size: 15px; line-height: 24px; color: #e5e2e1;">${Bun.escapeHTML(ownerEmail)}</p>
                 </td>
             </tr>
         </table>
