@@ -17,6 +17,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 
     const slugs = param.slug
     const type = slugs && (Array.isArray(slugs) ? slugs[0] : slugs) || 'forms'
+    if (type !== 'forms' && type !== 'shared') {
+        notFound()
+    }
 
     const search = typeof filters.q === 'string' ? filters.q : ''
     const page = typeof filters.page === 'string' ? Number(filters.page) : 1
@@ -35,11 +38,12 @@ export default async function Page({ params, searchParams }: PageProps) {
         sort
     }
 
-    let forms
+    let forms: GetFormsProps = { data: [], total: 0 }
+    let loadError = false
     try {
         forms = type === 'shared' ? await getSharedForms(filter) : await getForms(filter)
     } catch {
-        notFound()
+        loadError = true
     }
 
     const formsData = forms.data.map(form => ({
@@ -88,6 +92,11 @@ export default async function Page({ params, searchParams }: PageProps) {
                             <Plus className='inline-block size-6' />
                         </Link> }
                 </div>
+                {loadError && (
+                    <div className='mb-4 rounded border border-yellow-600/50 bg-yellow-600/10 p-3 text-sm text-yellow-200'>
+                        Unable to load forms right now. Please try again in a moment.
+                    </div>
+                )}
 
                 {formsData && formsData.length > 0 ? (
                     <div className='flex-1 flex flex-col justify-between min-h-0'>

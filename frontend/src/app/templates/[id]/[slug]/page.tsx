@@ -11,10 +11,14 @@ type PageProps = {
 
 export default async function Page({ params }: PageProps) {
     const { id, slug } = await params
-    const type = slug === 'settings' ? 'fields' : slug
+    const type = slug === 'settings' ? 'fields' : slug || 'fields'
+    if (type !== 'fields' && type !== 'permissions') {
+        notFound()
+    }
 
-    let data
-    let templateData
+    let data: unknown = null
+    let templateData: GetTemplateProps | null = null
+    let loadError = false
 
     try {
         switch (type) {
@@ -27,7 +31,7 @@ export default async function Page({ params }: PageProps) {
 
         templateData = await getTemplate(id)
     } catch {
-        notFound()
+        loadError = true
     }
 
     function renderContent(content: unknown) {
@@ -57,10 +61,16 @@ export default async function Page({ params }: PageProps) {
             </div>
             <div className='pt-6 pb-4 flex flex-col h-full'>
                 <div className='flex justify-between h-full min-w-0'>
-                    {renderContent(data)}
+                    {loadError || !templateData ? (
+                        <div className='w-full rounded border border-yellow-600/50 bg-yellow-600/10 p-4 text-sm text-yellow-200'>
+                            Unable to load this template right now. Please try again in a moment.
+                        </div>
+                    ) : (
+                        renderContent(data)
+                    )}
                 </div>
             </div>
-            <p className='text-sm text-login-200 mt-4'>Template: {templateData.title}</p>
+            {templateData && <p className='text-sm text-login-200 mt-4'>Template: {templateData.title}</p>}
         </PageContainer>
     )
 }
