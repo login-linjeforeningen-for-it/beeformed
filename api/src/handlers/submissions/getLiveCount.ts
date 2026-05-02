@@ -1,8 +1,9 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getLiveCount(req: Request) {
-    const { id: formId } = (req as any).params
+export default async function getLiveCount(req: AuthRequest<'id'>) {
+    const { id: formId } = req.params
 
     const sql = await loadSQL('submissions/liveCount.sql')
     const result = await run(sql, [formId])

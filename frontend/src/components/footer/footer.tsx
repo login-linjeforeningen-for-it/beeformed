@@ -87,7 +87,9 @@ export default async function Footer() {
                 <div className='md:col-start-2 md:row-start-2 md:justify-self-end'>
                     <SocialLinks />
                 </div>
-                <div className='flex flex-col gap-4 mt-16 md:mt-24 md:grid md:grid-cols-[auto_min-content] md:gap-8 items-start md:items-end md:col-span-2 md:row-start-3'>
+                <div className='flex flex-col gap-4 mt-16 md:mt-24 md:grid
+                    md:grid-cols-[auto_min-content] md:gap-8 items-start
+                    md:items-end md:col-span-2 md:row-start-3'>
                     <p
                         className='text-login-100 text-xs wrap-break-word'
                     >

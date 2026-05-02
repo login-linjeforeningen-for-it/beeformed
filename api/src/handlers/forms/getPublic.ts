@@ -1,10 +1,11 @@
+import type { TypedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import checkToken from '#utils/auth/checkToken.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 
-export default async function getPublicForm(req: Request) {
-    const { id } = (req as any).params
+export default async function getPublicForm(req: TypedRequest<'id'>) {
+    const { id } = req.params
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     let userId: string | null = null

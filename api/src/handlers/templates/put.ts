@@ -3,7 +3,9 @@ import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
 
-export default async function updateTemplate(req: Request) {
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+
+export default async function updateTemplate(req: AuthRequest<'id'>) {
     const body = await req.json() as  {
         slug?: string
         title?: string
@@ -15,7 +17,7 @@ export default async function updateTemplate(req: Request) {
         published_at?: string
         expires_at?: string
     }
-    const id = (req as any).params.id || (req as any).params.id;
+    const { id } = req.params
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     if (!body.slug || !body.title || !body.published_at || !body.expires_at) {

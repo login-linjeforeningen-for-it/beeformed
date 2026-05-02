@@ -1,4 +1,3 @@
-import type { BunRequest } from 'bun'
 import checkToken from '#utils/auth/checkToken.ts'
 import { touchUserActivity } from '#utils/users/inactiveCleanup.ts'
 
@@ -9,11 +8,17 @@ export type AuthUser = {
     groups: string[]
 }
 
-export type AuthRequest<T extends string = string> = BunRequest<T> & { user: AuthUser }
+export interface TypedRequest<T extends string = string> extends Request {
+    params: { [K in T]: string }
+}
+
+export interface AuthRequest<T extends string = string> extends TypedRequest<T> {
+    user: AuthUser
+}
 
 export function withAuth<T extends string = string>(handler: (req: AuthRequest<T>) => Response | Promise<Response>) {
-    return async (req: BunRequest<T>): Promise<Response> => {
-        const tokenResult = await checkToken(req as Request)
+    return async (req: TypedRequest<T>): Promise<Response> => {
+        const tokenResult = await checkToken(req)
 
         if (tokenResult.error === 'Internal server error') {
             return Response.json({ error: 'Internal server error' }, { status: 500 })

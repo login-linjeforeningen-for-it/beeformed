@@ -2,8 +2,10 @@ import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 
-export default async function getFormPermissions(req: Request) {
-    const id = (req as any).params.id || (req as any).params.id;
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+
+export default async function getFormPermissions(req: AuthRequest<'id'>) {
+    const { id } = req.params
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     try {

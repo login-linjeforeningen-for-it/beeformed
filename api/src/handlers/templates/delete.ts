@@ -4,8 +4,8 @@ import { sendInternalServerError } from '#utils/http/errors.ts'
 import { hasRequiredGroup } from '#utils/validation/validators.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function deleteTemplate(req: AuthRequest) {
-    const id = (req as any).params.id || (req as any).params.id;
+export default async function deleteTemplate(req: AuthRequest<'id'>) {
+    const { id } = req.params
     if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
 
     if (!hasRequiredGroup(req.user?.groups, 'QueenBee')) {

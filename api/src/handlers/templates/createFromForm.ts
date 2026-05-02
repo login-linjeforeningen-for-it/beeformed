@@ -26,8 +26,8 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
     return copyIndex === 1 ? `${baseSlug}-template` : `${baseSlug}-template-${copyIndex}`
 }
 
-export default async function createTemplateFromForm(req: AuthRequest) {
-    const sourceFormId = (req as any).params.id || (req as any).params.sourceFormId;
+export default async function createTemplateFromForm(req: AuthRequest<'id'>) {
+    const { id: sourceFormId } = req.params
     if (!sourceFormId) return Response.json({ error: 'sourceFormId is required' }, { status: 400 })
     const userId = req.user?.id
 
