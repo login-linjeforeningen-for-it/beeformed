@@ -44,7 +44,7 @@ export default async function Page({ params }: PageProps) {
     }
 
     return (
-        <PageContainer title={`Editing Template - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
+        <PageContainer title={`Template - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
             <div className='flex flex-wrap gap-2 mb-4'>
                 <LinkButton
                     href={`/templates/${id}/fields`}

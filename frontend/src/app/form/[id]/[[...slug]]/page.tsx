@@ -105,7 +105,7 @@ export default async function Page({ params, searchParams }: PageProps) {
     }
 
     return (
-        <PageContainer title={`Editing Form - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
+        <PageContainer title={`Form - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
             <div className='flex flex-wrap gap-2 mb-4'>
                 <LinkButton
                     href={`/form/${id}/fields`}
