@@ -27,11 +27,12 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
 }
 
 export default async function duplicateForm(req: AuthRequest) {
-    const sourceFormId = req.params.id || req.params.sourceFormId
+    const { id, sourceFormId: sourceFormIdParam } = req.params
+    const sourceFormId = id || sourceFormIdParam
     if (!sourceFormId) return Response.json({ error: 'sourceFormId is required' }, { status: 400 })
-    const userId = req.user?.id
+    const userId = req.user.id
 
-    if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'Aktiv')) {
+    if (!hasRequiredGroup(req.user.groups, 'Aktiv')) {
         return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 

@@ -4,12 +4,11 @@ import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { sendInternalServerError } from '#utils/http/errors.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
+import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function updateForm(req: Request) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = await req.json() as  any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = (req as any).params
+export default async function updateForm(req: AuthRequest) {
+    const body = await req.json() as any
+    const { params } = req
 
     if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
         return Response.json({ error: 'slug, title, published_at and expires_at are required' }, { status: 400 })

@@ -6,19 +6,17 @@ import { sendInternalServerError } from '#utils/http/errors.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function deleteSubmission(req: AuthRequest) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = (req as any).params
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = req.user as any
+    const { params, user } = req
+    const { id } = params
 
     try {
         const result = await runInTransaction(async (client) => {
             const getSql = await loadSQL('submissions/getForDeletion.sql')
-            const getResult = await client.query(getSql, [params.id])
+            const getResult = await client.query(getSql, [id])
 
             if (getResult.rows.length === 0) {
                 const error = new Error('Submission not found')
-                ;(error as Error & { statusCode?: number }).statusCode = 404
+                    ; (error as Error & { statusCode?: number }).statusCode = 404
                 throw error
             }
 
@@ -26,7 +24,7 @@ export default async function deleteSubmission(req: AuthRequest) {
 
             if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
                 const error = new Error('You do not have permission to delete this submission')
-                ;(error as Error & { statusCode?: number }).statusCode = 403
+                    ; (error as Error & { statusCode?: number }).statusCode = 403
                 throw error
             }
 
@@ -34,7 +32,7 @@ export default async function deleteSubmission(req: AuthRequest) {
             const expiresAt = new Date(submission.expires_at)
             if (now > expiresAt) {
                 const error = new Error('Cannot remove submission after form has closed')
-                ;(error as Error & { statusCode?: number }).statusCode = 400
+                    ; (error as Error & { statusCode?: number }).statusCode = 400
                 throw error
             }
 

@@ -36,8 +36,7 @@ function serializeFieldValue(value: unknown): string | null {
 }
 
 export default async function createSubmission(req: AuthRequest) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = await req.json() as  any
+    const body = await req.json() as { fields: { field_id: string; value: unknown }[] }
     const { id: formId } = req.params as { id: string }
 
     try {
