@@ -1,18 +1,57 @@
 import config from '#constants'
 import { logUtilityError } from '#utils/http/errors.ts'
 
+type UserInfoClaims = {
+    sub: string
+    name: string
+    email: string
+    groups?: string[]
+}
+
 type CheckTokenResponse = {
     valid: boolean
-    userInfo?: {
-        sub: string
-        name: string
-        email: string
-        groups?: string[]
-    }
+    userInfo?: UserInfoClaims
     error?: string
 }
 
 const tokenCache = new Map<string, { response: CheckTokenResponse; expiresAt: number }>()
+
+function parseUserInfoClaims(data: unknown): UserInfoClaims | null {
+    if (data === null || typeof data !== 'object') {
+        return null
+    }
+
+    const o = data as Record<string, unknown>
+    if (typeof o.sub !== 'string' || !o.sub.trim()) {
+        return null
+    }
+
+    if (typeof o.email !== 'string' || !o.email.trim()) {
+        return null
+    }
+
+    if (typeof o.name !== 'string') {
+        return null
+    }
+
+    let groups: string[] | undefined
+    if (o.groups !== undefined && o.groups !== null) {
+        if (!Array.isArray(o.groups)) {
+            return null
+        }
+        if (!o.groups.every((item): item is string => typeof item === 'string')) {
+            return null
+        }
+        groups = [...o.groups]
+    }
+
+    return {
+        sub: o.sub.trim(),
+        name: o.name,
+        email: o.email.trim(),
+        groups
+    }
+}
 
 export default async function checkToken(req: Request): Promise<CheckTokenResponse> {
     const { USERINFO_URL, CACHE_TTL } = config
@@ -47,10 +86,19 @@ export default async function checkToken(req: Request): Promise<CheckTokenRespon
             return errorResponse
         }
 
-        const userInfo = await userInfoRes.json()
+        const rawBody: unknown = await userInfoRes.json()
+        const userInfo = parseUserInfoClaims(rawBody)
+        if (!userInfo) {
+            logUtilityError('Token check: userinfo payload missing or invalid sub, email, name, or groups shape')
+            return {
+                valid: false,
+                error: 'Unauthorized'
+            }
+        }
+
         const response: CheckTokenResponse = {
             valid: true,
-            userInfo: userInfo as any
+            userInfo
         }
 
         tokenCache.set(token, {

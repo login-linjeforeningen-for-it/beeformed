@@ -15,11 +15,18 @@ export default async function getSubmission(req: AuthRequest<'id'>) {
         const sql = await loadSQL('submissions/get.sql')
         const result = await run(sql, [id, userId, formId || null])
         const entity = result.rows.length > 0 ? result.rows[0] : null
-        
-        if (!entity && formId) {
-            return Response.json({ error: 'Submission not found or does not belong to this form' }, { status: 404 })
+
+        if (!entity) {
+            return Response.json(
+                {
+                    error: formId
+                        ? 'Submission not found or does not belong to this form'
+                        : 'Submission not found'
+                },
+                { status: 404 }
+            )
         }
-        
+
         return Response.json(entity)
     } catch (error) {
         return sendInternalServerError('Error reading entity:', error)

@@ -2,7 +2,7 @@ import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { createHttpError, sendInternalServerError } from '#utils/http/errors.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
@@ -73,7 +73,7 @@ export default async function createSubmission(req: AuthRequest) {
                 const checkSubmissionSql = await loadSQL('submissions/checkUserSubmission.sql')
                 const existingSubmission = await client.query(checkSubmissionSql, [formId, userId])
                 if (parseInt(existingSubmission.rows[0].count) > 0) {
-                    throw new Error('You have already submitted to this form')
+                    throw createHttpError(409, 'You have already submitted to this form')
                 }
             }
             

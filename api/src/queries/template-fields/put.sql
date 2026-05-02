@@ -9,5 +9,5 @@ SET
     validation = $7,
     field_order = $8
 WHERE
-    id = $1
+    id = $1 AND template_id = $9
 RETURNING *;
