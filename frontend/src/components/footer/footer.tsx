@@ -26,7 +26,7 @@ export default async function Footer() {
 
     return (
         <div className='bg-login-950 mt-24 md:mt-40'>
-            <div className='w-full mx-auto pt-16 px-4 pb-4 md:max-w-304
+            <div className='w-full mx-auto pt-16 px-4 pb-24 md:max-w-304
                 md:pt-20 md:px-12 md:pb-4 md:grid md:grid-cols-[18rem_1fr] md:gap-x-12'>
                 <div className='grid gap-16 max-w-60 w-full mx-auto md:row-span-2 md:max-w-72 md:gap-20'>
                     <div>

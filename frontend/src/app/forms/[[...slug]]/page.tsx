@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
 import { Plus } from 'lucide-react'
 import FormsTable from '@components/tables/forms'
+import FAB from '@components/button/fab'
 
 type PageProps = {
     params: Promise<{ slug?: string[] | string }>
@@ -106,6 +107,7 @@ export default async function Page({ params, searchParams }: PageProps) {
                     </div>
                 )}
             </div>
+            { type === 'forms' && <FAB href='/forms/create' label='Create Form' /> }
         </PageContainer>
     )
 }

@@ -6,6 +6,7 @@ import Navbar from '@components/navbar/navbar'
 import { Toaster } from 'uibee/components'
 import localFont from 'next/font/local'
 import Footer from '@components/footer/footer'
+import BottomNav from '@components/navigation/bottom-nav'
 import '@public/fonts/style.css'
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     {children}
                 </main>
                 <Footer />
+                <BottomNav />
                 <Toaster />
             </body>
         </html>

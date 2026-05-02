@@ -101,38 +101,40 @@ export default async function Page({ params, searchParams }: PageProps) {
 
     return (
         <PageContainer title={`Form - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
-            <div className='flex flex-wrap gap-2 mb-4'>
-                <LinkButton
-                    href={`/form/${id}/fields`}
-                    highlight={type === 'fields'}
-                >
-                    Fields
-                </LinkButton>
-                <LinkButton
-                    href={`/form/${id}/settings`}
-                    highlight={type === 'settings'}
-                >
-                    Settings
-                </LinkButton>
-                <LinkButton
-                    href={`/form/${id}/permissions`}
-                    highlight={type === 'permissions'}
-                >
-                    Permissions
-                </LinkButton>
-                <LinkButton
-                    href={`/form/${id}/submissions`}
-                    highlight={type === 'submissions' || type === 'all-submissions'}
-                >
-                    Submissions
-                </LinkButton>
-                <LinkButton
-                    href={`/qr/${id}`}
-                    highlight={type === 'qr'}
-                >
-                    QR Scanner
-                </LinkButton>
-                <ShareButton slug={formData.slug} />
+            <div className='flex flex-col sm:flex-row gap-2 mb-4 pb-2'>
+                <div className='flex flex-col sm:flex-row gap-2'>
+                    <LinkButton
+                        href={`/form/${id}/fields`}
+                        highlight={type === 'fields'}
+                    >
+                        Fields
+                    </LinkButton>
+                    <LinkButton
+                        href={`/form/${id}/settings`}
+                        highlight={type === 'settings'}
+                    >
+                        Settings
+                    </LinkButton>
+                    <LinkButton
+                        href={`/form/${id}/permissions`}
+                        highlight={type === 'permissions'}
+                    >
+                        Permissions
+                    </LinkButton>
+                    <LinkButton
+                        href={`/form/${id}/submissions`}
+                        highlight={type === 'submissions' || type === 'all-submissions'}
+                    >
+                        Submissions
+                    </LinkButton>
+                    <LinkButton
+                        href={`/qr/${id}`}
+                        highlight={type === 'qr'}
+                    >
+                        QR Scanner
+                    </LinkButton>
+                    {formData && <ShareButton slug={formData.slug} />}
+                </div>
             </div>
             <div className='pt-6 pb-4 flex flex-col h-full'>
                 <div className='flex justify-between h-full min-w-0'>

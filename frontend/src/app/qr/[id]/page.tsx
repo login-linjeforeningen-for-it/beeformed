@@ -6,7 +6,9 @@ import { AlertCircle, Loader2, User, Clock, CheckCircle2, XCircle, RotateCcw, Sc
 import { scanSubmission, searchSubmissions } from '@utils/api/client'
 import { useParams } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
-import { Button, PageContainer } from 'uibee/components'
+import { Button, PageContainer, Input } from 'uibee/components'
+import MobileCard from '@components/tables/mobile-card'
+import { Search } from 'lucide-react'
 
 export default function Page() {
     const params = useParams()
@@ -235,12 +237,19 @@ export default function Page() {
                     )}
 
                     {isScanning && !scannedData && !loadingSubmission && (
-                        <div className='absolute inset-0 p-16 pointer-events-none transition-all duration-300'>
-                            <div className='w-full h-full border-2 border-login/50 rounded-lg relative'>
-                                <div className='absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-login rounded-tl-sm' />
-                                <div className='absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-login rounded-tr-sm' />
-                                <div className='absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-login rounded-bl-sm' />
-                                <div className='absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-login rounded-br-sm' />
+                        <div className='absolute inset-0 p-8 pointer-events-none'>
+                            <div className='w-full h-full border border-login-800 rounded-[2rem] relative overflow-hidden'>
+                                <div className='absolute inset-0 bg-gradient-to-b from-transparent
+                                    via-login/5 to-transparent animate-scan-move' />
+                                {/* Corner Accents */}
+                                <div className='absolute -top-1 -left-1 w-14 h-14 border-t-4
+                                    border-l-4 border-login rounded-tl-2xl' />
+                                <div className='absolute -top-1 -right-1 w-14 h-14 border-t-4
+                                    border-r-4 border-login rounded-tr-2xl' />
+                                <div className='absolute -bottom-1 -left-1 w-14 h-14 border-b-4
+                                    border-l-4 border-login rounded-bl-2xl' />
+                                <div className='absolute -bottom-1 -right-1 w-14 h-14 border-b-4
+                                    border-r-4 border-login rounded-br-2xl' />
                             </div>
                         </div>
                     )}
@@ -301,69 +310,59 @@ export default function Page() {
                 </div>
 
                 {!scannedData && !loadingSubmission && (
-                    <div className='flex flex-col items-center gap-4 w-full'>
-                        <p className='text-sm text-login-300 text-center animate-pulse'>
-                            Point your camera at a QR code or search for a submission below
-                        </p>
-
-                        <div className='w-full'>
-                            <label className='text-xs uppercase tracking-[0.18em] text-login-500 mb-2 block'>
-                                Search by name or email
-                            </label>
-                            <div className='flex flex-col gap-2 sm:flex-row'>
-                                <input
-                                    type='text'
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault()
-                                            handleSearch()
-                                        }
-                                    }}
-                                    placeholder='Search submissions...'
-                                    className='flex-1 rounded-2xl border border-login-800 bg-login-950 px-4 py-3
-                                        text-login-50 outline-none focus:border-login focus:ring-2 focus:ring-login/30'
-                                />
-                                <button
-                                    type='button'
-                                    onClick={handleSearch}
-                                    disabled={searching}
-                                    className='w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-login text-sm
-                                        font-semibold text-white px-4 py-3 transition hover:bg-login/90 disabled:cursor-not-allowed
-                                        disabled:opacity-50 sm:w-auto'
-                                >
-                                    {searching ? 'Searching...' : 'Find'}
-                                </button>
-                            </div>
-
-                            {searchResults.length > 0 && (
-                                <div className='mt-4 space-y-2 max-h-96 overflow-y-auto w-full'>
-                                    {searchResults.map(result => (
-                                        <button
-                                            key={result.id}
-                                            type='button'
-                                            onClick={() => handleSelectSubmission(result.id)}
-                                            className='w-full rounded-2xl border border-login-800 bg-login-900 p-4 text-left transition
-                                                hover:border-login'
-                                        >
-                                            <div className='flex items-center justify-between gap-2'>
-                                                <div className='text-sm text-login-200'>
-                                                    <div className='font-semibold text-white'>{result.user_name || 'Anonymous'}</div>
-                                                    <div className='text-login-500'>{result.user_email || 'No email'}</div>
-                                                </div>
-                                                <span className='rounded-full bg-login-800 px-3 py-1 text-xs uppercase tracking-[0.18em]
-                                                    text-login-300'
-                                                >
-                                                    {result.status}
-                                                </span>
-                                            </div>
-                                            <div className='mt-2 text-xs text-login-500'>ID: {result.id}</div>
-                                        </button>
-                                    ))}
+                    <div className='w-full space-y-6'>
+                        <div className='bg-login-900 rounded-2xl p-6 border border-login-800 shadow-sm'>
+                            <div className='flex flex-col gap-6'>
+                                <div className='space-y-1'>
+                                    <h3 className='text-sm font-semibold text-white uppercase tracking-wider'>Manual Search</h3>
+                                    <p className='text-xs text-login-400'>Search for a submission if the QR code cannot be scanned.</p>
                                 </div>
-                            )}
+                                <div className='flex flex-col gap-4'>
+                                    <Input
+                                        name='searchTerm'
+                                        value={searchTerm}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                handleSearch()
+                                            }
+                                        }}
+                                        placeholder='Enter name or email...'
+                                        icon={<Search size={18} className='text-login-400' />}
+                                        className='bg-login-950 border-login-800'
+                                    />
+                                    <Button
+                                        text={searching ? 'Searching...' : 'Search Submissions'}
+                                        icon={<Search size={18} />}
+                                        onClick={handleSearch}
+                                        disabled={searching}
+                                        variant='primary'
+                                        className='w-full'
+                                    />
+                                </div>
+                            </div>
                         </div>
+
+                        {searchResults.length > 0 && (
+                            <div className='mt-6 space-y-3 max-h-96 overflow-y-auto w-full no-scrollbar'>
+                                {searchResults.map(result => (
+                                    <MobileCard
+                                        key={result.id}
+                                        title={result.user_name || 'Anonymous'}
+                                        subtitle={result.user_email || 'No email provided'}
+                                        details={[{ label: 'ID', value: result.id }]}
+                                        status={{
+                                            label: result.status,
+                                            color: result.status === 'registered' ? 'green' :
+                                                result.status === 'waitlisted' ? 'yellow' :
+                                                    result.status === 'rejected' ? 'red' : 'gray'
+                                        }}
+                                        onClick={() => handleSelectSubmission(result.id)}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

@@ -169,6 +169,8 @@ declare global {
     type GetSubmissionsProps = {
         data: {
             id: string
+            form_id: string
+            form_title: string
             user_email: string | null
             user_name: string | null
             status: string
