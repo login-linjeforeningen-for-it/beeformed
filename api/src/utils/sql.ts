@@ -1,9 +1,18 @@
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 
+const sqlCache = new Map<string, string>()
+const identifierRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?$/
+
 export async function loadSQL(file: string) {
+    if (sqlCache.has(file)) {
+        return sqlCache.get(file)!
+    }
+
     const filePath = join(process.cwd(), 'src/queries/', file)
-    return readFile(filePath, 'utf-8')
+    const content = await readFile(filePath, 'utf-8')
+    sqlCache.set(file, content)
+    return content
 }
 
 export async function buildFilteredQuery(
@@ -37,6 +46,13 @@ export async function buildFilteredQuery(
         const fieldsToSearch: string[] = options?.searchFields && options.searchFields.length
             ? options.searchFields
             : [tablePrefix ? `${tablePrefix}.title` : 'title', tablePrefix ? `${tablePrefix}.description` : 'description']
+
+        for (const field of fieldsToSearch) {
+            if (!identifierRegex.test(field)) {
+                throw new Error(`Invalid search field: ${field}`)
+            }
+        }
+
         const clauses = fieldsToSearch.map((f) => `(${f} IS NOT NULL AND ${f} ILIKE $${params.length + 1})`).join(' OR ')
 
         const upperSQL = sql.toUpperCase()
@@ -62,7 +78,7 @@ export async function buildFilteredQuery(
 
     const explicitOrderField = options?.explicitOrderField
     const orderField = explicitOrderField || (tablePrefix ? `${tablePrefix}.${orderBy}` : orderBy)
-    const identifierRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?$/
+
     if (!identifierRegex.test(orderField)) {
         throw new Error('Invalid order_by parameter')
     }
