@@ -11,6 +11,11 @@ export default async function getOneForm(req: AuthRequest) {
         const sql = await loadSQL('forms/get.sql')
         const result = await run(sql, [id])
         const entity = result.rows.length > 0 ? result.rows[0] : null
+
+        if (!entity) {
+            return Response.json({ error: 'Form not found' }, { status: 404 })
+        }
+
         return Response.json(entity)
     } catch (error) {
         return sendInternalServerError('Error reading entity:', error)

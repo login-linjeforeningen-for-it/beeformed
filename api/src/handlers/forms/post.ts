@@ -5,11 +5,10 @@ import { hasRequiredGroup, isValidSlug, validatePublicationWindow } from '#utils
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function createForm(req: AuthRequest) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = await req.json() as  any
-    const user_id = req.user.id
+    const body = await req.json() as any
+    const { id: user_id } = req.user
 
-    if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'Aktiv')) {
+    if (!hasRequiredGroup(req.user.groups, 'Aktiv')) {
         return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
