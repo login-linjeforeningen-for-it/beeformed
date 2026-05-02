@@ -31,8 +31,8 @@ declare global {
         id: string
         form_id: string
         field_type: string
-        label: string
-        placeholder?: string
+        title: string
+        description?: string
         required: boolean
         options?: string[]
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

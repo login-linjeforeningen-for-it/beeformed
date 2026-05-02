@@ -1,5 +1,3 @@
-import fs from 'fs'
-import path from 'path'
 import { apiRoutes } from './routes.ts'
 import getFavicon from './handlers/favicon/get.ts'
 import { processEmailQueue } from './utils/email/sendSMTP.ts'

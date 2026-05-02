@@ -77,7 +77,7 @@ declare global {
         }[]
     }
 
-    // Feilds
+    // Fields
     type FieldProps = {
         form_id: string
         field_type: string
