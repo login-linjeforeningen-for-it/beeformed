@@ -16,9 +16,6 @@ export default async function Page({ params, searchParams }: PageProps) {
     const filters = await searchParams
 
     const slug = param.slug && (Array.isArray(param.slug) ? param.slug[0] : param.slug) || 'templates'
-    if (slug !== 'templates' && slug !== 'shared') {
-        notFound()
-    }
     const listType: 'templates' | 'shared' = slug === 'shared' ? 'shared' : 'templates'
 
     const search = typeof filters.q === 'string' ? filters.q : ''
@@ -38,12 +35,11 @@ export default async function Page({ params, searchParams }: PageProps) {
         sort
     }
 
-    let templates: GetTemplatesProps = { data: [], total: 0 }
-    let loadError = false
+    let templates
     try {
         templates = listType === 'shared' ? await getSharedTemplates(filter) : await getTemplates(filter)
     } catch {
-        loadError = true
+        notFound()
     }
 
     const templateData = templates.data.map(template => ({
@@ -94,11 +90,6 @@ export default async function Page({ params, searchParams }: PageProps) {
                         </Link>
                     )}
                 </div>
-                {loadError && (
-                    <div className='mb-4 rounded border border-yellow-600/50 bg-yellow-600/10 p-3 text-sm text-yellow-200'>
-                        Unable to load templates right now. Please try again in a moment.
-                    </div>
-                )}
 
                 {templateData && templateData.length > 0 ? (
                     <div className='flex-1 flex flex-col justify-between min-h-0'>

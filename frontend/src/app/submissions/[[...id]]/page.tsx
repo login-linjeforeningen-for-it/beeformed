@@ -10,14 +10,10 @@ export default async function Page(
 ) {
     const { id } = await params
     const filters = await searchParams
-    if (Array.isArray(id) && id.length > 1) {
-        notFound()
-    }
 
     const orderBy = typeof filters.column === 'string' ? filters.column : 'submitted_at'
     const order = typeof filters.order === 'string' && (filters.order === 'asc' || filters.order === 'desc') ? filters.order : 'desc'
-    let data: Submission | GetSubmissionsProps = { data: [], total: 0 }
-    let loadError = false
+    let data
     try {
         data = id ? await getSubmission(Array.isArray(id) ? id[0] : id) : await getUserSubmissions({
             search: typeof filters.q === 'string' ? filters.q : '',
@@ -27,35 +23,16 @@ export default async function Page(
             sort: order
         })
     } catch {
-        loadError = true
+        notFound()
     }
 
     if (id) {
-        if (loadError) {
-            return (
-                <PageContainer title='Submission Details'>
-                    <div className='rounded border border-yellow-600/50 bg-yellow-600/10 p-4 text-sm text-yellow-200'>
-                        Unable to load this submission right now. Please try again in a moment.
-                    </div>
-                </PageContainer>
-            )
-        }
         const submission = data as Submission
-        let formData: GetPublicFormProps | null = null
-        let formLoadError = false
+        let formData
         try {
             formData = await getPublicForm(submission.form_id.toString())
         } catch {
-            formLoadError = true
-        }
-        if (formLoadError || !formData) {
-            return (
-                <PageContainer title='Submission Details'>
-                    <div className='rounded border border-yellow-600/50 bg-yellow-600/10 p-4 text-sm text-yellow-200'>
-                        Unable to load this submission form right now. Please try again in a moment.
-                    </div>
-                </PageContainer>
-            )
+            notFound()
         }
 
         const form = { ...formData, id: submission.form_id.toString() }
@@ -108,11 +85,6 @@ export default async function Page(
             <PageContainer title='My Submissions'>
                 <div className='pt-8 md:pt-20 pb-4 flex flex-col h-full'>
                     <div className='flex flex-1 flex-col min-h-0 overflow-hidden'>
-                        {loadError && (
-                            <div className='mb-4 rounded border border-yellow-600/50 bg-yellow-600/10 p-3 text-sm text-yellow-200'>
-                                Unable to load submissions right now. Please try again in a moment.
-                            </div>
-                        )}
                         <div className='flex justify-between mb-4'>
                             <SearchInput
                                 placeholder='Search submissions...'

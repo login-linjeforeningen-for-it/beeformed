@@ -18,10 +18,6 @@ export default async function Page({ params, searchParams }: PageProps) {
     const { id, slug } = await params
     const filters = await searchParams
     const type = Array.isArray(slug) ? slug[0] : slug || 'fields'
-    const validTypes = new Set(['fields', 'settings', 'permissions', 'submissions', 'all-submissions'])
-    if (!validTypes.has(type)) {
-        notFound()
-    }
 
     const orderBy = typeof filters.column === 'string' ? filters.column : 'submitted_at'
     const sort = (typeof filters.order === 'string' && (filters.order === 'asc' || filters.order === 'desc')) ? filters.order : 'desc'
@@ -35,9 +31,8 @@ export default async function Page({ params, searchParams }: PageProps) {
         sort: sort as 'asc' | 'desc'
     }
 
-    let data: unknown = null
-    let formData: GetFormProps | null = null
-    let loadError = false
+    let data
+    let formData
 
     try {
         switch (type) {
@@ -69,7 +64,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 
         formData = await getForm(id)
     } catch {
-        loadError = true
+        notFound()
     }
 
     function renderContent(data: unknown) {
@@ -137,17 +132,11 @@ export default async function Page({ params, searchParams }: PageProps) {
                 >
                     QR Scanner
                 </LinkButton>
-                {formData && <ShareButton slug={formData.slug} />}
+                <ShareButton slug={formData.slug} />
             </div>
             <div className='pt-6 pb-4 flex flex-col h-full'>
                 <div className='flex justify-between h-full min-w-0'>
-                    {loadError || !formData ? (
-                        <div className='w-full rounded border border-yellow-600/50 bg-yellow-600/10 p-4 text-sm text-yellow-200'>
-                            Unable to load this form right now. Please try again in a moment.
-                        </div>
-                    ) : (
-                        renderContent(data)
-                    )}
+                    {renderContent(data)}
                 </div>
             </div>
         </PageContainer>
