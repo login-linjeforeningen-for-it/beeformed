@@ -3,6 +3,7 @@ import { join } from 'path'
 
 const sqlCache = new Map<string, string>()
 const identifierRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?$/
+const searchableFieldRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?(?:::[a-zA-Z_][a-zA-Z0-9_]*)?$/
 
 export async function loadSQL(file: string) {
     if (sqlCache.has(file)) {
@@ -28,6 +29,8 @@ export async function buildFilteredQuery(
     tablePrefix?: string,
     options?: {
         searchFields?: string[]
+        searchFieldKeys?: string[]
+        searchFieldMap?: Record<string, string>
         explicitOrderField?: string
     }
 ) {
@@ -43,12 +46,25 @@ export async function buildFilteredQuery(
     const params = [...initialParams]
 
     if (search) {
-        const fieldsToSearch: string[] = options?.searchFields && options.searchFields.length
-            ? options.searchFields
-            : [tablePrefix ? `${tablePrefix}.title` : 'title', tablePrefix ? `${tablePrefix}.description` : 'description']
+        const defaultFields = [tablePrefix ? `${tablePrefix}.title` : 'title', tablePrefix ? `${tablePrefix}.description` : 'description']
+        const mappedSearchFields = options?.searchFieldKeys && options.searchFieldKeys.length
+            ? options.searchFieldKeys.map((key) => {
+                const mappedField = options.searchFieldMap?.[key]
+                if (!mappedField) {
+                    throw new Error(`Invalid search field key: ${key}`)
+                }
+                return mappedField
+            })
+            : undefined
+        const fieldsToSearch: string[] = mappedSearchFields
+            || (options?.searchFields && options.searchFields.length
+                ? options.searchFields
+                : defaultFields)
 
         for (const field of fieldsToSearch) {
-            if (!identifierRegex.test(field)) {
+            const isMappedField = mappedSearchFields?.includes(field)
+            const isValidField = isMappedField ? searchableFieldRegex.test(field) : identifierRegex.test(field)
+            if (!isValidField) {
                 throw new Error(`Invalid search field: ${field}`)
             }
         }

@@ -48,7 +48,12 @@ export default async function getSubmissionsByForm(req: AuthRequest) {
             query,
             undefined,
             {
-                searchFields: ['u.email', 'u.name', 's.id::text'],
+                searchFieldKeys: ['email', 'name', 'submission_id'],
+                searchFieldMap: {
+                    email: 'u.email',
+                    name: 'u.name',
+                    submission_id: 's.id::text'
+                },
                 explicitOrderField: orderMap[orderBy]
             }
         )
