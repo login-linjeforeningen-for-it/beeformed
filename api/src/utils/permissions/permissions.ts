@@ -1,6 +1,6 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { logUtilityError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 type PermissionChecker = (entityId: string, userId: string, groups?: string[]) => Promise<boolean>
@@ -18,7 +18,7 @@ export function createPermissionChecker(sqlPath: string, errorContext: string): 
             const result = await run(sql, [entityId, userId, groups])
             return result.rows[0]?.has_permission || false
         } catch (error) {
-            logUtilityError(errorContext, error)
+            logError(errorContext, { event: 'permission.check_failed', error })
             return false
         }
     }

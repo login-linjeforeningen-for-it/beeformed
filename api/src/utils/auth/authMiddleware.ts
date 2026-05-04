@@ -1,5 +1,7 @@
 import checkToken from '#utils/auth/checkToken.ts'
 import { touchUserActivity } from '#utils/users/inactiveCleanup.ts'
+import type { RequestContext } from '#utils/http/requestContext.ts'
+import { logWarn } from '#utils/logger.ts'
 
 export type AuthUser = {
     id: string
@@ -10,6 +12,7 @@ export type AuthUser = {
 
 export interface TypedRequest<T extends string = string> extends Request {
     params: { [K in T]: string }
+    context?: RequestContext
 }
 
 export interface AuthRequest<T extends string = string> extends TypedRequest<T> {
@@ -37,8 +40,17 @@ export function withAuth<T extends string = string>(handler: (req: AuthRequest<T
         }
 
         void touchUserActivity(authReq.user.id).catch((error: unknown) => {
-            console.warn('Failed to update user activity', error, authReq.user?.id)
+            logWarn('Failed to update user activity', {
+                event: 'user.activity.touch_failed',
+                userId: authReq.user?.id,
+                requestId: authReq.context?.requestId,
+                error
+            })
         })
+
+        if (authReq.context) {
+            authReq.context.userId = authReq.user.id
+        }
 
         return handler(authReq)
     }

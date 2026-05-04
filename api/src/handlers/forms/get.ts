@@ -1,7 +1,8 @@
 import run from '#db'
 import { buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/http/listResponse.ts'
-import { isInvalidOrderByError, sendInternalServerError } from '#utils/http/errors.ts'
+import { isInvalidOrderByError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function getForms(req: AuthRequest) {
@@ -24,6 +25,11 @@ export default async function getForms(req: AuthRequest) {
         if (isInvalidOrderByError(error)) {
             return Response.json({ error: error.message }, { status: 400 })
         }
-        return sendInternalServerError('Error getting forms:', error)
+        logError('Error getting forms', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

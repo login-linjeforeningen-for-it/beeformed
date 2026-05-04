@@ -1,6 +1,6 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import { hasRequiredGroup, isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
@@ -49,6 +49,11 @@ export default async function createForm(req: AuthRequest) {
         const result = await run(sql, sqlParams)
         return Response.json(result.rows[0], { status: 201 })
     } catch (error) {
-        return sendInternalServerError('Error creating entity:', error)
+        logError('Error creating entity', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

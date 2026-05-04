@@ -1,6 +1,7 @@
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { createHttpError, httpStatusFromError, sendInternalServerError } from '#utils/http/errors.ts'
+import { createHttpError, httpStatusFromError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 interface BulkOperation {
@@ -128,6 +129,11 @@ export default async function bulkFormFields(req: AuthRequest<'id'>) {
                 { status }
             )
         }
-        return sendInternalServerError('Error in bulk save:', error)
+        logError('Error in bulk save', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

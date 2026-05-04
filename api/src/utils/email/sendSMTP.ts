@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer'
 import { createSubmissionEmailTemplate } from './submissionTemplate.ts'
 import run from '#db'
 import type Mail from 'nodemailer/lib/mailer/index.js'
-import { logUtilityError } from '#utils/http/errors.ts'
+import { logError, logInfo, logWarn } from '#utils/logger.ts'
 
 type MailOptions = {
     to: string
@@ -63,7 +63,10 @@ async function enqueueEmail(mailOptions: MailOptions): Promise<void> {
             setTimeout(() => retryFromQueue(id, mailOptions, 0), retryDelays[0])
         }
     } catch (err) {
-        logUtilityError('Failed to queue email in database:', err)
+        logError('Failed to queue email in database', {
+            event: 'email.queue.enqueue_failed',
+            error: err
+        })
     }
 }
 
@@ -75,14 +78,27 @@ async function retryFromQueue(id: string, mailOptions: MailOptions, retryIndex: 
         )
         await attemptSend(mailOptions)
         await run(`DELETE FROM email_queue WHERE id = $1`, [id])
-        console.log(`Queued email (id=${id}) sent successfully on retry ${retryIndex + 1}`)
+        logInfo('Queued email sent successfully', {
+            event: 'email.queue.retry_success',
+            queueId: id,
+            retry: retryIndex + 1
+        })
     } catch (error) {
-        logUtilityError(`Retry ${retryIndex + 1} failed for queued email (id=${id}):`, error)
+        logError('Queued email retry failed', {
+            event: 'email.queue.retry_failed',
+            queueId: id,
+            retry: retryIndex + 1,
+            error
+        })
         const nextIndex = retryIndex + 1
         if (nextIndex < retryDelays.length) {
             setTimeout(() => retryFromQueue(id, mailOptions, nextIndex), retryDelays[nextIndex])
         } else {
-            logUtilityError(`Queued email (id=${id}) exhausted all retries, deleting from database`)
+            logWarn('Queued email exhausted all retries, deleting from database', {
+                event: 'email.queue.retry_exhausted',
+                queueId: id,
+                retry: retryIndex + 1
+            })
             await run(`DELETE FROM email_queue WHERE id = $1`, [id])
         }
     }
@@ -98,7 +114,10 @@ export async function processEmailQueue(): Promise<void> {
             [retryDelays.length]
         )
         if (result.rows.length === 0) return
-        console.log(`Resuming ${result.rows.length} queued email(s) from previous session`)
+        logInfo('Resuming queued emails from previous session', {
+            event: 'email.queue.resume',
+            count: result.rows.length
+        })
         for (const row of result.rows) {
             const mailOptions: MailOptions = {
                 to: row.to,
@@ -109,7 +128,10 @@ export async function processEmailQueue(): Promise<void> {
             retryFromQueue(row.id, mailOptions, row.retry_count)
         }
     } catch (err) {
-        logUtilityError('Failed to process email queue from database:', err)
+        logError('Failed to process email queue from database', {
+            event: 'email.queue.process_failed',
+            error: err
+        })
     }
 }
 

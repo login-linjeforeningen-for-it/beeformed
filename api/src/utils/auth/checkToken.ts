@@ -1,5 +1,5 @@
 import config from '#constants'
-import { logUtilityError } from '#utils/http/errors.ts'
+import { logError, logWarn } from '#utils/logger.ts'
 
 type UserInfoClaims = {
     sub: string
@@ -89,7 +89,9 @@ export default async function checkToken(req: Request): Promise<CheckTokenRespon
         const rawBody: unknown = await userInfoRes.json()
         const userInfo = parseUserInfoClaims(rawBody)
         if (!userInfo) {
-            logUtilityError('Token check: userinfo payload missing or invalid sub, email, name, or groups shape')
+            logWarn('Token check: userinfo payload missing or invalid sub, email, name, or groups shape', {
+                event: 'auth.userinfo.invalid'
+            })
             return {
                 valid: false,
                 error: 'Unauthorized'
@@ -108,7 +110,10 @@ export default async function checkToken(req: Request): Promise<CheckTokenRespon
 
         return response
     } catch (err) {
-        logUtilityError('Token check error:', err)
+        logError('Token check error', {
+            event: 'auth.token_check_failed',
+            error: err
+        })
         return {
             valid: false,
             error: 'Internal server error'

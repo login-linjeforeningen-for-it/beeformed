@@ -1,6 +1,6 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
 
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
@@ -59,6 +59,11 @@ export default async function updateTemplate(req: AuthRequest<'id'>) {
 
         return Response.json(result.rows[0])
     } catch (error) {
-        return sendInternalServerError('Error updating entity:', error)
+        logError('Error updating entity', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

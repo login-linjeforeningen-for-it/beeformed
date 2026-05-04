@@ -2,7 +2,8 @@ import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import { createHttpError, sendInternalServerError } from '#utils/http/errors.ts'
+import { createHttpError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
@@ -161,7 +162,14 @@ export default async function createSubmission(req: AuthRequest) {
                 })
             }
         } catch (emailError) {
-            console.error({ err: emailError }, 'Error sending confirmation email')
+            logError('Error sending confirmation email', {
+                event: 'submission.confirmation_email_failed',
+                submissionId,
+                formId,
+                userId: req.user?.id,
+                requestId: req.context?.requestId,
+                error: emailError
+            })
         }
 
         return Response.json({ id: submissionId }, { status: 201 })
@@ -169,6 +177,11 @@ export default async function createSubmission(req: AuthRequest) {
         if (error.statusCode) {
             return Response.json({ error: error.message }, { status: error.statusCode })
         }
-        return sendInternalServerError('Error creating submission:', error)
+        logError('Error creating submission', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

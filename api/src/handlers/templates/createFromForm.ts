@@ -1,6 +1,6 @@
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import { hasRequiredGroup } from '#utils/validation/validators.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
@@ -107,6 +107,11 @@ export default async function createTemplateFromForm(req: AuthRequest<'id'>) {
 
         return Response.json(createdTemplate, { status: 201 })
     } catch (error) {
-        return sendInternalServerError('Error creating template from form:', error)
+        logError('Error creating template from form', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

@@ -1,7 +1,7 @@
 import run from '#db'
 import config from '#constants'
 import send from '#utils/email/sendSMTP.ts'
-import { logUtilityError } from '#utils/http/errors.ts'
+import { logError, logInfo } from '#utils/logger.ts'
 import { createAccountDeletionWarningTemplate } from '../email/accountDeletionTemplate.ts'
 
 const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000
@@ -63,10 +63,11 @@ export async function sendInactiveUserWarnings() {
             })
             await markWarningEmailSent(candidate.user_id)
         } catch (error) {
-            logUtilityError(
-                `[inactive-user-cleanup] Failed to send inactivity warning email for user ${candidate.user_id}`,
+            logError('Failed to send inactivity warning email', {
+                event: 'inactive_user.warning_failed',
+                userId: candidate.user_id,
                 error
-            )
+            })
         }
     }
 
@@ -102,15 +103,24 @@ export async function startInactiveUserCleanup() {
         try {
             const warnedUsers = await sendInactiveUserWarnings()
             if (warnedUsers > 0) {
-                logUtilityError(`[inactive-user-cleanup] Daily cleanup warned ${warnedUsers} user(s) about upcoming deletion`)
+                logInfo('Inactive user cleanup warned users', {
+                    event: 'inactive_user.cleanup.warned',
+                    count: warnedUsers
+                })
             }
 
             const deletedUsers = await deleteInactiveUsers()
             if (deletedUsers > 0) {
-                logUtilityError(`[inactive-user-cleanup] Daily cleanup deleted ${deletedUsers} inactive user(s)`)
+                logInfo('Inactive user cleanup deleted users', {
+                    event: 'inactive_user.cleanup.deleted',
+                    count: deletedUsers
+                })
             }
         } catch (error) {
-            logUtilityError('[inactive-user-cleanup] Failed inactive-user cleanup run', error)
+            logError('Inactive-user cleanup run failed', {
+                event: 'inactive_user.cleanup.failed',
+                error
+            })
         }
     }
 
@@ -122,7 +132,9 @@ export async function startInactiveUserCleanup() {
 
     interval.unref?.()
 
-    logUtilityError('[inactive-user-cleanup] Inactive-user cleanup scheduled to run daily')
+    logInfo('Inactive-user cleanup scheduled to run daily', {
+        event: 'inactive_user.cleanup.scheduled'
+    })
 
     return () => {
         clearInterval(interval)

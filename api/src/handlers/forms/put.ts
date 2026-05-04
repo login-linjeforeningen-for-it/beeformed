@@ -2,7 +2,7 @@ import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
@@ -120,6 +120,11 @@ export default async function updateForm(req: AuthRequest) {
         if (error.statusCode) {
             return Response.json({ error: error.message }, { status: error.statusCode })
         }
-        return sendInternalServerError('Error updating entity:', error)
+        logError('Error updating entity', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

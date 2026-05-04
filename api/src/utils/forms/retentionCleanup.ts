@@ -1,7 +1,7 @@
 import run from '#db'
 import config from '#constants'
 import send from '#utils/email/sendSMTP.ts'
-import { logUtilityError } from '#utils/http/errors.ts'
+import { logError, logInfo } from '#utils/logger.ts'
 import { createFormDeletionWarningTemplate } from '#utils/email/formDeletionTemplate.ts'
 
 const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000
@@ -67,10 +67,11 @@ export async function sendFormDeletionWarnings() {
             })
             await markWarningEmailSent(candidate.form_id)
         } catch (error) {
-            logUtilityError(
-                `[form-retention-cleanup] Failed to send deletion warning email for form ${candidate.form_id}`,
+            logError('Failed to send form deletion warning email', {
+                event: 'form_retention.warning_failed',
+                formId: candidate.form_id,
                 error
-            )
+            })
         }
     }
 
@@ -91,15 +92,24 @@ export async function startFormRetentionCleanup() {
         try {
             const warnedForms = await sendFormDeletionWarnings()
             if (warnedForms > 0) {
-                logUtilityError(`[form-retention-cleanup] Daily cleanup warned ${warnedForms} form(s) about upcoming deletion`)
+                logInfo('Form retention cleanup warned forms', {
+                    event: 'form_retention.cleanup.warned',
+                    count: warnedForms
+                })
             }
 
             const deletedForms = await deleteExpiredForms()
             if (deletedForms > 0) {
-                logUtilityError(`[form-retention-cleanup] Daily cleanup deleted ${deletedForms} expired form(s)`)
+                logInfo('Form retention cleanup deleted forms', {
+                    event: 'form_retention.cleanup.deleted',
+                    count: deletedForms
+                })
             }
         } catch (error) {
-            logUtilityError('[form-retention-cleanup] Failed form-retention cleanup run', error)
+            logError('Form-retention cleanup run failed', {
+                event: 'form_retention.cleanup.failed',
+                error
+            })
         }
     }
 
@@ -111,7 +121,9 @@ export async function startFormRetentionCleanup() {
 
     interval.unref?.()
 
-    logUtilityError('[form-retention-cleanup] Form-retention cleanup scheduled to run daily')
+    logInfo('Form-retention cleanup scheduled to run daily', {
+        event: 'form_retention.cleanup.scheduled'
+    })
 
     return () => {
         clearInterval(interval)

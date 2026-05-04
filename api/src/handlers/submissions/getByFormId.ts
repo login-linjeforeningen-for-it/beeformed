@@ -2,7 +2,7 @@ import run from '#db'
 import { checkPermission } from '#utils/permissions/checkPermissions.ts'
 import { loadSQL, buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/http/listResponse.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function getSubmissionsByForm(req: AuthRequest) {
@@ -71,6 +71,11 @@ export default async function getSubmissionsByForm(req: AuthRequest) {
 
         return Response.json(responseBody)
     } catch (error) {
-        return sendInternalServerError('Error getting submissions:', error)
+        logError('Error getting submissions', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

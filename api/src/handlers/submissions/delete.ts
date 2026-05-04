@@ -2,7 +2,7 @@ import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function deleteSubmission(req: AuthRequest) {
@@ -99,6 +99,11 @@ export default async function deleteSubmission(req: AuthRequest) {
         if (statusCode) {
             return Response.json({ error: (error as Error).message }, { status: statusCode })
         }
-        return sendInternalServerError('Error deleting submission:', error)
+        logError('Error deleting submission', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

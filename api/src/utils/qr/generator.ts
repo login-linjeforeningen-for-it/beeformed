@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import { logUtilityError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 
 export type GeneratedQRCode = {
     pngBuffer: Buffer
@@ -33,7 +33,10 @@ export async function generateQRCodeImage({ data }: { data: string }): Promise<G
             svg
         }
     } catch (error) {
-        logUtilityError('QR Code image generation error:', error)
+        logError('QR Code image generation error', {
+            event: 'qr.generate_failed',
+            error
+        })
         return null
     }
 }

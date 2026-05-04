@@ -4,6 +4,8 @@ import { processEmailQueue } from './utils/email/sendSMTP.ts'
 import { startInactiveUserCleanup } from './utils/users/inactiveCleanup.ts'
 import { startFormRetentionCleanup } from './utils/forms/retentionCleanup.ts'
 import { getCorsHeaders } from '#utils/http/cors.ts'
+import { attachRequestContext, getRequestContext } from '#utils/http/requestContext.ts'
+import { logError, logInfo, logWarn } from '#utils/logger.ts'
 
 function addCorsToResponse(req: Request, res: Response | Promise<Response>): Response | Promise<Response> {
     const corsHeaders = getCorsHeaders(req)
@@ -19,6 +21,12 @@ function addCorsToResponse(req: Request, res: Response | Promise<Response>): Res
         res.headers.set(k, v)
     }
     return res
+}
+
+function getRequestId(req: Request): string {
+    const headerId = req.headers.get('x-request-id')?.trim()
+    if (headerId) return headerId
+    return crypto.randomUUID()
 }
 
 type TreeNode = { methods: string[]; children: Record<string, TreeNode> }
@@ -79,8 +87,48 @@ Object.keys(routes).forEach((route) => {
     Object.keys(methods).forEach((method) => {
         const handler = methods[method]
         methods[method] = async (req: Request) => {
-            const res = await handler(req)
-            return addCorsToResponse(req, res)
+            const start = performance.now()
+            const requestId = getRequestId(req)
+            const reqWithContext = attachRequestContext(req, requestId)
+            const path = new URL(reqWithContext.url).pathname
+
+            let res: Response
+            try {
+                res = await handler(reqWithContext)
+            } catch (error) {
+                logError('Unhandled request error', {
+                    event: 'http.internal_error',
+                    requestId,
+                    error
+                })
+                res = Response.json({ error: 'Internal server error' }, { status: 500 })
+            }
+
+            const response = await addCorsToResponse(reqWithContext, res)
+            response.headers.set('x-request-id', requestId)
+
+            const durationMs = Math.round(performance.now() - start)
+            const status = response.status
+            const userId = getRequestContext(reqWithContext)?.userId
+            const logMeta = {
+                event: 'http.request.complete',
+                requestId,
+                method: reqWithContext.method,
+                path,
+                status,
+                durationMs,
+                userId
+            }
+
+            if (status >= 500) {
+                logError('Request failed', logMeta)
+            } else if (status >= 400) {
+                logWarn('Request completed with client error', logMeta)
+            } else {
+                logInfo('Request completed', logMeta)
+            }
+
+            return response
         }
     })
 })
@@ -94,20 +142,48 @@ async function main() {
             hostname: '0.0.0.0',
             routes,
             fetch(req) {
+                const start = performance.now()
+                const requestId = getRequestId(req)
                 const corsHeaders = getCorsHeaders(req)
                 if (req.method === 'OPTIONS') {
-                    return new Response(null, { headers: corsHeaders })
+                    const response = new Response(null, { headers: corsHeaders })
+                    response.headers.set('x-request-id', requestId)
+                    const durationMs = Math.round(performance.now() - start)
+                    logInfo('Request completed', {
+                        event: 'http.request.preflight',
+                        requestId,
+                        method: req.method,
+                        path: new URL(req.url).pathname,
+                        status: response.status,
+                        durationMs
+                    })
+                    return response
                 }
-                return new Response('Not Found', { status: 404, headers: corsHeaders })
+                const response = new Response('Not Found', { status: 404, headers: corsHeaders })
+                response.headers.set('x-request-id', requestId)
+                const durationMs = Math.round(performance.now() - start)
+                logWarn('Route not found', {
+                    event: 'http.request.not_found',
+                    requestId,
+                    method: req.method,
+                    path: new URL(req.url).pathname,
+                    status: response.status,
+                    durationMs
+                })
+                return response
             }
         })
 
-        console.log(`Server listening on ${server.url.origin}`)
+        logInfo('Server listening', {
+            event: 'server.start',
+            port,
+            origin: server.url.origin
+        })
         await processEmailQueue()
         await startInactiveUserCleanup()
         await startFormRetentionCleanup()
     } catch (err) {
-        console.error(err)
+        logError('Server failed to start', { event: 'server.start_failed', error: err })
         process.exit(1)
     }
 }

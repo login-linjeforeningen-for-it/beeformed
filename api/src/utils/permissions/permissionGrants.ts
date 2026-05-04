@@ -1,6 +1,6 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 type PermissionGrantBody = {
@@ -64,6 +64,11 @@ export async function handlePermissionGrant(
         const result = await run(sql, [resourceId, userId, body.group || null, grantedBy])
         return Response.json(result.rows[0], { status: 201 })
     } catch (error) {
-        return sendInternalServerError('Error creating entity:', error)
+        logError('Error creating entity', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

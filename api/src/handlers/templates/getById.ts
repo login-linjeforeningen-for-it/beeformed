@@ -1,6 +1,6 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
@@ -14,6 +14,11 @@ export default async function getOneTemplate(req: AuthRequest<'id'>) {
         const entity = result.rows.length > 0 ? result.rows[0] : null
         return Response.json(entity)
     } catch (error) {
-        return sendInternalServerError('Error reading entity:', error)
+        logError('Error reading entity', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

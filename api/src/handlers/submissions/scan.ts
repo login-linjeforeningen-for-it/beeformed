@@ -1,7 +1,7 @@
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { checkPermission } from '#utils/permissions/checkPermissions.ts'
-import { sendInternalServerError } from '#utils/http/errors.ts'
+import { logError } from '#utils/logger.ts'
 import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 export default async function scanSubmission(req: AuthRequest) {
@@ -52,6 +52,11 @@ export default async function scanSubmission(req: AuthRequest) {
         })
 
     } catch (error) {
-        return sendInternalServerError('Error scanning submission:', error)
+        logError('Error scanning submission', {
+            event: 'http.internal_error',
+            requestId: req.context?.requestId,
+            error
+        })
+        return Response.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
