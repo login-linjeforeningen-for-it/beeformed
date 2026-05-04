@@ -26,7 +26,8 @@ CREATE TABLE forms (
     published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    form_deletion_warning_sent_at TIMESTAMP
 );
 
 -- Form fields
@@ -132,6 +133,7 @@ CREATE TABLE email_queue (
 
 -- Indexes for performance
 CREATE INDEX idx_forms_user_id ON forms(user_id);
+CREATE INDEX idx_forms_form_deletion_warning_sent_at ON forms(form_deletion_warning_sent_at);
 CREATE INDEX idx_form_fields_form_id ON form_fields(form_id);
 CREATE INDEX idx_submissions_form_id ON submissions(form_id);
 CREATE INDEX idx_submission_data_submission_id ON submission_data(submission_id);

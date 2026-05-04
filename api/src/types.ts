@@ -25,6 +25,7 @@ declare global {
         expires_at: Date
         created_at: Date
         updated_at: Date
+        form_deletion_warning_sent_at?: Date | null
     }
 
     interface FormField {
@@ -82,6 +83,13 @@ declare global {
 
     type AccountDeletionWarningEmailContent = {
         name?: string | null
+        warningDays: number
+        actionUrl: string
+    }
+
+    type FormDeletionWarningEmailContent = {
+        name?: string | null
+        formTitle: string
         warningDays: number
         actionUrl: string
     }

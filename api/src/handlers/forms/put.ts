@@ -18,16 +18,29 @@ export default async function updateForm(req: AuthRequest) {
         return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
     }
 
-    const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
-    if (!publicationWindow.valid) {
-        return Response.json({ error: publicationWindow.error }, { status: 400 })
-    }
-
-    const { publishedAt, expiresAt } = publicationWindow
-
     try {
         const result = await runInTransaction(async (client) => {
-            await client.query('SELECT 1 FROM forms WHERE id = $1 FOR UPDATE', [params.id])
+            const formResult = await client.query('SELECT created_at FROM forms WHERE id = $1 FOR UPDATE', [params.id])
+            if (formResult.rows.length === 0) {
+                const error = new Error('Entity not found')
+                    ; (error as any).statusCode = 404
+                throw error
+            }
+
+            const createdAt = formResult.rows[0].created_at as Date
+            const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at, {
+                baseDate: createdAt,
+                maxRangeMonths: 6,
+                maxRangeMessage: 'expires_at cannot be more than 6 months after created_at'
+            })
+
+            if (!publicationWindow.valid) {
+                const error = new Error(publicationWindow.error ?? 'Invalid publication window')
+                    ; (error as any).statusCode = 400
+                throw error
+            }
+
+            const { publishedAt, expiresAt } = publicationWindow
 
             const newLimit = body.limit ? Number(body.limit) : null
             const countSql = await loadSQL('submissions/countRegistered.sql')

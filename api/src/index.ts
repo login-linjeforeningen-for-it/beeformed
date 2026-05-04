@@ -2,6 +2,7 @@ import { apiRoutes } from './routes.ts'
 import getFavicon from './handlers/favicon/get.ts'
 import { processEmailQueue } from './utils/email/sendSMTP.ts'
 import { startInactiveUserCleanup } from './utils/users/inactiveCleanup.ts'
+import { startFormRetentionCleanup } from './utils/forms/retentionCleanup.ts'
 import { getCorsHeaders } from '#utils/http/cors.ts'
 
 function addCorsToResponse(req: Request, res: Response | Promise<Response>): Response | Promise<Response> {
@@ -104,6 +105,7 @@ async function main() {
         console.log(`Server listening on ${server.url.origin}`)
         await processEmailQueue()
         await startInactiveUserCleanup()
+        await startFormRetentionCleanup()
     } catch (err) {
         console.error(err)
         process.exit(1)

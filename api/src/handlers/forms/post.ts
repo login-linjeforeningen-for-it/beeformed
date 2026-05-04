@@ -20,7 +20,11 @@ export default async function createForm(req: AuthRequest) {
         return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
     }
 
-    const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
+    const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at, {
+        baseDate: new Date(),
+        maxRangeMonths: 6,
+        maxRangeMessage: 'expires_at cannot be more than 6 months after created_at'
+    })
     if (!publicationWindow.valid) {
         return Response.json({ error: publicationWindow.error }, { status: 400 })
     }
