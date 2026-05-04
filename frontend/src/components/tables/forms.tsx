@@ -25,9 +25,9 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
     const isTemplate = resourceType === 'template'
 
     const actions = {
-        edit: (id: string) => router.push(isTemplate ? `/templates/${id}/fields` : `/form/${id}`),
-        settings: (id: string) => router.push(isTemplate ? `/templates/${id}/settings` : `/form/${id}/settings`),
-        permissions: (id: string) => router.push(isTemplate ? `/templates/${id}/permissions` : `/form/${id}/permissions`),
+        edit: (id: string) => router.push(isTemplate ? `/template/${id}/fields` : `/form/${id}`),
+        settings: (id: string) => router.push(isTemplate ? `/template/${id}/settings` : `/form/${id}/settings`),
+        permissions: (id: string) => router.push(isTemplate ? `/template/${id}/permissions` : `/form/${id}/permissions`),
         submissions: (id: string) => router.push(`/form/${id}/submissions`),
         scanner: (id: string) => router.push(`/qr/${id}`),
         delete: async (id: string) => {
@@ -61,7 +61,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
             try {
                 const template = await createTemplateFromForm(id)
                 toast.success('Template created')
-                router.push(`/templates/${template.id}/fields`)
+                router.push(`/template/${template.id}/fields`)
             } catch (error) {
                 toast.error(error instanceof Error ? error.message : 'Unable to create template')
             }
@@ -96,7 +96,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                     idKey='id'
 
                     menuItems={renderMenuItems}
-                    redirectPath={{ path: isTemplate ? '/templates' : '/form', key: 'id' }}
+                    redirectPath={{ path: isTemplate ? '/template' : '/form', key: 'id' }}
                 />
             </div>
             <div className='md:hidden'>

@@ -59,7 +59,7 @@ export default function CreateTemplateButton() {
             })
 
             toast.success('Template created')
-            router.push(`/templates/${result.id}/fields`)
+            router.push(`/template/${result.id}/fields`)
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Unable to create template')
         } finally {
