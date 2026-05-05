@@ -23,10 +23,10 @@ export default async function Page({ params, searchParams }: PageProps) {
     const page = typeof filters.page === 'string' ? Number(filters.page) : 1
     const limit = 14
     const offset = (page - 1) * limit
-    const orderBy = typeof filters.column === 'string' ? filters.column : 'created_at'
+    const orderBy = typeof filters.column === 'string' ? filters.column : 'updated_at'
     const sort: 'asc' | 'desc' = typeof filters.order === 'string' && (filters.order === 'asc' || filters.order === 'desc')
         ? filters.order
-        : 'asc'
+        : 'desc'
 
     const filter = {
         search,
