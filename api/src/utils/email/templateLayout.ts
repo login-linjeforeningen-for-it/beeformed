@@ -128,7 +128,7 @@ export function renderEmailLayout(options: {
                                                 <img src="https://s3.login.no/beehive/img/logo/logo-white-small.png" alt="Login logo" width="50" style="width: 50px; max-width: 50px; height: auto; display: block;" />
                                             </td>
                                             <td align="right" valign="middle" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 18px; line-height: 24px; letter-spacing: 1px; color: #e5e2e1; font-weight: 700; text-transform: uppercase;">
-                                                ${COMPANY_INFO.name}
+                                                ${COMPANY_INFO.nameShort}
                                             </td>
                                         </tr>
                                     </table>
