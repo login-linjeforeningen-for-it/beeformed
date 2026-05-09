@@ -1,10 +1,14 @@
-FROM oven/bun:alpine
-
-WORKDIR /usr/src/app
+FROM oven/bun:alpine AS builder
+WORKDIR /app
 
 COPY package.json bun.lock ./
 
-RUN bun install --frozen-lockfile
+RUN bun install --production --frozen-lockfile
+
+RUN addgroup -S app && adduser -S app -G app
+
+RUN chown app:app /app
+USER app
 
 COPY . .
 
