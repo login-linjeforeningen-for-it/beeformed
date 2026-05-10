@@ -1,22 +1,26 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function deleteSubmission(req: AuthRequest) {
-    const { params, user } = req
-    const { id } = params
+export default async function deleteSubmission(
+    req: AuthenticatedRequest<{ Params: IdParams }>,
+    res: FastifyReply
+) {
+    const submissionId = req.params.id
+    const user = req.user
 
     try {
         const result = await runInTransaction(async (client) => {
             const getSql = await loadSQL('submissions/getForDeletion.sql')
-            const getResult = await client.query(getSql, [id])
+            const getResult = await client.query(getSql, [submissionId])
 
             if (getResult.rows.length === 0) {
                 const error = new Error('Submission not found')
-                    ; (error as Error & { statusCode?: number }).statusCode = 404
+                ; (error as Error & { statusCode?: number }).statusCode = 404
                 throw error
             }
 
@@ -24,7 +28,7 @@ export default async function deleteSubmission(req: AuthRequest) {
 
             if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
                 const error = new Error('You do not have permission to delete this submission')
-                    ; (error as Error & { statusCode?: number }).statusCode = 403
+                ; (error as Error & { statusCode?: number }).statusCode = 403
                 throw error
             }
 
@@ -32,12 +36,12 @@ export default async function deleteSubmission(req: AuthRequest) {
             const expiresAt = new Date(submission.expires_at)
             if (now > expiresAt) {
                 const error = new Error('Cannot remove submission after form has closed')
-                    ; (error as Error & { statusCode?: number }).statusCode = 400
+                ; (error as Error & { statusCode?: number }).statusCode = 400
                 throw error
             }
 
             const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
-            await client.query(updateStatusSql, [params.id, 'cancelled'])
+            await client.query(updateStatusSql, [submissionId, 'cancelled'])
 
             let promoted: { id: string; email: string | null } | null = null
             if (submission.status === 'registered' && submission.limit !== null) {
@@ -93,17 +97,17 @@ export default async function deleteSubmission(req: AuthRequest) {
             })
         }
 
-        return Response.json({ success: true, message: 'Submission cancelled' })
+        return res.send({ success: true, message: 'Submission cancelled' })
     } catch (error: unknown) {
         const statusCode = (error as Error & { statusCode?: number }).statusCode
         if (statusCode) {
-            return Response.json({ error: (error as Error).message }, { status: statusCode })
+            return res.status(statusCode).send({ error: (error as Error).message })
         }
         logError('Error deleting submission', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

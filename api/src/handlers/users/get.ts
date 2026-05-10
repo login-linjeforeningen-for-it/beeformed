@@ -1,26 +1,19 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getUser(req: AuthRequest) {
+export default async function getUser(req: AuthenticatedRequest, res: FastifyReply) {
     const id = req.user.id
-
-    if (!id) {
-        return Response.json({ error: 'id is required' }, { status: 400 })
-    }
 
     try {
         const sql = await loadSQL('users/get.sql')
         const result = await run(sql, [id])
         const entity = result.rows.length > 0 ? result.rows[0] : null
-        return Response.json(entity)
+        return res.send(entity)
     } catch (error) {
-        logError('Error reading entity', {
-            event: 'http.internal_error',
-            requestId: req.context?.requestId,
-            error
-        })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        logError('Error reading entity', { event: 'http.internal_error', error })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

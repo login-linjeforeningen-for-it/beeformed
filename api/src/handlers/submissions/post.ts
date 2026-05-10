@@ -1,10 +1,10 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
-import { createHttpError } from '#utils/http/errors.ts'
 import { logError } from '#utils/logger.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
     if (typeof value === 'boolean') return value
@@ -36,9 +36,12 @@ function serializeFieldValue(value: unknown): string | null {
     return String(value)
 }
 
-export default async function createSubmission(req: AuthRequest) {
-    const body = await req.json() as { fields: { field_id: string; value: unknown }[] }
-    const { id: formId } = req.params as { id: string }
+export default async function createSubmission(
+    req: AuthenticatedRequest<{ Params: IdParams; Body: CreateSubmissionBody }>,
+    res: FastifyReply
+) {
+    const body = req.body
+    const formId = req.params.id
 
     try {
         const result = await runInTransaction(async (client) => {
@@ -46,10 +49,10 @@ export default async function createSubmission(req: AuthRequest) {
 
             const formQuery = await loadSQL('forms/get.sql')
             const formResult = await client.query(formQuery, [formId])
-            
+
             if (formResult.rows.length === 0) {
-                const error = new Error('Form not found');
-                (error as any).statusCode = 404
+                const error = new Error('Form not found')
+                ; (error as Error & { statusCode?: number }).statusCode = 404
                 throw error
             }
             const form = formResult.rows[0]
@@ -57,35 +60,37 @@ export default async function createSubmission(req: AuthRequest) {
 
             if (!submissionFields) {
                 const error = new Error('fields must be an array')
-                ;(error as any).statusCode = 400
+                ; (error as Error & { statusCode?: number }).statusCode = 400
                 throw error
             }
 
             if (!form.anonymous_submissions && !req.user?.id) {
-                const error = new Error('Authentication required');
-                (error as any).statusCode = 401
+                const error = new Error('Authentication required')
+                ; (error as Error & { statusCode?: number }).statusCode = 401
                 throw error
             }
 
             const userId = form.anonymous_submissions ? null : req.user.id
             let status = 'registered'
-            
+
             if (!form.anonymous_submissions && !form.multiple_submissions && userId) {
                 const checkSubmissionSql = await loadSQL('submissions/checkUserSubmission.sql')
                 const existingSubmission = await client.query(checkSubmissionSql, [formId, userId])
                 if (parseInt(existingSubmission.rows[0].count) > 0) {
-                    throw createHttpError(409, 'You have already submitted to this form')
+                    const error = new Error('You have already submitted to this form')
+                    ; (error as Error & { statusCode?: number }).statusCode = 409
+                    throw error
                 }
             }
-            
+
             if (form.limit) {
                 const currentCount = parseInt(form.registered_count) || 0
                 if (currentCount >= form.limit) {
                     if (form.waitlist) {
                         status = 'waitlisted'
                     } else {
-                        const error = new Error('Form is full');
-                        (error as any).statusCode = 400
+                        const error = new Error('Form is full')
+                        ; (error as Error & { statusCode?: number }).statusCode = 400
                         throw error
                     }
                 }
@@ -106,7 +111,7 @@ export default async function createSubmission(req: AuthRequest) {
             for (const fieldInput of submissionFields) {
                 if (!fieldInput || typeof fieldInput !== 'object') {
                     const error = new Error('Each submitted field must be an object')
-                    ;(error as any).statusCode = 400
+                    ; (error as Error & { statusCode?: number }).statusCode = 400
                     throw error
                 }
 
@@ -114,14 +119,14 @@ export default async function createSubmission(req: AuthRequest) {
                 const fieldId = typeof fieldIdRaw === 'string' ? fieldIdRaw.trim() : ''
                 if (!fieldId) {
                     const error = new Error('field_id must be a non-empty string')
-                    ;(error as any).statusCode = 400
+                    ; (error as Error & { statusCode?: number }).statusCode = 400
                     throw error
                 }
 
                 const formField = formFieldById.get(fieldId)
                 if (!formField) {
                     const error = new Error(`Field ${fieldId} does not belong to this form`)
-                    ;(error as any).statusCode = 400
+                    ; (error as Error & { statusCode?: number }).statusCode = 400
                     throw error
                 }
 
@@ -135,7 +140,7 @@ export default async function createSubmission(req: AuthRequest) {
 
             if (missingRequiredTitles.length > 0) {
                 const error = new Error(`Missing required fields: ${missingRequiredTitles.join(', ')}`)
-                ;(error as any).statusCode = 400
+                ; (error as Error & { statusCode?: number }).statusCode = 400
                 throw error
             }
 
@@ -143,21 +148,21 @@ export default async function createSubmission(req: AuthRequest) {
             for (const [fieldId, value] of valuesByFieldId.entries()) {
                 await client.query(dataSql, [submissionId, fieldId, serializeFieldValue(value)])
             }
-            
+
             return { submissionId, form, status }
         })
 
         const { submissionId, form, status } = result
 
         try {
-            if (req.user?.email) {
+            if (req.user.email) {
                 await sendTemplatedMail(req.user.email, {
                     title: form.title,
-                    status: status,
+                    status,
                     ownerEmail: form.creator_email,
                     actionUrl: `${config.FRONTEND_URL}/submissions/${submissionId}`,
                     actionText: 'View Submission',
-                    submissionId: submissionId
+                    submissionId
 
                 })
             }
@@ -166,22 +171,23 @@ export default async function createSubmission(req: AuthRequest) {
                 event: 'submission.confirmation_email_failed',
                 submissionId,
                 formId,
-                userId: req.user?.id,
-                requestId: req.context?.requestId,
+                userId: req.user.id,
+                requestId: req.id,
                 error: emailError
             })
         }
 
-        return Response.json({ id: submissionId }, { status: 201 })
-    } catch (error: any) {
-        if (error.statusCode) {
-            return Response.json({ error: error.message }, { status: error.statusCode })
+        return res.status(201).send({ id: submissionId })
+    } catch (error: unknown) {
+        const err = error as Error & { statusCode?: number }
+        if (err.statusCode) {
+            return res.status(err.statusCode).send({ error: err.message })
         }
         logError('Error creating submission', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

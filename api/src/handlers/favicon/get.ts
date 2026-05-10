@@ -1,9 +1,9 @@
+import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 
-export default async function getFavicon(req: Request) {
+export default async function getFavicon(_req: FastifyRequest, res: FastifyReply) {
     const faviconPath = path.join(process.cwd(), 'public', 'favicon.ico')
-    return new Response(Bun.file(faviconPath), {
-        headers: { 'Content-Type': 'image/x-icon' }
-    })
+    const icon = await fs.promises.readFile(faviconPath)
+    return res.type('image/x-icon').send(icon)
 }

@@ -1,3 +1,4 @@
+import type { FastifyRequest } from 'fastify'
 import config from '#constants'
 import { logError, logWarn } from '#utils/logger.ts'
 
@@ -53,9 +54,10 @@ function parseUserInfoClaims(data: unknown): UserInfoClaims | null {
     }
 }
 
-export default async function checkToken(req: Request): Promise<CheckTokenResponse> {
+export default async function checkToken(req: FastifyRequest): Promise<CheckTokenResponse> {
     const { USERINFO_URL, CACHE_TTL } = config
-    const authHeader = req.headers.get('authorization')
+    const authHeaderRaw = req.headers['authorization']
+    const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
 
     if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
         return {
@@ -79,11 +81,10 @@ export default async function checkToken(req: Request): Promise<CheckTokenRespon
         })
 
         if (!userInfoRes.ok) {
-            const errorResponse: CheckTokenResponse = {
+            return {
                 valid: false,
                 error: 'Unauthorized'
             }
-            return errorResponse
         }
 
         const rawBody: unknown = await userInfoRes.json()

@@ -1,8 +1,9 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup } from '#utils/validation/validators.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+import { hasRequiredGroup } from '#utils/validators.ts'
 
 type SourceForm = {
     slug: string
@@ -26,19 +27,17 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
     return copyIndex === 1 ? `${baseSlug}-copy` : `${baseSlug}-copy-${copyIndex}`
 }
 
-export default async function duplicateForm(req: AuthRequest) {
-    const { id, sourceFormId: sourceFormIdParam } = req.params
-    const sourceFormId = id || sourceFormIdParam
-    if (!sourceFormId) return Response.json({ error: 'sourceFormId is required' }, { status: 400 })
-    const userId = req.user.id
+export default async function duplicateForm(
+    req: AuthenticatedRequest<{ Params: IdParams }>,
+    res: FastifyReply
+) {
+    const sourceFormId = req.params.id
 
     if (!hasRequiredGroup(req.user.groups, 'Aktiv')) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 })
+        return res.status(403).send({ error: 'Forbidden' })
     }
 
-    if (!userId) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = req.user.id
 
     try {
         const getSourceFormSql = await loadSQL('forms/getForDuplicate.sql')
@@ -102,16 +101,16 @@ export default async function duplicateForm(req: AuthRequest) {
         })
 
         if (!duplicatedForm) {
-            return Response.json({ error: 'Form not found' }, { status: 404 })
+            return res.status(404).send({ error: 'Form not found' })
         }
 
-        return Response.json(duplicatedForm, { status: 201 })
+        return res.status(201).send(duplicatedForm)
     } catch (error) {
         logError('Error duplicating form', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

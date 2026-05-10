@@ -87,7 +87,7 @@ export async function deleteExpiredForms() {
     return result.rowCount ?? 0
 }
 
-export async function startFormRetentionCleanup() {
+export async function startFormCleanup() {
     async function runCleanup() {
         try {
             const warnedForms = await sendFormDeletionWarnings()

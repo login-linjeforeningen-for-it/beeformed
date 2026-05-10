@@ -1,25 +1,18 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function deleteUser(req: AuthRequest) {
+export default async function deleteUser(req: AuthenticatedRequest, res: FastifyReply) {
     const id = req.user.id
-
-    if (!id) {
-        return Response.json({ error: 'id is required' }, { status: 400 })
-    }
 
     try {
         const sql = await loadSQL('users/delete.sql')
         await run(sql, [id])
-        return new Response(null, { status: 204 })
+        return res.status(204).send()
     } catch (error) {
-        logError('Error deleting entity', {
-            event: 'http.internal_error',
-            requestId: req.context?.requestId,
-            error
-        })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        logError('Error deleting entity', { event: 'http.internal_error', error })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

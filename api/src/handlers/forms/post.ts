@@ -1,23 +1,27 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup, isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+import { hasRequiredGroup, isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
 
-export default async function createForm(req: AuthRequest) {
-    const body = await req.json() as any
-    const { id: user_id } = req.user
+export default async function createForm(
+    req: AuthenticatedRequest<{ Body: CreateOrUpdateFormBody }>,
+    res: FastifyReply
+) {
+    const body = req.body
+    const user_id = req.user.id
 
-    if (!hasRequiredGroup(req.user.groups, 'Aktiv')) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 })
+    if (req.user.groups && !hasRequiredGroup(req.user.groups, 'Aktiv')) {
+        return res.status(403).send({ error: 'Forbidden' })
     }
 
     if (!user_id || !body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return Response.json({ error: 'user_id, slug, title, published_at, and expires_at are required' }, { status: 400 })
+        return res.status(400).send({ error: 'user_id, slug, title, published_at, and expires_at are required' })
     }
 
     if (!isValidSlug(body.slug)) {
-        return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
+        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at, {
@@ -26,10 +30,11 @@ export default async function createForm(req: AuthRequest) {
         maxRangeMessage: 'expires_at cannot be more than 6 months after created_at'
     })
     if (!publicationWindow.valid) {
-        return Response.json({ error: publicationWindow.error }, { status: 400 })
+        return res.status(400).send({ error: publicationWindow.error })
     }
 
-    const { publishedAt, expiresAt } = publicationWindow
+    const publishedAt = publicationWindow.publishedAt as Date
+    const expiresAt = publicationWindow.expiresAt as Date
 
     const sqlParams = [
         user_id,
@@ -47,13 +52,9 @@ export default async function createForm(req: AuthRequest) {
     try {
         const sql = await loadSQL('forms/post.sql')
         const result = await run(sql, sqlParams)
-        return Response.json(result.rows[0], { status: 201 })
+        return res.status(201).send(result.rows[0])
     } catch (error) {
-        logError('Error creating entity', {
-            event: 'http.internal_error',
-            requestId: req.context?.requestId,
-            error
-        })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        logError('Error creating entity', { event: 'http.internal_error', error })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

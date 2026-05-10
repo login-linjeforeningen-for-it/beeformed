@@ -1,34 +1,24 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { createHttpError, httpStatusFromError } from '#utils/http/errors.ts'
 import { logError } from '#utils/logger.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-interface BulkOperation {
-    operation: 'create' | 'update' | 'delete'
-    id?: string
-    data?: Partial<{
-        template_id: string
-        field_type: string
-        title: string
-        description?: string
-        required: boolean
-        options?: string[]
-        validation?: unknown
-        field_order: number
-    }>
+function createHttpError(statusCode: number, message: string): Error & { statusCode: number } {
+    const err = new Error(message) as Error & { statusCode: number }
+    err.statusCode = statusCode
+    return err
 }
 
-export default async function bulkTemplateFields(req: AuthRequest<'id'>) {
-    const routeTemplateId = req.params?.id
-    if (!routeTemplateId) {
-        return Response.json({ error: 'Missing template ID' }, { status: 400 })
-    }
-
-    const operations = await req.json() as BulkOperation[]
+export default async function bulkTemplateFields(
+    req: AuthenticatedRequest<{ Params: IdParams; Body: BulkTemplateFieldOperation[] }>,
+    res: FastifyReply
+) {
+    const routeTemplateId = req.params.id
+    const operations = req.body
 
     if (!Array.isArray(operations)) {
-        return Response.json({ error: 'Operations must be an array' }, { status: 400 })
+        return res.status(400).send({ error: 'Operations must be an array' })
     }
 
     try {
@@ -117,20 +107,25 @@ export default async function bulkTemplateFields(req: AuthRequest<'id'>) {
             return results
         })
 
-        return Response.json(results, { status: 200 })
+        return res.status(200).send(results)
     } catch (error: unknown) {
-        const status = httpStatusFromError(error)
+        const status =
+            typeof error === 'object'
+            && error !== null
+            && 'statusCode' in error
+            && typeof (error as { statusCode: unknown }).statusCode === 'number'
+                ? (error as { statusCode: number }).statusCode
+                : undefined
         if (status !== undefined && status >= 400 && status < 500) {
-            return Response.json(
-                { error: error instanceof Error ? error.message : 'Bad request' },
-                { status }
-            )
+            return res.status(status).send({
+                error: error instanceof Error ? error.message : 'Bad request'
+            })
         }
         logError('Error in bulk save', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

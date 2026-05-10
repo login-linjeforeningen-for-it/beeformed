@@ -98,7 +98,7 @@ export async function deleteInactiveUsers() {
     return result.rowCount ?? 0
 }
 
-export async function startInactiveUserCleanup() {
+export async function startUserCleanup() {
     async function runCleanup() {
         try {
             const warnedUsers = await sendInactiveUserWarnings()

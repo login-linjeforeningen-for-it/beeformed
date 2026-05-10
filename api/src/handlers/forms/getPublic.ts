@@ -1,21 +1,20 @@
-import type { TypedRequest } from '#utils/auth/authMiddleware.ts'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import checkToken from '#utils/auth/checkToken.ts'
 import { logError } from '#utils/logger.ts'
 
-export default async function getPublicForm(req: TypedRequest<'id'>) {
-    const { id } = req.params
-    if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
+export default async function getPublicForm(req: FastifyRequest<{ Params: IdParams }>, res: FastifyReply) {
+    const id = req.params.id
 
     let userId: string | null = null
-    const authHeader = req.headers.get('authorization')
+    const authHeaderRaw = req.headers['authorization']
+    const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
     if (authHeader && authHeader.startsWith('Bearer ')) {
-        const tokenResult = await checkToken(req as Request)
+        const tokenResult = await checkToken(req)
         if (tokenResult.error === 'Internal server error') {
-            return Response.json({ error: 'Internal server error' }, { status: 500 })
+            return res.status(500).send({ error: 'Internal server error' })
         }
-
         if (tokenResult.valid && tokenResult.userInfo) {
             userId = tokenResult.userInfo.sub
         }
@@ -27,16 +26,12 @@ export default async function getPublicForm(req: TypedRequest<'id'>) {
         const entity = result.rows.length > 0 ? result.rows[0] : null
 
         if (!entity) {
-            return Response.json({ error: 'Form not found' }, { status: 404 })
+            return res.status(404).send({ error: 'Form not found' })
         }
 
-        return Response.json(entity)
+        return res.send(entity)
     } catch (error) {
-        logError('Error reading entity', {
-            event: 'http.internal_error',
-            requestId: req.context?.requestId,
-            error
-        })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        logError('Error reading entity', { event: 'http.internal_error', error })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

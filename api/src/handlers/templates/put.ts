@@ -1,36 +1,28 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
+import { isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
 
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
-
-export default async function updateTemplate(req: AuthRequest<'id'>) {
-    const body = await req.json() as  {
-        slug?: string
-        title?: string
-        description?: string | null
-        anonymous_submissions?: boolean
-        limit?: number | null
-        waitlist?: boolean
-        multiple_submissions?: boolean
-        published_at?: string
-        expires_at?: string
-    }
-    const { id } = req.params
-    if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
+export default async function updateTemplate(
+    req: AuthenticatedRequest<{ Params: IdParams; Body: UpdateTemplateBody }>,
+    res: FastifyReply
+) {
+    const body = req.body
+    const id = req.params.id
 
     if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return Response.json({ error: 'slug, title, published_at and expires_at are required' }, { status: 400 })
+        return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
     }
 
     if (!isValidSlug(body.slug)) {
-        return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
+        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
-        return Response.json({ error: publicationWindow.error }, { status: 400 })
+        return res.status(400).send({ error: publicationWindow.error })
     }
 
     const publishedAt = publicationWindow.publishedAt as Date
@@ -54,16 +46,16 @@ export default async function updateTemplate(req: AuthRequest<'id'>) {
         const result = await run(sql, sqlParams)
 
         if (result.rows.length === 0) {
-            return Response.json({ error: 'Entity not found' }, { status: 404 })
+            return res.status(404).send({ error: 'Entity not found' })
         }
 
-        return Response.json(result.rows[0])
+        return res.send(result.rows[0])
     } catch (error) {
         logError('Error updating entity', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

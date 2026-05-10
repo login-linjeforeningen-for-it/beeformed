@@ -1,29 +1,33 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
-import { isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+import { isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
 
-export default async function updateForm(req: AuthRequest) {
-    const body = await req.json() as any
-    const { params } = req
+export default async function updateForm(
+    req: AuthenticatedRequest<{ Params: IdParams; Body: CreateOrUpdateFormBody }>,
+    res: FastifyReply
+) {
+    const body = req.body
+    const formId = req.params.id
 
     if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return Response.json({ error: 'slug, title, published_at and expires_at are required' }, { status: 400 })
+        return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
     }
 
     if (!isValidSlug(body.slug)) {
-        return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
+        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
 
     try {
         const result = await runInTransaction(async (client) => {
-            const formResult = await client.query('SELECT created_at FROM forms WHERE id = $1 FOR UPDATE', [params.id])
+            const formResult = await client.query('SELECT created_at FROM forms WHERE id = $1 FOR UPDATE', [formId])
             if (formResult.rows.length === 0) {
                 const error = new Error('Entity not found')
-                    ; (error as any).statusCode = 404
+                ; (error as Error & { statusCode?: number }).statusCode = 404
                 throw error
             }
 
@@ -36,7 +40,7 @@ export default async function updateForm(req: AuthRequest) {
 
             if (!publicationWindow.valid) {
                 const error = new Error(publicationWindow.error ?? 'Invalid publication window')
-                    ; (error as any).statusCode = 400
+                ; (error as Error & { statusCode?: number }).statusCode = 400
                 throw error
             }
 
@@ -44,17 +48,17 @@ export default async function updateForm(req: AuthRequest) {
 
             const newLimit = body.limit ? Number(body.limit) : null
             const countSql = await loadSQL('submissions/countRegistered.sql')
-            const countResult = await client.query(countSql, [params.id])
+            const countResult = await client.query(countSql, [formId])
             const registeredCount = Number(countResult.rows[0].count)
 
             if (newLimit !== null && newLimit < registeredCount) {
                 const error = new Error('Limit cannot be lower than the number of registered submissions')
-                    ; (error as any).statusCode = 400
+                ; (error as Error & { statusCode?: number }).statusCode = 400
                 throw error
             }
 
             const sqlParams = [
-                params.id,
+                formId,
                 body.slug,
                 body.title,
                 body.description || null,
@@ -70,7 +74,7 @@ export default async function updateForm(req: AuthRequest) {
 
             if (putResult.rows.length === 0) {
                 const error = new Error('Entity not found')
-                    ; (error as any).statusCode = 404
+                ; (error as Error & { statusCode?: number }).statusCode = 404
                 throw error
             }
 
@@ -88,7 +92,7 @@ export default async function updateForm(req: AuthRequest) {
                 const getWaitlistSql = await loadSQL('submissions/getWaitlistBatch.sql')
                 const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
 
-                const waitlistResult = await client.query(getWaitlistSql, [params.id, spotsToFill])
+                const waitlistResult = await client.query(getWaitlistSql, [formId, spotsToFill])
                 const waitlistedRows = waitlistResult.rows
 
                 for (const submission of waitlistedRows) {
@@ -108,23 +112,24 @@ export default async function updateForm(req: AuthRequest) {
             await sendTemplatedMail(person.email!, {
                 title: updatedForm.title,
                 status: 'bumped',
-                ownerEmail: body.owner_email,
+                ownerEmail: body.owner_email || '',
                 submissionId: person.id,
                 actionUrl: `${config.FRONTEND_URL}/submissions/${person.id}`,
                 actionText: 'View Submission'
             })
         }
 
-        return Response.json(updatedForm)
-    } catch (error: any) {
-        if (error.statusCode) {
-            return Response.json({ error: error.message }, { status: error.statusCode })
+        return res.send(updatedForm)
+    } catch (error: unknown) {
+        const err = error as Error & { statusCode?: number }
+        if (err.statusCode) {
+            return res.status(err.statusCode).send({ error: err.message })
         }
         logError('Error updating entity', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

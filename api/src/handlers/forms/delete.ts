@@ -1,32 +1,26 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup } from '#utils/validation/validators.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+import { hasRequiredGroup } from '#utils/validators.ts'
 
-export default async function deleteForm(req: AuthRequest) {
-    const { id } = req.params
-    if (!id) return Response.json({ error: 'id is required' }, { status: 400 })
-
-    if (!hasRequiredGroup(req.user?.groups, 'Aktiv')) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 })
+export default async function deleteForm(req: AuthenticatedRequest<{ Params: IdParams }>, res: FastifyReply) {
+    if (!hasRequiredGroup(req.user.groups, 'Aktiv')) {
+        return res.status(403).send({ error: 'Forbidden' })
     }
 
     try {
         const sql = await loadSQL('forms/delete.sql')
-        const result = await run(sql, [id, req.user.id])
+        const result = await run(sql, [req.params.id, req.user.id])
 
         if (result.rowCount === 0) {
-            return Response.json({ error: 'Entity not found or permission denied' }, { status: 404 })
+            return res.status(404).send({ error: 'Entity not found or permission denied' })
         }
 
-        return new Response(null, { status: 204 })
+        return res.status(204).send()
     } catch (error) {
-        logError('Error deleting entity', {
-            event: 'http.internal_error',
-            requestId: req.context?.requestId,
-            error
-        })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        logError('Error deleting entity', { event: 'http.internal_error', error })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

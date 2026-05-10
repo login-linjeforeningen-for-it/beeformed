@@ -1,8 +1,9 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup } from '#utils/validation/validators.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+import { hasRequiredGroup } from '#utils/validators.ts'
 
 type SourceTemplate = {
     slug: string
@@ -26,18 +27,17 @@ function buildCandidateSlug(sourceSlug: string, copyIndex: number): string {
     return copyIndex === 1 ? `${baseSlug}-copy` : `${baseSlug}-copy-${copyIndex}`
 }
 
-export default async function createFormFromTemplate(req: AuthRequest<'id'>) {
-    const { id: sourceTemplateId } = req.params
-    if (!sourceTemplateId) return Response.json({ error: 'sourceTemplateId is required' }, { status: 400 })
-    const userId = req.user?.id
+export default async function createFormFromTemplate(
+    req: AuthenticatedRequest<{ Params: IdParams }>,
+    res: FastifyReply
+) {
+    const sourceTemplateId = req.params.id
 
-    if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 })
+    if (req.user.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
+        return res.status(403).send({ error: 'Forbidden' })
     }
 
-    if (!userId) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = req.user.id
 
     try {
         const getSourceTemplateSql = await loadSQL('templates/getForDuplicate.sql')
@@ -101,16 +101,16 @@ export default async function createFormFromTemplate(req: AuthRequest<'id'>) {
         })
 
         if (!createdForm) {
-            return Response.json({ error: 'Template not found' }, { status: 404 })
+            return res.status(404).send({ error: 'Template not found' })
         }
 
-        return Response.json(createdForm, { status: 201 })
+        return res.status(201).send(createdForm)
     } catch (error) {
         logError('Error creating form from template', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

@@ -1,39 +1,32 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup, isValidSlug, validatePublicationWindow } from '#utils/validation/validators.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
+import { hasRequiredGroup, isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
 
-export default async function createTemplate(req: AuthRequest) {
-    const body = await req.json() as  {
-        source_form_id?: string | null
-        slug?: string
-        title?: string
-        description?: string | null
-        anonymous_submissions?: boolean
-        limit?: number | null
-        waitlist?: boolean
-        multiple_submissions?: boolean
-        published_at?: string
-        expires_at?: string
-    }
+export default async function createTemplate(
+    req: AuthenticatedRequest<{ Body: CreateTemplateBody }>,
+    res: FastifyReply
+) {
+    const body = req.body
     const user_id = req.user.id
 
-    if (req.user?.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 })
+    if (req.user.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
+        return res.status(403).send({ error: 'Forbidden' })
     }
 
     if (!user_id || !body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return Response.json({ error: 'user_id, slug, title, published_at, and expires_at are required' }, { status: 400 })
+        return res.status(400).send({ error: 'user_id, slug, title, published_at, and expires_at are required' })
     }
 
     if (!isValidSlug(body.slug)) {
-        return Response.json({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' }, { status: 400 })
+        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
-        return Response.json({ error: publicationWindow.error }, { status: 400 })
+        return res.status(400).send({ error: publicationWindow.error })
     }
 
     const publishedAt = publicationWindow.publishedAt as Date
@@ -56,13 +49,13 @@ export default async function createTemplate(req: AuthRequest) {
     try {
         const sql = await loadSQL('templates/post.sql')
         const result = await run(sql, sqlParams)
-        return Response.json(result.rows[0], { status: 201 })
+        return res.status(201).send(result.rows[0])
     } catch (error) {
         logError('Error creating entity', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

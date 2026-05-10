@@ -1,35 +1,28 @@
+import type { FastifyReply } from 'fastify'
+import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { buildFilteredQuery } from '#utils/sql.ts'
-import { buildListResponse } from '#utils/http/listResponse.ts'
-import { isInvalidOrderByError } from '#utils/http/errors.ts'
+import { buildListResponse } from '#utils/listResponse.ts'
 import { logError } from '#utils/logger.ts'
-import type { AuthRequest } from '#utils/auth/authMiddleware.ts'
 
-export default async function getTemplates(req: AuthRequest) {
-    const queryParams: any = Object.fromEntries(new URL(req.url).searchParams.entries());
-
-    const query = queryParams as {
-        search?: string
-        limit?: string
-        offset?: string
-        order_by?: string
-        sort?: string
-    }
-
+export default async function getTemplates(
+    req: AuthenticatedRequest<{ Querystring: ListQuerystring }>,
+    res: FastifyReply
+) {
     try {
-        const { sql, params } = await buildFilteredQuery('templates/getByUserId.sql', [req.user.id], query)
+        const { sql, params } = await buildFilteredQuery('templates/getByUserId.sql', [req.user.id], req.query)
 
         const result = await run(sql, params)
-        return Response.json(buildListResponse(result.rows as Record<string, unknown>[]))
+        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
     } catch (error) {
-        if (isInvalidOrderByError(error)) {
-            return Response.json({ error: error.message }, { status: 400 })
+        if (error instanceof Error && error.message === 'Invalid order_by parameter') {
+            return res.status(400).send({ error: error.message })
         }
         logError('Error getting templates', {
             event: 'http.internal_error',
-            requestId: req.context?.requestId,
+            requestId: req.id,
             error
         })
-        return Response.json({ error: 'Internal server error' }, { status: 500 })
+        return res.status(500).send({ error: 'Internal server error' })
     }
 }

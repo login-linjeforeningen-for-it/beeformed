@@ -1,4 +1,4 @@
-import { generateQRCodeImage } from '#utils/qr/generator.ts'
+import { generateQRCodeImage } from '#utils/qrGenerator.ts'
 import config from '#constants'
 import { appendEmailFooter, renderEmailLayout } from './templateLayout.ts'
 
