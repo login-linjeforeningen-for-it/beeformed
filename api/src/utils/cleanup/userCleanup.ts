@@ -1,10 +1,7 @@
 import run from '#db'
 import config from '#constants'
-import send from '#utils/email/sendSMTP.ts'
-import { logError, logInfo } from '#utils/logger.ts'
 import { createAccountDeletionWarningTemplate } from '../email/accountDeletionTemplate.ts'
-
-const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000
+import { startCleanupTask, markWarningSent, deleteExpiredRecords, sendWarnings } from './baseCleanup.ts'
 
 type InactiveWarningCandidate = {
     user_id: string
@@ -40,44 +37,29 @@ async function getUsersNeedingWarningEmail() {
     return result.rows as InactiveWarningCandidate[]
 }
 
-async function markWarningEmailSent(userId: string) {
-    await run(
-        `UPDATE users
-         SET inactivity_warning_sent_at = CURRENT_TIMESTAMP
-         WHERE user_id = $1`,
-        [userId]
-    )
-}
-
-export async function sendInactiveUserWarnings() {
-    const candidates = await getUsersNeedingWarningEmail()
-
-    for (const candidate of candidates) {
-        try {
-            const { subject, text, html } = buildWarningEmail(candidate)
-            await send({
-                to: candidate.email,
-                subject,
-                text,
-                html
+export async function startUserCleanup() {
+    return startCleanupTask({
+        name: 'Inactive user',
+        runCleanup: async () => {
+            const candidates = await getUsersNeedingWarningEmail()
+            
+            const warned = await sendWarnings(candidates, {
+                name: 'inactivity',
+                logEventPrefix: 'inactive_user',
+                buildEmail: buildWarningEmail,
+                markSent: (c) => markWarningSent('users', 'user_id', c.user_id, 'inactivity_warning_sent_at'),
+                logContext: (c) => ({ userId: c.user_id })
             })
-            await markWarningEmailSent(candidate.user_id)
-        } catch (error) {
-            logError('Failed to send inactivity warning email', {
-                event: 'inactive_user.warning_failed',
-                userId: candidate.user_id,
-                error
-            })
+            
+            const deleted = await deleteExpiredRecords('users', 'last_active_at', '6 months')
+            
+            return { warned, deleted }
         }
-    }
-
-    return candidates.length
+    })
 }
 
 export async function touchUserActivity(userId: string) {
-    if (!userId) {
-        return
-    }
+    if (!userId) return
 
     await run(
         `UPDATE users
@@ -87,56 +69,4 @@ export async function touchUserActivity(userId: string) {
            AND (last_active_at IS NULL OR last_active_at < CURRENT_TIMESTAMP - INTERVAL '24 hours')`,
         [userId]
     )
-}
-
-export async function deleteInactiveUsers() {
-    const result = await run(
-        `DELETE FROM users
-         WHERE last_active_at < CURRENT_TIMESTAMP - INTERVAL '6 months'`
-    )
-
-    return result.rowCount ?? 0
-}
-
-export async function startUserCleanup() {
-    async function runCleanup() {
-        try {
-            const warnedUsers = await sendInactiveUserWarnings()
-            if (warnedUsers > 0) {
-                logInfo('Inactive user cleanup warned users', {
-                    event: 'inactive_user.cleanup.warned',
-                    count: warnedUsers
-                })
-            }
-
-            const deletedUsers = await deleteInactiveUsers()
-            if (deletedUsers > 0) {
-                logInfo('Inactive user cleanup deleted users', {
-                    event: 'inactive_user.cleanup.deleted',
-                    count: deletedUsers
-                })
-            }
-        } catch (error) {
-            logError('Inactive-user cleanup run failed', {
-                event: 'inactive_user.cleanup.failed',
-                error
-            })
-        }
-    }
-
-    await runCleanup()
-
-    const interval = setInterval(() => {
-        void runCleanup()
-    }, DAILY_INTERVAL_MS)
-
-    interval.unref?.()
-
-    logInfo('Inactive-user cleanup scheduled to run daily', {
-        event: 'inactive_user.cleanup.scheduled'
-    })
-
-    return () => {
-        clearInterval(interval)
-    }
 }

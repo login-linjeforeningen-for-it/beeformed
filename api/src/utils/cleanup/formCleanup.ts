@@ -1,10 +1,7 @@
 import run from '#db'
 import config from '#constants'
-import send from '#utils/email/sendSMTP.ts'
-import { logError, logInfo } from '#utils/logger.ts'
 import { createFormDeletionWarningTemplate } from '#utils/email/formDeletionTemplate.ts'
-
-const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000
+import { startCleanupTask, markWarningSent, deleteExpiredRecords, sendWarnings } from './baseCleanup.ts'
 
 type FormWarningCandidate = {
     form_id: string
@@ -44,88 +41,23 @@ async function getFormsNeedingWarningEmail() {
     return result.rows as FormWarningCandidate[]
 }
 
-async function markWarningEmailSent(formId: string) {
-    await run(
-        `UPDATE forms
-         SET form_deletion_warning_sent_at = CURRENT_TIMESTAMP
-         WHERE id = $1`,
-        [formId]
-    )
-}
-
-export async function sendFormDeletionWarnings() {
-    const candidates = await getFormsNeedingWarningEmail()
-
-    for (const candidate of candidates) {
-        try {
-            const { subject, text, html } = buildWarningEmail(candidate)
-            await send({
-                to: candidate.email,
-                subject,
-                text,
-                html
-            })
-            await markWarningEmailSent(candidate.form_id)
-        } catch (error) {
-            logError('Failed to send form deletion warning email', {
-                event: 'form_retention.warning_failed',
-                formId: candidate.form_id,
-                error
-            })
-        }
-    }
-
-    return candidates.length
-}
-
-export async function deleteExpiredForms() {
-    const result = await run(
-        `DELETE FROM forms
-         WHERE created_at < CURRENT_TIMESTAMP - INTERVAL '6 months'`
-    )
-
-    return result.rowCount ?? 0
-}
-
 export async function startFormCleanup() {
-    async function runCleanup() {
-        try {
-            const warnedForms = await sendFormDeletionWarnings()
-            if (warnedForms > 0) {
-                logInfo('Form retention cleanup warned forms', {
-                    event: 'form_retention.cleanup.warned',
-                    count: warnedForms
-                })
-            }
-
-            const deletedForms = await deleteExpiredForms()
-            if (deletedForms > 0) {
-                logInfo('Form retention cleanup deleted forms', {
-                    event: 'form_retention.cleanup.deleted',
-                    count: deletedForms
-                })
-            }
-        } catch (error) {
-            logError('Form-retention cleanup run failed', {
-                event: 'form_retention.cleanup.failed',
-                error
+    return startCleanupTask({
+        name: 'Form retention',
+        runCleanup: async () => {
+            const candidates = await getFormsNeedingWarningEmail()
+            
+            const warned = await sendWarnings(candidates, {
+                name: 'form deletion',
+                logEventPrefix: 'form_retention',
+                buildEmail: buildWarningEmail,
+                markSent: (c) => markWarningSent('forms', 'id', c.form_id, 'form_deletion_warning_sent_at'),
+                logContext: (c) => ({ formId: c.form_id })
             })
+            
+            const deleted = await deleteExpiredRecords('forms', 'created_at', '6 months')
+            
+            return { warned, deleted }
         }
-    }
-
-    await runCleanup()
-
-    const interval = setInterval(() => {
-        void runCleanup()
-    }, DAILY_INTERVAL_MS)
-
-    interval.unref?.()
-
-    logInfo('Form-retention cleanup scheduled to run daily', {
-        event: 'form_retention.cleanup.scheduled'
     })
-
-    return () => {
-        clearInterval(interval)
-    }
 }
