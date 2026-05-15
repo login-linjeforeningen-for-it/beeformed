@@ -6,7 +6,7 @@ import Navbar from '@components/navbar/navbar'
 import { Toaster } from 'uibee/components'
 import localFont from 'next/font/local'
 import Footer from '@components/footer/footer'
-import BottomNav from '@components/navigation/bottom-nav'
+import BottomNav from '@components/navbar/bottomnav'
 import '@public/fonts/style.css'
 
 export const metadata: Metadata = {
