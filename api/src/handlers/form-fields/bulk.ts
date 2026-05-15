@@ -3,12 +3,8 @@ import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-
-function createHttpError(statusCode: number, message: string): Error & { statusCode: number } {
-    const err = new Error(message) as Error & { statusCode: number }
-    err.statusCode = statusCode
-    return err
-}
+import { createHttpError } from '#utils/httpError.ts'
+import { validateLengths, MAX_FIELD_TITLE_LENGTH, MAX_FIELD_DESCRIPTION_LENGTH } from '#utils/validators.ts'
 
 export default async function bulkFormFields(
     req: AuthenticatedRequest<{ Params: IdParams; Body: BulkFormFieldOperation[] }>,
@@ -54,6 +50,12 @@ export default async function bulkFormFields(
                     }
                 }
 
+                const fieldLengthError = validateLengths([
+                    { value: op.data.title,       max: MAX_FIELD_TITLE_LENGTH,       label: 'title' },
+                    { value: op.data.description, max: MAX_FIELD_DESCRIPTION_LENGTH, label: 'description' },
+                ])
+                if (fieldLengthError) throw createHttpError(400, fieldLengthError)
+
                 let validationJson: string | null = null
                 if (op.data.validation) {
                     validationJson = JSON.stringify(op.data.validation)
@@ -90,6 +92,12 @@ export default async function bulkFormFields(
                         throw createHttpError(400, `${field} is required for create`)
                     }
                 }
+
+                const fieldLengthError = validateLengths([
+                    { value: op.data.title,       max: MAX_FIELD_TITLE_LENGTH,       label: 'title' },
+                    { value: op.data.description, max: MAX_FIELD_DESCRIPTION_LENGTH, label: 'description' },
+                ])
+                if (fieldLengthError) throw createHttpError(400, fieldLengthError)
 
                 if (op.data.form_id !== undefined && op.data.form_id !== routeFormId) {
                     throw createHttpError(400, 'form_id must match the form in the URL')

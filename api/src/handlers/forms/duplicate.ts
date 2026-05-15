@@ -4,6 +4,7 @@ import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
 import { hasRequiredGroup } from '#utils/validators.ts'
+import { createHttpError } from '#utils/httpError.ts'
 
 type SourceForm = {
     slug: string
@@ -57,13 +58,17 @@ export default async function duplicateForm(
             let copyIndex = 1
             let slug = buildCandidateSlug(source.slug, copyIndex)
 
-            while (true) {
+            while (copyIndex <= 10) {
                 const existsResult = await client.query(checkSlugExistsSql, [slug])
                 const exists = existsResult.rows[0]?.exists === true
                 if (!exists) break
 
                 copyIndex += 1
                 slug = buildCandidateSlug(source.slug, copyIndex)
+            }
+
+            if (copyIndex > 10) {
+                throw createHttpError(409, 'Could not generate a unique slug for the duplicated form')
             }
 
             const title = buildUniqueTitle(source.title, copyIndex)
@@ -105,7 +110,11 @@ export default async function duplicateForm(
         }
 
         return res.status(201).send(duplicatedForm)
-    } catch (error) {
+    } catch (error: unknown) {
+        const statusCode = (error as Error & { statusCode?: number }).statusCode
+        if (statusCode && statusCode >= 400 && statusCode < 500) {
+            return res.status(statusCode).send({ error: (error as Error).message })
+        }
         logError('Error duplicating form', {
             event: 'http.internal_error',
             requestId: req.id,

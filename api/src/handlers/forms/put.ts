@@ -5,7 +5,8 @@ import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
-import { isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
+import { isValidSlug, validatePublicationWindow, validateLengths, MAX_SLUG_LENGTH, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH } from '#utils/validators.ts'
+import { createHttpError } from '#utils/httpError.ts'
 
 export default async function updateForm(
     req: AuthenticatedRequest<{ Params: IdParams; Body: CreateOrUpdateFormBody }>,
@@ -22,13 +23,18 @@ export default async function updateForm(
         return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
 
+    const lengthError = validateLengths([
+        { value: body.slug,        max: MAX_SLUG_LENGTH,        label: 'slug' },
+        { value: body.title,       max: MAX_TITLE_LENGTH,       label: 'title' },
+        { value: body.description, max: MAX_DESCRIPTION_LENGTH, label: 'description' },
+    ])
+    if (lengthError) return res.status(400).send({ error: lengthError })
+
     try {
         const result = await runInTransaction(async (client) => {
             const formResult = await client.query('SELECT created_at FROM forms WHERE id = $1 FOR UPDATE', [formId])
             if (formResult.rows.length === 0) {
-                const error = new Error('Entity not found')
-                ; (error as Error & { statusCode?: number }).statusCode = 404
-                throw error
+                throw createHttpError(404, 'Entity not found')
             }
 
             const createdAt = formResult.rows[0].created_at as Date
@@ -39,9 +45,7 @@ export default async function updateForm(
             })
 
             if (!publicationWindow.valid) {
-                const error = new Error(publicationWindow.error ?? 'Invalid publication window')
-                ; (error as Error & { statusCode?: number }).statusCode = 400
-                throw error
+                throw createHttpError(400, publicationWindow.error ?? 'Invalid publication window')
             }
 
             const { publishedAt, expiresAt } = publicationWindow
@@ -52,9 +56,7 @@ export default async function updateForm(
             const registeredCount = Number(countResult.rows[0].count)
 
             if (newLimit !== null && newLimit < registeredCount) {
-                const error = new Error('Limit cannot be lower than the number of registered submissions')
-                ; (error as Error & { statusCode?: number }).statusCode = 400
-                throw error
+                throw createHttpError(400, 'Limit cannot be lower than the number of registered submissions')
             }
 
             const sqlParams = [
@@ -73,9 +75,7 @@ export default async function updateForm(
             const putResult = await client.query(putSql, sqlParams)
 
             if (putResult.rows.length === 0) {
-                const error = new Error('Entity not found')
-                ; (error as Error & { statusCode?: number }).statusCode = 404
-                throw error
+                throw createHttpError(404, 'Entity not found')
             }
 
             const updatedForm = putResult.rows[0]

@@ -3,12 +3,8 @@ import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-
-function createHttpError(statusCode: number, message: string): Error & { statusCode: number } {
-    const err = new Error(message) as Error & { statusCode: number }
-    err.statusCode = statusCode
-    return err
-}
+import { createHttpError } from '#utils/httpError.ts'
+import { validateLengths, MAX_FIELD_TITLE_LENGTH, MAX_FIELD_DESCRIPTION_LENGTH } from '#utils/validators.ts'
 
 export default async function bulkTemplateFields(
     req: AuthenticatedRequest<{ Params: IdParams; Body: BulkTemplateFieldOperation[] }>,
@@ -54,6 +50,12 @@ export default async function bulkTemplateFields(
                     }
                 }
 
+                const fieldLengthError = validateLengths([
+                    { value: op.data.title,       max: MAX_FIELD_TITLE_LENGTH,       label: 'title' },
+                    { value: op.data.description, max: MAX_FIELD_DESCRIPTION_LENGTH, label: 'description' },
+                ])
+                if (fieldLengthError) throw createHttpError(400, fieldLengthError)
+
                 let validationJson: string | null = null
                 if (op.data.validation) {
                     validationJson = JSON.stringify(op.data.validation)
@@ -90,6 +92,12 @@ export default async function bulkTemplateFields(
                         throw createHttpError(400, `${field} is required for create`)
                     }
                 }
+
+                const fieldLengthError = validateLengths([
+                    { value: op.data.title,       max: MAX_FIELD_TITLE_LENGTH,       label: 'title' },
+                    { value: op.data.description, max: MAX_FIELD_DESCRIPTION_LENGTH, label: 'description' },
+                ])
+                if (fieldLengthError) throw createHttpError(400, fieldLengthError)
 
                 if (op.data.template_id !== undefined && op.data.template_id !== routeTemplateId) {
                     throw createHttpError(400, 'template_id must match the template in the URL')

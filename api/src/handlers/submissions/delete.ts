@@ -5,6 +5,7 @@ import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
+import { createHttpError } from '#utils/httpError.ts'
 
 export default async function deleteSubmission(
     req: AuthenticatedRequest<{ Params: IdParams }>,
@@ -19,25 +20,19 @@ export default async function deleteSubmission(
             const getResult = await client.query(getSql, [submissionId])
 
             if (getResult.rows.length === 0) {
-                const error = new Error('Submission not found')
-                ; (error as Error & { statusCode?: number }).statusCode = 404
-                throw error
+                throw createHttpError(404, 'Submission not found')
             }
 
             const submission = getResult.rows[0]
 
             if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
-                const error = new Error('You do not have permission to delete this submission')
-                ; (error as Error & { statusCode?: number }).statusCode = 403
-                throw error
+                throw createHttpError(403, 'You do not have permission to delete this submission')
             }
 
             const now = new Date()
             const expiresAt = new Date(submission.expires_at)
             if (now > expiresAt) {
-                const error = new Error('Cannot remove submission after form has closed')
-                ; (error as Error & { statusCode?: number }).statusCode = 400
-                throw error
+                throw createHttpError(400, 'Cannot remove submission after form has closed')
             }
 
             const updateStatusSql = await loadSQL('submissions/updateStatus.sql')

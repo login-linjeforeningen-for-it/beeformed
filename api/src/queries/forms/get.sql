@@ -1,9 +1,11 @@
 -- Get form by ID with all related information
 SELECT
-    f.*,
+    f.id, f.user_id, f.slug, f.title, f.description, f.anonymous_submissions,
+    f.limit, f.waitlist, f.multiple_submissions, f.published_at, f.expires_at,
+    f.created_at, f.updated_at,
     u.name as creator_name,
     u.email as creator_email,
-    (SELECT COUNT(*) FROM submissions s WHERE s.form_id = f.id AND s.status = 'registered') as registered_count,
+    (SELECT COUNT(*)::int FROM submissions s WHERE s.form_id = f.id AND s.status = 'registered') as registered_count,
     COALESCE(json_agg(
         DISTINCT jsonb_build_object(
             'id', ff.id,

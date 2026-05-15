@@ -3,7 +3,7 @@ import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
+import { isValidSlug, validatePublicationWindow, validateLengths, MAX_SLUG_LENGTH, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH } from '#utils/validators.ts'
 
 export default async function updateTemplate(
     req: AuthenticatedRequest<{ Params: IdParams; Body: UpdateTemplateBody }>,
@@ -19,6 +19,13 @@ export default async function updateTemplate(
     if (!isValidSlug(body.slug)) {
         return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
+
+    const lengthError = validateLengths([
+        { value: body.slug,        max: MAX_SLUG_LENGTH,        label: 'slug' },
+        { value: body.title,       max: MAX_TITLE_LENGTH,       label: 'title' },
+        { value: body.description, max: MAX_DESCRIPTION_LENGTH, label: 'description' },
+    ])
+    if (lengthError) return res.status(400).send({ error: lengthError })
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {

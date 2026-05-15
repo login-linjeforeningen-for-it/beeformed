@@ -1,7 +1,6 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
-import { checkPermission } from '#utils/permissions/checkPermissions.ts'
 import { loadSQL, buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/listResponse.ts'
 import { logError } from '#utils/logger.ts'
@@ -11,14 +10,8 @@ export default async function getSubmissionsByForm(
     res: FastifyReply
 ) {
     const formId = req.params.id
-    const userId = req.user.id
 
     try {
-        const hasPermission = await checkPermission(formId, userId, req.user.groups)
-        if (!hasPermission) {
-            return res.status(403).send({ error: 'Forbidden' })
-        }
-
         const orderBy = req.query.order_by || 'submitted_at'
         const orderMap: Record<string, string> = {
             submitted_at: 's.submitted_at',

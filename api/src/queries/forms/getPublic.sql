@@ -1,8 +1,10 @@
 SELECT
-    f.*,
+    f.id, f.user_id, f.slug, f.title, f.description, f.anonymous_submissions,
+    f.limit, f.waitlist, f.multiple_submissions, f.published_at, f.expires_at,
+    f.created_at, f.updated_at,
     u.name as creator_name,
     u.email as creator_email,
-    (SELECT COUNT(*) FROM submissions s WHERE s.form_id = f.id AND s.status = 'registered') as registered_count,
+    (SELECT COUNT(*)::int FROM submissions s WHERE s.form_id = f.id AND s.status = 'registered') as registered_count,
     EXISTS (SELECT 1 FROM submissions s WHERE s.form_id = f.id AND s.user_id = $2) as user_has_submitted,
     COALESCE(json_agg(
         jsonb_build_object(

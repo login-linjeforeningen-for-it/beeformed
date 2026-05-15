@@ -5,6 +5,7 @@ import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
+import { createHttpError } from '#utils/httpError.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
     if (typeof value === 'boolean') return value
@@ -51,23 +52,17 @@ export default async function createSubmission(
             const formResult = await client.query(formQuery, [formId])
 
             if (formResult.rows.length === 0) {
-                const error = new Error('Form not found')
-                ; (error as Error & { statusCode?: number }).statusCode = 404
-                throw error
+                throw createHttpError(404, 'Form not found')
             }
             const form = formResult.rows[0]
             const submissionFields = Array.isArray(body?.fields) ? body.fields : null
 
             if (!submissionFields) {
-                const error = new Error('fields must be an array')
-                ; (error as Error & { statusCode?: number }).statusCode = 400
-                throw error
+                throw createHttpError(400, 'fields must be an array')
             }
 
             if (!form.anonymous_submissions && !req.user?.id) {
-                const error = new Error('Authentication required')
-                ; (error as Error & { statusCode?: number }).statusCode = 401
-                throw error
+                throw createHttpError(401, 'Authentication required')
             }
 
             const userId = form.anonymous_submissions ? null : req.user.id
@@ -77,9 +72,7 @@ export default async function createSubmission(
                 const checkSubmissionSql = await loadSQL('submissions/checkUserSubmission.sql')
                 const existingSubmission = await client.query(checkSubmissionSql, [formId, userId])
                 if (parseInt(existingSubmission.rows[0].count) > 0) {
-                    const error = new Error('You have already submitted to this form')
-                    ; (error as Error & { statusCode?: number }).statusCode = 409
-                    throw error
+                    throw createHttpError(409, 'You have already submitted to this form')
                 }
             }
 
@@ -89,9 +82,7 @@ export default async function createSubmission(
                     if (form.waitlist) {
                         status = 'waitlisted'
                     } else {
-                        const error = new Error('Form is full')
-                        ; (error as Error & { statusCode?: number }).statusCode = 400
-                        throw error
+                        throw createHttpError(400, 'Form is full')
                     }
                 }
             }
@@ -110,24 +101,18 @@ export default async function createSubmission(
             const valuesByFieldId = new Map<string, unknown>()
             for (const fieldInput of submissionFields) {
                 if (!fieldInput || typeof fieldInput !== 'object') {
-                    const error = new Error('Each submitted field must be an object')
-                    ; (error as Error & { statusCode?: number }).statusCode = 400
-                    throw error
+                    throw createHttpError(400, 'Each submitted field must be an object')
                 }
 
                 const fieldIdRaw = (fieldInput as { field_id?: unknown }).field_id
                 const fieldId = typeof fieldIdRaw === 'string' ? fieldIdRaw.trim() : ''
                 if (!fieldId) {
-                    const error = new Error('field_id must be a non-empty string')
-                    ; (error as Error & { statusCode?: number }).statusCode = 400
-                    throw error
+                    throw createHttpError(400, 'field_id must be a non-empty string')
                 }
 
                 const formField = formFieldById.get(fieldId)
                 if (!formField) {
-                    const error = new Error(`Field ${fieldId} does not belong to this form`)
-                    ; (error as Error & { statusCode?: number }).statusCode = 400
-                    throw error
+                    throw createHttpError(400, `Field ${fieldId} does not belong to this form`)
                 }
 
                 valuesByFieldId.set(fieldId, (fieldInput as { value?: unknown }).value)
@@ -139,9 +124,7 @@ export default async function createSubmission(
                 .map(field => field.title)
 
             if (missingRequiredTitles.length > 0) {
-                const error = new Error(`Missing required fields: ${missingRequiredTitles.join(', ')}`)
-                ; (error as Error & { statusCode?: number }).statusCode = 400
-                throw error
+                throw createHttpError(400, `Missing required fields: ${missingRequiredTitles.join(', ')}`)
             }
 
             const dataSql = await loadSQL('submissions/postData.sql')

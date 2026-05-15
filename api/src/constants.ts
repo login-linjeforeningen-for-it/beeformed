@@ -60,7 +60,7 @@ const config = {
     DB_MAX_CONN: 20,
     DB_IDLE_TIMEOUT_MS: 5000,
     DB_TIMEOUT_MS: 3000,
-    CACHE_TTL: 1000,
+    CACHE_TTL: 30_000,
     DISABLE_SMTP: disableSMTP,
     SMTP_HOST: env.SMTP_HOST,
     SMTP_NAME: env.SMTP_NAME,

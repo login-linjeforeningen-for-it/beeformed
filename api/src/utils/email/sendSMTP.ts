@@ -1,3 +1,4 @@
+import type { FastifyInstance } from 'fastify'
 import config from '#constants'
 import nodemailer from 'nodemailer'
 import { createSubmissionEmailTemplate } from './templates/submissionTemplate.ts'
@@ -50,25 +51,34 @@ async function queueEmail(type: QueuedEmailType, to: string, payload: object): P
 
 async function processQueue(): Promise<void> {
     await run(`DELETE FROM email_queue WHERE retry_count >= $1`, [MAX_RETRIES])
-    const result = await run(
-        `SELECT id, "to", email_type, payload, retry_count FROM email_queue WHERE retry_count < $1`,
+
+    const claimed = await run(
+        `UPDATE email_queue
+         SET retry_count = retry_count + 1, last_attempted_at = NOW()
+         WHERE id IN (
+             SELECT id FROM email_queue
+             WHERE retry_count < $1
+             FOR UPDATE SKIP LOCKED
+         )
+         RETURNING id, "to", email_type, payload`,
         [MAX_RETRIES]
     )
-    if (result.rows.length === 0) return
-    logInfo('Processing queued emails', { event: 'email.queue.process', count: result.rows.length })
-    for (const row of result.rows) {
+
+    if (claimed.rows.length === 0) return
+    logInfo('Processing queued emails', { event: 'email.queue.process', count: claimed.rows.length })
+
+    for (const row of claimed.rows) {
         try {
-            await run(`UPDATE email_queue SET retry_count = retry_count + 1, last_attempted_at = NOW() WHERE id = $1`, [row.id])
             await dispatchEmail(row.email_type as QueuedEmailType, row.to, row.payload)
             await run(`DELETE FROM email_queue WHERE id = $1`, [row.id])
             logInfo('Queued email sent successfully', { event: 'email.queue.retry_success', queueId: row.id })
         } catch (error) {
-            logError('Queued email retry failed', { event: 'email.queue.retry_failed', queueId: row.id, error })
+            logError('Queued email send failed', { event: 'email.queue.retry_failed', queueId: row.id, error })
         }
     }
 }
 
-export async function emailQueueScheduler() {
+export async function emailQueueScheduler(_fastify: FastifyInstance) {
     try {
         await processQueue()
     } catch (err) {

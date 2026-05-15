@@ -1,6 +1,8 @@
 -- Get template by ID with all related information
 SELECT
-    t.*,
+    t.id, t.user_id, t.source_form_id, t.slug, t.title, t.description,
+    t.anonymous_submissions, t.limit, t.waitlist, t.multiple_submissions,
+    t.published_at, t.expires_at, t.created_at, t.updated_at,
     u.name as creator_name,
     u.email as creator_email,
     COALESCE(json_agg(
