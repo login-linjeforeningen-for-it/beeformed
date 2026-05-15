@@ -12,7 +12,7 @@ export default async function createForm(
     const body = req.body
     const user_id = req.user.id
 
-    if (req.user.groups && !hasRequiredGroup(req.user.groups, 'Aktiv')) {
+    if (!Array.isArray(req.user.groups) || !hasRequiredGroup(req.user.groups, 'Aktiv')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 

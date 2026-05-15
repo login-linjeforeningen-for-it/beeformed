@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
         req: request,
         tokenURL: config.authentik.url.token,
         clientID: config.authentik.clientId,
-        clientSecret: config.authentik.clientSecret,
+        clientSecret: process.env.AUTH_CLIENT_SECRET!,
         redirectPath: config.authPath.callback,
         userInfoURL: config.authentik.url.userinfo,
         tokenRedirectPath: config.authPath.token

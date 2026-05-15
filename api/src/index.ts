@@ -16,7 +16,7 @@ const fastify = Fastify({
 })
 
 fastify.register(cors, {
-    origin: true,
+    origin: /^https:\/\/(?:.+\.)?login\.no$/,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
 })
 

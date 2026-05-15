@@ -15,6 +15,7 @@ type CheckTokenResponse = {
     error?: string
 }
 
+const MAX_CACHE_SIZE = 500
 const tokenCache = new Map<string, { response: CheckTokenResponse; expiresAt: number }>()
 
 function parseUserInfoClaims(data: unknown): UserInfoClaims | null {
@@ -104,6 +105,10 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
             userInfo
         }
 
+        if (tokenCache.size >= MAX_CACHE_SIZE) {
+            const oldestKey = tokenCache.keys().next().value
+            if (oldestKey !== undefined) tokenCache.delete(oldestKey)
+        }
         tokenCache.set(token, {
             response,
             expiresAt: Date.now() + CACHE_TTL
