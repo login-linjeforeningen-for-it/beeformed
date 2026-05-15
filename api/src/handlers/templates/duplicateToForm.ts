@@ -110,7 +110,11 @@ export default async function createFormFromTemplate(
         }
 
         return res.status(201).send(createdForm)
-    } catch (error) {
+    } catch (error: unknown) {
+        const statusCode = (error as Error & { statusCode?: number }).statusCode
+        if (statusCode && statusCode >= 400 && statusCode < 500) {
+            return res.status(statusCode).send({ error: (error as Error).message })
+        }
         logError('Error creating form from template', {
             event: 'http.internal_error',
             requestId: req.id,

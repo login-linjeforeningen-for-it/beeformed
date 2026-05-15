@@ -17,10 +17,10 @@ const pool = new Pool({
     host: DB_HOST,
     database: DB || 'beeformed',
     password: DB_PASSWORD,
-    port: Number(DB_PORT) || 5432,
-    max: Number(DB_MAX_CONN) || 20,
-    idleTimeoutMillis: Number(DB_IDLE_TIMEOUT_MS) || 5000,
-    connectionTimeoutMillis: Number(DB_TIMEOUT_MS) || 3000,
+    port: DB_PORT,
+    max: DB_MAX_CONN,
+    idleTimeoutMillis: DB_IDLE_TIMEOUT_MS,
+    connectionTimeoutMillis: DB_TIMEOUT_MS,
     keepAlive: true
 })
 

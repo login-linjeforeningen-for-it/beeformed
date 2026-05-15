@@ -12,4 +12,5 @@ SET
     expires_at = $10,
     updated_at = NOW()
 WHERE id = $1
-RETURNING *, (SELECT email FROM users WHERE user_id = forms.user_id) as creator_email;
+RETURNING id, user_id, slug, title, description, anonymous_submissions, "limit", waitlist, multiple_submissions, published_at, expires_at, created_at, updated_at,
+    (SELECT email FROM users WHERE user_id = forms.user_id) as creator_email;

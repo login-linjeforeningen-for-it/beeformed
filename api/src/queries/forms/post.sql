@@ -23,4 +23,4 @@ VALUES (
     $9,
     $10
 )
-RETURNING *;
+RETURNING id, user_id, slug, title, description, anonymous_submissions, "limit", waitlist, multiple_submissions, published_at, expires_at, created_at, updated_at;

@@ -70,10 +70,6 @@ export default async function createSubmission(
                 throw createHttpError(400, 'fields must be an array')
             }
 
-            if (!form.anonymous_submissions && !req.user?.id) {
-                throw createHttpError(401, 'Authentication required')
-            }
-
             const userId = form.anonymous_submissions ? null : req.user.id
             let status = 'registered'
 

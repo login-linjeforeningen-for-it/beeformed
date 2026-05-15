@@ -1,4 +1,14 @@
 import type { FastifyInstance } from 'fastify'
+import {
+    createOrUpdateFormBodySchema,
+    createTemplateBodySchema,
+    updateTemplateBodySchema,
+    permissionGrantBodySchema,
+    createSubmissionBodySchema,
+    scanSubmissionBodySchema,
+    bulkFormFieldBodySchema,
+    bulkTemplateFieldBodySchema
+} from './schemas.ts'
 
 import getIndex from './handlers/index/get.ts'
 import getPing from './handlers/ping/get.ts'
@@ -95,7 +105,7 @@ export default async function apiRoutes(
 
     // Forms
     fastify.post<{ Body: CreateOrUpdateFormBody }>(
-        '/forms', { preHandler: authMiddleware }, withAuthenticatedUser(createForm)
+        '/forms', { preHandler: authMiddleware, schema: { body: createOrUpdateFormBodySchema } }, withAuthenticatedUser(createForm)
     )
 
     fastify.get<{ Querystring: ListQuerystring }>(
@@ -115,7 +125,7 @@ export default async function apiRoutes(
     )
 
     fastify.put<{ Params: IdParams, Body: CreateOrUpdateFormBody }>(
-        '/forms/:id', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(updateForm)
+        '/forms/:id', { preHandler: [authMiddleware, permissionMiddleware], schema: { body: createOrUpdateFormBodySchema } }, withAuthenticatedUser(updateForm)
     )
 
     fastify.delete<{ Params: IdParams }>(
@@ -132,7 +142,7 @@ export default async function apiRoutes(
 
     // Templates
     fastify.post<{ Body: CreateTemplateBody }>(
-        '/templates', { preHandler: authMiddleware }, withAuthenticatedUser(createTemplate)
+        '/templates', { preHandler: authMiddleware, schema: { body: createTemplateBodySchema } }, withAuthenticatedUser(createTemplate)
     )
 
     fastify.get<{ Querystring: ListQuerystring }>(
@@ -148,7 +158,7 @@ export default async function apiRoutes(
     )
 
     fastify.put<{ Params: IdParams, Body: UpdateTemplateBody }>(
-        '/templates/:id', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(updateTemplate)
+        '/templates/:id', { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { body: updateTemplateBodySchema } }, withAuthenticatedUser(updateTemplate)
     )
 
     fastify.delete<{ Params: IdParams }>(
@@ -165,7 +175,7 @@ export default async function apiRoutes(
     )
 
     fastify.post<{ Params: IdParams, Body: PermissionGrantBody }>(
-        '/forms/:id/permissions', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(createFormPermission)
+        '/forms/:id/permissions', { preHandler: [authMiddleware, permissionMiddleware], schema: { body: permissionGrantBodySchema } }, withAuthenticatedUser(createFormPermission)
     )
 
     fastify.delete<{ Params: FormIdAndIdParams }>(
@@ -178,7 +188,7 @@ export default async function apiRoutes(
     )
 
     fastify.post<{ Params: IdParams, Body: PermissionGrantBody }>(
-        '/templates/:id/permissions', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(createTemplatePermission)
+        '/templates/:id/permissions', { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { body: permissionGrantBodySchema } }, withAuthenticatedUser(createTemplatePermission)
     )
 
     fastify.delete<{ Params: TemplateIdAndIdParams }>(
@@ -191,7 +201,7 @@ export default async function apiRoutes(
     )
 
     fastify.patch<{ Params: IdParams, Body: BulkFormFieldOperation[] }>(
-        '/forms/:id/fields', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(bulkFormFields)
+        '/forms/:id/fields', { preHandler: [authMiddleware, permissionMiddleware], schema: { body: bulkFormFieldBodySchema } }, withAuthenticatedUser(bulkFormFields)
     )
 
     // Template Fields
@@ -200,7 +210,7 @@ export default async function apiRoutes(
     )
 
     fastify.patch<{ Params: IdParams, Body: BulkTemplateFieldOperation[] }>(
-        '/templates/:id/fields', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(bulkTemplateFields)
+        '/templates/:id/fields', { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { body: bulkTemplateFieldBodySchema } }, withAuthenticatedUser(bulkTemplateFields)
     )
 
     // Live
@@ -214,7 +224,7 @@ export default async function apiRoutes(
     )
 
     fastify.post<{ Params: IdParams, Body: CreateSubmissionBody }>(
-        '/forms/:id/submissions', { preHandler: authMiddleware }, withAuthenticatedUser(createSubmission)
+        '/forms/:id/submissions', { preHandler: authMiddleware, schema: { body: createSubmissionBodySchema } }, withAuthenticatedUser(createSubmission)
     )
 
     fastify.get<{ Params: IdParams, Querystring: SubmissionByIdQuerystring }>(
@@ -222,7 +232,7 @@ export default async function apiRoutes(
     )
 
     fastify.post<{ Params: IdParams, Body: ScanSubmissionBody }>(
-        '/submissions/:id/scan', { preHandler: authMiddleware }, withAuthenticatedUser(scanSubmission)
+        '/submissions/:id/scan', { preHandler: authMiddleware, schema: { body: scanSubmissionBodySchema } }, withAuthenticatedUser(scanSubmission)
     )
 
     fastify.get<{ Querystring: ListQuerystring }>(

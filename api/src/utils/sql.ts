@@ -39,7 +39,8 @@ export async function buildFilteredQuery(
     const search = query.search
     const parsedLimit = query.limit ? parseInt(query.limit) : MAX_LIMIT
     const limit = isNaN(parsedLimit) ? MAX_LIMIT : Math.min(Math.max(parsedLimit, 1), MAX_LIMIT)
-    const offset = query.offset ? parseInt(query.offset) : undefined
+    const parsedOffset = query.offset ? parseInt(query.offset) : 0
+    const offset = isNaN(parsedOffset) || parsedOffset < 0 ? 0 : parsedOffset
     const orderBy = query.order_by || 'created_at'
     const sort = query.sort === 'asc' ? 'ASC' : 'DESC'
 
@@ -107,7 +108,7 @@ export async function buildFilteredQuery(
         params.push(limit)
     }
 
-    if (offset) {
+    if (offset > 0) {
         sql += ` OFFSET $${params.length + 1}`
         params.push(offset)
     }

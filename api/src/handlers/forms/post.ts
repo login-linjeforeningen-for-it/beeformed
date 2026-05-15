@@ -16,8 +16,8 @@ export default async function createForm(
         return res.status(403).send({ error: 'Forbidden' })
     }
 
-    if (!user_id || !body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'user_id, slug, title, published_at, and expires_at are required' })
+    if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
+        return res.status(400).send({ error: 'slug, title, published_at, and expires_at are required' })
     }
 
     if (!isValidSlug(body.slug)) {
@@ -43,13 +43,17 @@ export default async function createForm(
     const publishedAt = publicationWindow.publishedAt as Date
     const expiresAt = publicationWindow.expiresAt as Date
 
+    if (body.limit != null && (!Number.isInteger(Number(body.limit)) || Number(body.limit) < 1)) {
+        return res.status(400).send({ error: 'limit must be a positive integer' })
+    }
+
     const sqlParams = [
         user_id,
         body.slug,
         body.title,
         body.description || null,
         body.anonymous_submissions || false,
-        body.limit || null,
+        body.limit != null ? Number(body.limit) : null,
         body.waitlist || false,
         body.multiple_submissions || false,
         publishedAt,
@@ -61,6 +65,9 @@ export default async function createForm(
         const result = await run(sql, sqlParams)
         return res.status(201).send(result.rows[0])
     } catch (error) {
+        if ((error as { code?: string }).code === '23505') {
+            return res.status(409).send({ error: 'Slug is already taken' })
+        }
         logError('Error creating entity', { event: 'http.internal_error', error })
         return res.status(500).send({ error: 'Internal server error' })
     }

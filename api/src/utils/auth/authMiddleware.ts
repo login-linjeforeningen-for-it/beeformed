@@ -27,13 +27,7 @@ export function withAuthenticatedUser<T extends RouteGenericInterface = RouteGen
 ) {
     return async (req: FastifyRequest<T>, res: FastifyReply) => {
         if (!req.user) {
-            await authMiddleware(req, res)
-        }
-
-        if (!req.user) {
-            if (!res.sent) {
-                res.status(401).send({ error: 'Unauthorized' })
-            }
+            res.status(401).send({ error: 'Unauthorized' })
             return
         }
 

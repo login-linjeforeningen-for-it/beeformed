@@ -71,25 +71,41 @@ export default async function deleteSubmission(
 
         if (submission.user_email) {
             const isOwner = submission.user_id === user.id
-            await sendTypedEmail('submission', submission.user_email, {
-                title: submission.form_title,
-                status: isOwner ? 'cancelled' : 'rejected',
-                ownerEmail: submission.form_owner_email,
-                actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
-                actionText: 'View Form',
-                submissionId: submission.id
-            })
+            try {
+                await sendTypedEmail('submission', submission.user_email, {
+                    title: submission.form_title,
+                    status: isOwner ? 'cancelled' : 'rejected',
+                    ownerEmail: submission.form_owner_email,
+                    actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
+                    actionText: 'View Form',
+                    submissionId: submission.id
+                })
+            } catch (emailError) {
+                logError('Failed to send cancellation email', {
+                    event: 'submission.cancellation_email_failed',
+                    submissionId: submission.id,
+                    error: emailError
+                })
+            }
         }
 
         if (promoted?.email) {
-            await sendTypedEmail('submission', promoted.email, {
-                title: submission.form_title,
-                status: 'bumped',
-                ownerEmail: submission.form_owner_email,
-                actionUrl: `${config.FRONTEND_URL}/submissions/${promoted.id}`,
-                actionText: 'View Submission',
-                submissionId: promoted.id
-            })
+            try {
+                await sendTypedEmail('submission', promoted.email, {
+                    title: submission.form_title,
+                    status: 'bumped',
+                    ownerEmail: submission.form_owner_email,
+                    actionUrl: `${config.FRONTEND_URL}/submissions/${promoted.id}`,
+                    actionText: 'View Submission',
+                    submissionId: promoted.id
+                })
+            } catch (emailError) {
+                logError('Failed to send promotion email', {
+                    event: 'submission.promotion_email_failed',
+                    submissionId: promoted.id,
+                    error: emailError
+                })
+            }
         }
 
         return res.send({ success: true, message: 'Submission cancelled' })

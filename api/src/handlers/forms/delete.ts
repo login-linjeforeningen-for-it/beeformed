@@ -11,13 +11,16 @@ export default async function deleteForm(req: AuthenticatedRequest<{ Params: IdP
     }
 
     try {
-        const sql = await loadSQL('forms/delete.sql')
-        const result = await run(sql, [req.params.id, req.user.id])
-
-        if (result.rowCount === 0) {
-            return res.status(404).send({ error: 'Entity not found or permission denied' })
+        const ownerResult = await run('SELECT user_id FROM forms WHERE id = $1', [req.params.id])
+        if (ownerResult.rows.length === 0) {
+            return res.status(404).send({ error: 'Form not found' })
+        }
+        if (ownerResult.rows[0].user_id !== req.user.id) {
+            return res.status(403).send({ error: 'Forbidden' })
         }
 
+        const sql = await loadSQL('forms/delete.sql')
+        await run(sql, [req.params.id, req.user.id])
         return res.status(204).send()
     } catch (error) {
         logError('Error deleting entity', { event: 'http.internal_error', error })

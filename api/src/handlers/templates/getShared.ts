@@ -10,14 +10,29 @@ export default async function getSharedTemplates(
     res: FastifyReply
 ) {
     try {
-        const { sql, params } = await buildFilteredQuery('templates/getShared.sql', [req.user.id, req.user.groups], req.query, 't')
+        const orderBy = req.query.order_by || 'created_at'
+        const orderMap: Record<string, string> = {
+            created_at: 't.created_at',
+            updated_at: 't.updated_at',
+            title: 't.title',
+            expires_at: 't.expires_at',
+            published_at: 't.published_at'
+        }
+        if (!orderMap[orderBy]) {
+            return res.status(400).send({ error: 'Invalid order_by parameter' })
+        }
+
+        const { sql, params } = await buildFilteredQuery(
+            'templates/getShared.sql',
+            [req.user.id, req.user.groups],
+            req.query,
+            't',
+            { explicitOrderField: orderMap[orderBy] }
+        )
 
         const result = await run(sql, params)
         return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
     } catch (error) {
-        if (error instanceof Error && error.message === 'Invalid order_by parameter') {
-            return res.status(400).send({ error: error.message })
-        }
         logError('Error getting shared templates', {
             event: 'http.internal_error',
             requestId: req.id,

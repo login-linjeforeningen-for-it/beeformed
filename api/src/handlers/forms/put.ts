@@ -19,6 +19,10 @@ export default async function updateForm(
         return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
     }
 
+    if (body.limit != null && (!Number.isInteger(Number(body.limit)) || Number(body.limit) < 1)) {
+        return res.status(400).send({ error: 'limit must be a positive integer' })
+    }
+
     if (!isValidSlug(body.slug)) {
         return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
     }
@@ -50,7 +54,7 @@ export default async function updateForm(
 
             const { publishedAt, expiresAt } = publicationWindow
 
-            const newLimit = body.limit ? Number(body.limit) : null
+            const newLimit = body.limit != null ? Number(body.limit) : null
             const countSql = await loadSQL('submissions/countRegistered.sql')
             const countResult = await client.query(countSql, [formId])
             const registeredCount = Number(countResult.rows[0].count)

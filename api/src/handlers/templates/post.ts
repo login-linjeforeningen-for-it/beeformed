@@ -58,6 +58,9 @@ export default async function createTemplate(
         const result = await run(sql, sqlParams)
         return res.status(201).send(result.rows[0])
     } catch (error) {
+        if ((error as { code?: string }).code === '23505') {
+            return res.status(409).send({ error: 'Slug is already taken' })
+        }
         logError('Error creating entity', {
             event: 'http.internal_error',
             requestId: req.id,
