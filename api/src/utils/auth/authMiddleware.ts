@@ -44,7 +44,7 @@ export function withAuthenticatedUser<T extends RouteGenericInterface = RouteGen
 export default async function authMiddleware(req: FastifyRequest, res: FastifyReply) {
     const tokenResult = await checkToken(req)
 
-    if (tokenResult.error === 'Internal server error') {
+    if (tokenResult.errorCode === 'INTERNAL') {
         res.status(500).send({ error: 'Internal server error' })
         return
     }

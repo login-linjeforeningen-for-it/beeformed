@@ -112,7 +112,7 @@ export default async function updateForm(
             await sendTypedEmail('submission', person.email!, {
                 title: updatedForm.title,
                 status: 'bumped',
-                ownerEmail: body.owner_email || '',
+                ownerEmail: updatedForm.creator_email || '',
                 submissionId: person.id,
                 actionUrl: `${config.FRONTEND_URL}/submissions/${person.id}`,
                 actionText: 'View Submission'

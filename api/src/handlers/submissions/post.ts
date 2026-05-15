@@ -55,6 +55,15 @@ export default async function createSubmission(
                 throw createHttpError(404, 'Form not found')
             }
             const form = formResult.rows[0]
+
+            const now = new Date()
+            if (new Date(form.published_at) > now) {
+                throw createHttpError(400, 'Form has not opened yet')
+            }
+            if (new Date(form.expires_at) <= now) {
+                throw createHttpError(400, 'Form has closed')
+            }
+
             const submissionFields = Array.isArray(body?.fields) ? body.fields : null
 
             if (!submissionFields) {

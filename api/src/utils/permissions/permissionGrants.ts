@@ -38,6 +38,9 @@ export async function handlePermissionGrant(
     const resourceId = req.params.id
     const grantedBy = req.user.id
 
+    if (!/^[a-z_]+$/.test(config.resourceTable)) {
+        throw new Error(`Unsafe SQL identifier: ${config.resourceTable}`)
+    }
     const ownerResult = await run(
         `SELECT user_id FROM ${config.resourceTable} WHERE id = $1`,
         [resourceId]

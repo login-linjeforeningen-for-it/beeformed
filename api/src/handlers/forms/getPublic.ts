@@ -12,7 +12,7 @@ export default async function getPublicForm(req: FastifyRequest<{ Params: IdPara
     const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const tokenResult = await checkToken(req)
-        if (tokenResult.error === 'Internal server error') {
+        if (tokenResult.errorCode === 'INTERNAL') {
             return res.status(500).send({ error: 'Internal server error' })
         }
         if (tokenResult.valid && tokenResult.userInfo) {

@@ -9,10 +9,13 @@ type UserInfoClaims = {
     groups?: string[]
 }
 
+export type CheckTokenErrorCode = 'INTERNAL' | 'UNAUTHORIZED'
+
 type CheckTokenResponse = {
     valid: boolean
     userInfo?: UserInfoClaims
     error?: string
+    errorCode?: CheckTokenErrorCode
 }
 
 const MAX_CACHE_SIZE = 500
@@ -63,6 +66,7 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
     if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
         return {
             valid: false,
+            errorCode: 'UNAUTHORIZED',
             error: 'Missing or invalid Authorization header'
         }
     }
@@ -71,6 +75,8 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
 
     const cached = tokenCache.get(token)
     if (cached && cached.expiresAt > Date.now()) {
+        tokenCache.delete(token)
+        tokenCache.set(token, cached)
         return cached.response
     }
 
@@ -84,6 +90,7 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
         if (!userInfoRes.ok) {
             return {
                 valid: false,
+                errorCode: 'UNAUTHORIZED',
                 error: 'Unauthorized'
             }
         }
@@ -96,6 +103,7 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
             })
             return {
                 valid: false,
+                errorCode: 'UNAUTHORIZED',
                 error: 'Unauthorized'
             }
         }
@@ -122,6 +130,7 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
         })
         return {
             valid: false,
+            errorCode: 'INTERNAL',
             error: 'Internal server error'
         }
     }

@@ -82,7 +82,6 @@ declare global {
         multiple_submissions?: boolean
         published_at: string
         expires_at: string
-        owner_email?: string
     }
 
     export type CreateTemplateBody = {

@@ -10,8 +10,10 @@ export default async function getUser(req: AuthenticatedRequest, res: FastifyRep
     try {
         const sql = await loadSQL('users/get.sql')
         const result = await run(sql, [id])
-        const entity = result.rows.length > 0 ? result.rows[0] : null
-        return res.send(entity)
+        if (result.rows.length === 0) {
+            return res.status(404).send({ error: 'User not found' })
+        }
+        return res.send(result.rows[0])
     } catch (error) {
         logError('Error reading entity', { event: 'http.internal_error', error })
         return res.status(500).send({ error: 'Internal server error' })

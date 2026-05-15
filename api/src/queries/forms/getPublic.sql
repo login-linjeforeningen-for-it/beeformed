@@ -5,7 +5,7 @@ SELECT
     u.name as creator_name,
     u.email as creator_email,
     (SELECT COUNT(*)::int FROM submissions s WHERE s.form_id = f.id AND s.status = 'registered') as registered_count,
-    EXISTS (SELECT 1 FROM submissions s WHERE s.form_id = f.id AND s.user_id = $2) as user_has_submitted,
+    EXISTS (SELECT 1 FROM submissions s WHERE s.form_id = f.id AND s.user_id = $2 AND s.status IN ('registered', 'waitlisted')) as user_has_submitted,
     COALESCE(json_agg(
         jsonb_build_object(
             'id', ff.id,

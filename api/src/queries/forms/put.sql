@@ -12,4 +12,4 @@ SET
     expires_at = $10,
     updated_at = NOW()
 WHERE id = $1
-RETURNING *;
+RETURNING *, (SELECT email FROM users WHERE user_id = forms.user_id) as creator_email;

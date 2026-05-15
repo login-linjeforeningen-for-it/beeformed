@@ -37,21 +37,20 @@ export default async function scanSubmission(
             return res.status(403).send({ error: 'You do not have permission to scan this submission' })
         }
 
-        if (submission.scanned_at) {
+        const updateSql = await loadSQL('submissions/markScanned.sql')
+        const updateResult = await run(updateSql, [id])
+
+        if (updateResult.rowCount === 0) {
             return res.send({
                 ...submission,
                 already_scanned: true
             })
         }
 
-        const updateSql = await loadSQL('submissions/markScanned.sql')
-        const result = await run(updateSql, [id])
-        const newScannedAt = result.rows[0].scanned_at
-
         return res.send({
             ...submission,
             already_scanned: false,
-            scanned_at: newScannedAt
+            scanned_at: updateResult.rows[0].scanned_at
         })
 
     } catch (error) {

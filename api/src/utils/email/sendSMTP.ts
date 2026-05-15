@@ -16,6 +16,8 @@ export type EmailPayloadMap = {
 }
 
 const MAX_RETRIES = 4
+// How long a claimed-but-unfinished row is locked before being re-picked
+const CLAIM_LOCK_MINUTES = 5
 
 const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
     name: config.SMTP_NAME,
@@ -54,10 +56,11 @@ async function processQueue(): Promise<void> {
 
     const claimed = await run(
         `UPDATE email_queue
-         SET retry_count = retry_count + 1, last_attempted_at = NOW()
+         SET last_attempted_at = NOW()
          WHERE id IN (
              SELECT id FROM email_queue
              WHERE retry_count < $1
+               AND (last_attempted_at IS NULL OR last_attempted_at < NOW() - INTERVAL '${CLAIM_LOCK_MINUTES} minutes')
              FOR UPDATE SKIP LOCKED
          )
          RETURNING id, "to", email_type, payload`,
@@ -73,6 +76,7 @@ async function processQueue(): Promise<void> {
             await run(`DELETE FROM email_queue WHERE id = $1`, [row.id])
             logInfo('Queued email sent successfully', { event: 'email.queue.retry_success', queueId: row.id })
         } catch (error) {
+            await run(`UPDATE email_queue SET retry_count = retry_count + 1 WHERE id = $1`, [row.id])
             logError('Queued email send failed', { event: 'email.queue.retry_failed', queueId: row.id, error })
         }
     }
