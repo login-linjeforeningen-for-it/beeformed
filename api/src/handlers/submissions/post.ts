@@ -32,7 +32,7 @@ function hasRequiredFieldValue(field: { field_type: string; options: string[] | 
 
 function serializeFieldValue(value: unknown): string | null {
     if (value === null || value === undefined) return null
-    if (Array.isArray(value)) return value.map(item => String(item)).join(',')
+    if (Array.isArray(value)) return JSON.stringify(value)
     if (typeof value === 'object') return JSON.stringify(value)
     return String(value)
 }

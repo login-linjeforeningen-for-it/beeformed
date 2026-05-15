@@ -4,7 +4,7 @@ import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
 import { createHttpError } from '#utils/httpError.ts'
-import { validateLengths, MAX_FIELD_TITLE_LENGTH, MAX_FIELD_DESCRIPTION_LENGTH } from '#utils/validators.ts'
+import { validateLengths, MAX_FIELD_TITLE_LENGTH, MAX_FIELD_DESCRIPTION_LENGTH, VALID_FIELD_TYPES } from '#utils/validators.ts'
 
 export default async function bulkFormFields(
     req: AuthenticatedRequest<{ Params: IdParams; Body: BulkFormFieldOperation[] }>,
@@ -50,6 +50,10 @@ export default async function bulkFormFields(
                     }
                 }
 
+                if (op.data.field_type && !(VALID_FIELD_TYPES as readonly string[]).includes(op.data.field_type)) {
+                    throw createHttpError(400, `Invalid field_type: must be one of ${VALID_FIELD_TYPES.join(', ')}`)
+                }
+
                 const fieldLengthError = validateLengths([
                     { value: op.data.title,       max: MAX_FIELD_TITLE_LENGTH,       label: 'title' },
                     { value: op.data.description, max: MAX_FIELD_DESCRIPTION_LENGTH, label: 'description' },
@@ -91,6 +95,10 @@ export default async function bulkFormFields(
                     if (!(field in op.data)) {
                         throw createHttpError(400, `${field} is required for create`)
                     }
+                }
+
+                if (op.data.field_type && !(VALID_FIELD_TYPES as readonly string[]).includes(op.data.field_type)) {
+                    throw createHttpError(400, `Invalid field_type: must be one of ${VALID_FIELD_TYPES.join(', ')}`)
                 }
 
                 const fieldLengthError = validateLengths([

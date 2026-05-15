@@ -16,7 +16,6 @@ export type EmailPayloadMap = {
 }
 
 const MAX_RETRIES = 4
-// How long a claimed-but-unfinished row is locked before being re-picked
 const CLAIM_LOCK_MINUTES = 5
 
 const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({

@@ -72,7 +72,7 @@ CREATE TABLE form_permissions (
     granted_by TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(form_id, user_id, "group")
+    UNIQUE NULLS NOT DISTINCT (form_id, user_id, "group")
 );
 
 -- Form templates
@@ -116,7 +116,7 @@ CREATE TABLE template_permissions (
     granted_by TEXT REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(template_id, user_id, "group")
+    UNIQUE NULLS NOT DISTINCT (template_id, user_id, "group")
 );
 
 -- Email queue

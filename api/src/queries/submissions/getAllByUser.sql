@@ -4,4 +4,4 @@ FROM submissions s
 LEFT JOIN users u ON s.user_id = u.user_id
 LEFT JOIN forms f ON s.form_id = f.id
 WHERE s.user_id = $1
-GROUP BY s.id, f.title, f.expires_at, u.email, u.name, s.status
+GROUP BY s.id, f.title, f.expires_at, u.email, u.name

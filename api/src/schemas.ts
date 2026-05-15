@@ -50,6 +50,7 @@ export const createSubmissionBodySchema = {
     properties: {
         fields: {
             type: 'array',
+            maxItems: 100,
             items: {
                 type: 'object',
                 required: ['field_id'],

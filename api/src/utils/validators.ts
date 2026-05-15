@@ -81,6 +81,12 @@ export function validatePublicationWindow(
     }
 }
 
+export const VALID_FIELD_TYPES = [
+    'text', 'textarea', 'number', 'select', 'radio', 'checkbox', 'date', 'time', 'datetime'
+] as const
+
+export type FieldType = typeof VALID_FIELD_TYPES[number]
+
 export function hasRequiredGroup(groups: string[] | undefined, requiredGroup: string): boolean {
     return Array.isArray(groups) && groups.includes(requiredGroup)
 }

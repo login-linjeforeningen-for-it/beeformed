@@ -113,14 +113,22 @@ export default async function updateForm(
         const { updatedForm, toPromote } = result
 
         for (const person of toPromote) {
-            await sendTypedEmail('submission', person.email!, {
-                title: updatedForm.title,
-                status: 'bumped',
-                ownerEmail: updatedForm.creator_email || '',
-                submissionId: person.id,
-                actionUrl: `${config.FRONTEND_URL}/submissions/${person.id}`,
-                actionText: 'View Submission'
-            })
+            try {
+                await sendTypedEmail('submission', person.email!, {
+                    title: updatedForm.title,
+                    status: 'bumped',
+                    ownerEmail: updatedForm.creator_email || '',
+                    submissionId: person.id,
+                    actionUrl: `${config.FRONTEND_URL}/submissions/${person.id}`,
+                    actionText: 'View Submission'
+                })
+            } catch (emailError) {
+                logError('Failed to send promotion email', {
+                    event: 'submission.promotion_email_failed',
+                    submissionId: person.id,
+                    error: emailError
+                })
+            }
         }
 
         return res.send(updatedForm)

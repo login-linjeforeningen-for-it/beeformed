@@ -116,6 +116,9 @@ export default async function createTemplateFromForm(
         if (statusCode && statusCode >= 400 && statusCode < 500) {
             return res.status(statusCode).send({ error: (error as Error).message })
         }
+        if ((error as { code?: string }).code === '23505') {
+            return res.status(409).send({ error: 'Slug is already taken' })
+        }
         logError('Error creating template from form', {
             event: 'http.internal_error',
             requestId: req.id,

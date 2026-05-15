@@ -72,7 +72,8 @@ export async function buildFilteredQuery(
             }
         }
 
-        const clauses = fieldsToSearch.map((f) => `(${f} IS NOT NULL AND ${f} ILIKE $${params.length + 1})`).join(' OR ')
+        const escaped = search.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
+        const clauses = fieldsToSearch.map((f) => `(${f} IS NOT NULL AND ${f} ILIKE $${params.length + 1} ESCAPE '\\')`).join(' OR ')
 
         const upperSQL = sql.toUpperCase()
         const groupIdx = upperSQL.indexOf('GROUP BY')
@@ -92,7 +93,7 @@ export async function buildFilteredQuery(
             sql += hasWhere ? ` AND (${clauses})` : ` WHERE (${clauses})`
         }
 
-        params.push(`%${search}%`)
+        params.push(`%${escaped}%`)
     }
 
     const explicitOrderField = options?.explicitOrderField

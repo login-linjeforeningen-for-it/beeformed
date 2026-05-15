@@ -185,7 +185,6 @@ declare global {
         form_id: string
         user_id: string
         group?: string
-        permission_type: string
         granted_by: string
         created_at: Date
         updated_at: Date
