@@ -12,7 +12,7 @@ export default async function createTemplate(
     const body = req.body
     const user_id = req.user.id
 
-    if (req.user.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
+    if (!hasRequiredGroup(req.user.groups, 'QueenBee')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 

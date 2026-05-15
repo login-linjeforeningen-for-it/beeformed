@@ -33,7 +33,7 @@ export default async function createFormFromTemplate(
 ) {
     const sourceTemplateId = req.params.id
 
-    if (req.user.groups && !hasRequiredGroup(req.user.groups, 'QueenBee')) {
+    if (!hasRequiredGroup(req.user.groups, 'QueenBee')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
 
