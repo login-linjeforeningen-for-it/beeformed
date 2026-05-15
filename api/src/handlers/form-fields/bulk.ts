@@ -54,6 +54,12 @@ export default async function bulkFormFields(
                     }
                 }
 
+                let validationJson: string | null = null
+                if (op.data.validation) {
+                    validationJson = JSON.stringify(op.data.validation)
+                    if (validationJson.length > 10_000) throw createHttpError(400, 'validation field exceeds maximum size')
+                }
+
                 const updateSql = await loadSQL('form-fields/put.sql')
                 const params = [
                     op.id,
@@ -62,7 +68,7 @@ export default async function bulkFormFields(
                     op.data.description || null,
                     op.data.required,
                     op.data.options || null,
-                    op.data.validation ? JSON.stringify(op.data.validation) : null,
+                    validationJson,
                     op.data.field_order,
                     routeFormId
                 ]
@@ -89,6 +95,12 @@ export default async function bulkFormFields(
                     throw createHttpError(400, 'form_id must match the form in the URL')
                 }
 
+                let validationJson: string | null = null
+                if (op.data.validation) {
+                    validationJson = JSON.stringify(op.data.validation)
+                    if (validationJson.length > 10_000) throw createHttpError(400, 'validation field exceeds maximum size')
+                }
+
                 const createSql = await loadSQL('form-fields/post.sql')
                 const params = [
                     routeFormId,
@@ -97,7 +109,7 @@ export default async function bulkFormFields(
                     op.data.description || null,
                     op.data.required,
                     op.data.options || null,
-                    op.data.validation ? JSON.stringify(op.data.validation) : null,
+                    validationJson,
                     op.data.field_order
                 ]
                 const result = await client.query(createSql, params)

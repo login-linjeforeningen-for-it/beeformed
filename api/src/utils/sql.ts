@@ -35,8 +35,10 @@ export async function buildFilteredQuery(
     }
 ) {
     const baseSQL = await loadSQL(sqlPath)
+    const MAX_LIMIT = 100
     const search = query.search
-    const limit = query.limit ? parseInt(query.limit) : undefined
+    const parsedLimit = query.limit ? parseInt(query.limit) : MAX_LIMIT
+    const limit = isNaN(parsedLimit) ? MAX_LIMIT : Math.min(Math.max(parsedLimit, 1), MAX_LIMIT)
     const offset = query.offset ? parseInt(query.offset) : undefined
     const orderBy = query.order_by || 'created_at'
     const sort = query.sort === 'asc' ? 'ASC' : 'DESC'
