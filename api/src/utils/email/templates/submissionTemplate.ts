@@ -4,37 +4,18 @@ import { appendEmailFooter, renderEmailLayout } from './templateLayout.ts'
 
 const { COMPANY_INFO } = config
 
-function generateTextFromStatus(status: EmailContent['status']): { header: string; body: string } {
-    const statusText: Record<EmailContent['status'], { header: string; body: string }> = {
-        registered: {
-            header: 'Submission Confirmed',
-            body: 'Your submission has been confirmed.'
-        },
-        waitlisted: {
-            header: 'Added to Waitlist',
-            body: 'You have been added to the waitlist.'
-        },
-        rejected: {
-            header: 'Submission Rejected',
-            body: 'Your submission has been rejected.'
-        },
-        cancelled: {
-            header: 'Submission Cancelled',
-            body: 'Your submission has been cancelled.'
-        },
-        bumped: {
-            header: 'Moved out of Waitlist',
-            body: 'A spot opened up and you have been moved from the waitlist to registered list.'
-        }
-    }
-
-    return statusText[status]
+const STATUS_TEXT: Record<EmailContent['status'], { header: string; body: string }> = {
+    registered: { header: 'Submission Confirmed', body: 'Your submission has been confirmed.' },
+    waitlisted: { header: 'Added to Waitlist', body: 'You have been added to the waitlist.' },
+    rejected: { header: 'Submission Rejected', body: 'Your submission has been rejected.' },
+    cancelled: { header: 'Submission Cancelled', body: 'Your submission has been cancelled.' },
+    bumped: { header: 'Moved out of Waitlist', body: 'A spot opened up and you have been moved from the waitlist to registered list.' },
 }
 
 function generateSubmissionEmailHTML(content: EmailContent, qrCodeImageDataUrl?: string | null): string {
     const { title, status, ownerEmail, actionUrl, actionText, submissionId } = content
 
-    const { header, body } = generateTextFromStatus(status)
+    const { header, body } = STATUS_TEXT[status]
 
     const bodyContent = `
         <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #202020; border: 1px solid #333333; border-radius: 12px; margin-bottom: 32px; border-collapse: separate !important;">
@@ -116,7 +97,7 @@ function generateSubmissionEmailHTML(content: EmailContent, qrCodeImageDataUrl?:
 function generateSubmissionEmailText(content: EmailContent): string {
     const { title, status, ownerEmail, actionUrl, actionText } = content
 
-    const { header, body } = generateTextFromStatus(status)
+    const { header, body } = STATUS_TEXT[status]
 
     const lines = [
         header,
@@ -139,18 +120,12 @@ function generateSubmissionEmailText(content: EmailContent): string {
 
 export async function createSubmissionEmailTemplate(content: EmailContent): Promise<EmailTemplate> {
     const qrCode = content.submissionId ? await generateQRCodeImage({ data: content.submissionId }) : null
-    const attachments = qrCode && content.submissionId
-        ? [{
-            filename: `submission-${content.submissionId}-qr.png`,
-            content: qrCode.pngBuffer,
-            contentType: 'image/png'
-        }]
+    const attachments = qrCode
+        ? [{ filename: `submission-${content.submissionId}-qr.png`, content: qrCode.pngBuffer, contentType: 'image/png' }]
         : undefined
 
-    const { header } = generateTextFromStatus(content.status)
-
     return {
-        subject: `${header} - ${content.title}`,
+        subject: `${STATUS_TEXT[content.status].header} - ${content.title}`,
         html: generateSubmissionEmailHTML(content, qrCode?.pngDataUrl),
         text: generateSubmissionEmailText(content),
         attachments

@@ -1,7 +1,8 @@
+import type { FastifyInstance } from 'fastify'
 import run from '#db'
 import config from '#constants'
-import { createFormDeletionWarningTemplate } from '#utils/email/formDeletionTemplate.ts'
-import { startCleanupTask, markWarningSent, deleteExpiredRecords, sendWarnings } from './baseCleanup.ts'
+import { logError, logInfo } from '#utils/logger.ts'
+import { markWarningSent, deleteExpiredRecords, sendWarnings } from './baseCleanup.ts'
 
 type FormWarningCandidate = {
     form_id: string
@@ -9,15 +10,6 @@ type FormWarningCandidate = {
     email: string
     name: string | null
     warning_days_remaining: number
-}
-
-function buildWarningEmail(candidate: FormWarningCandidate) {
-    return createFormDeletionWarningTemplate({
-        name: candidate.name,
-        formTitle: candidate.title,
-        warningDays: candidate.warning_days_remaining,
-        actionUrl: `${config.FRONTEND_URL}/form/${candidate.form_id}`
-    })
 }
 
 async function getFormsNeedingWarningEmail() {
@@ -41,23 +33,31 @@ async function getFormsNeedingWarningEmail() {
     return result.rows as FormWarningCandidate[]
 }
 
-export async function startFormCleanup() {
-    return startCleanupTask({
-        name: 'Form retention',
-        runCleanup: async () => {
-            const candidates = await getFormsNeedingWarningEmail()
-            
-            const warned = await sendWarnings(candidates, {
-                name: 'form deletion',
-                logEventPrefix: 'form_retention',
-                buildEmail: buildWarningEmail,
-                markSent: (c) => markWarningSent('forms', 'id', c.form_id, 'form_deletion_warning_sent_at'),
-                logContext: (c) => ({ formId: c.form_id })
-            })
-            
-            const deleted = await deleteExpiredRecords('forms', 'created_at', '6 months')
-            
-            return { warned, deleted }
-        }
-    })
+async function runFormCleanup() {
+    try {
+        const candidates = await getFormsNeedingWarningEmail()
+        const warned = await sendWarnings(candidates, {
+            name: 'form deletion',
+            logEventPrefix: 'form_retention',
+            emailType: 'form_deletion_warning',
+            buildPayload: (c) => ({
+                name: c.name,
+                formTitle: c.title,
+                warningDays: c.warning_days_remaining,
+                actionUrl: `${config.FRONTEND_URL}/form/${c.form_id}`
+            }),
+            markSent: (c) => markWarningSent('forms', 'id', c.form_id, 'form_deletion_warning_sent_at'),
+            logContext: (c) => ({ formId: c.form_id })
+        })
+        const deleted = await deleteExpiredRecords('forms', 'created_at', '6 months')
+        if (warned > 0) logInfo('Form retention cleanup warned users', { event: 'form_retention.cleanup.warned', count: warned })
+        if (deleted > 0) logInfo('Form retention cleanup deleted forms', { event: 'form_retention.cleanup.deleted', count: deleted })
+    } catch (error) {
+        logError('Form retention cleanup failed', { event: 'form_retention.cleanup.failed', error })
+    }
+}
+
+export async function formCleanupScheduler(_fastify: FastifyInstance) {
+    await runFormCleanup()
+    Bun.cron('0 0 * * *', runFormCleanup)
 }

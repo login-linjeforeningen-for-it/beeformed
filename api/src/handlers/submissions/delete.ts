@@ -3,7 +3,7 @@ import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
+import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
 
 export default async function deleteSubmission(
@@ -76,7 +76,7 @@ export default async function deleteSubmission(
 
         if (submission.user_email) {
             const isOwner = submission.user_id === user.id
-            await sendTemplatedMail(submission.user_email, {
+            await sendTypedEmail('submission', submission.user_email, {
                 title: submission.form_title,
                 status: isOwner ? 'cancelled' : 'rejected',
                 ownerEmail: submission.form_owner_email,
@@ -87,7 +87,7 @@ export default async function deleteSubmission(
         }
 
         if (promoted?.email) {
-            await sendTemplatedMail(promoted.email, {
+            await sendTypedEmail('submission', promoted.email, {
                 title: submission.form_title,
                 status: 'bumped',
                 ownerEmail: submission.form_owner_email,

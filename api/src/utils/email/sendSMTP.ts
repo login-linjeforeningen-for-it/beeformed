@@ -1,19 +1,20 @@
 import config from '#constants'
 import nodemailer from 'nodemailer'
-import { createSubmissionEmailTemplate } from './submissionTemplate.ts'
+import { createSubmissionEmailTemplate } from './templates/submissionTemplate.ts'
+import { createAccountDeletionWarningTemplate } from './templates/accountDeletionTemplate.ts'
+import { createFormDeletionWarningTemplate } from './templates/formDeletionTemplate.ts'
 import run from '#db'
-import type Mail from 'nodemailer/lib/mailer/index.js'
-import { logError, logInfo, logWarn } from '#utils/logger.ts'
+import { logError, logInfo } from '#utils/logger.ts'
 
-type MailOptions = {
-    to: string
-    subject: string
-    text: string
-    html?: string
-    attachments?: Mail.Attachment[]
+export type QueuedEmailType = 'submission' | 'account_deletion_warning' | 'form_deletion_warning'
+
+export type EmailPayloadMap = {
+    submission: EmailContent
+    account_deletion_warning: AccountDeletionWarningEmailContent
+    form_deletion_warning: FormDeletionWarningEmailContent
 }
 
-const retryDelays = [60 * 1000, 5 * 60 * 1000, 15 * 60 * 1000, 30 * 60 * 1000] // 1m, 5m, 15m, 30m
+const MAX_RETRIES = 4
 
 const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
     name: config.SMTP_NAME,
@@ -21,127 +22,74 @@ const transporter = config.DISABLE_SMTP ? null : nodemailer.createTransport({
     port: Number(config.SMTP_PORT),
     secure: config.SMTP_SECURE,
     pool: true,
-    ...(config.SMTP_USER && config.SMTP_PASSWORD ? { auth: {
-        user: config.SMTP_USER,
-        pass: config.SMTP_PASSWORD
-    }} : {})
+    ...(config.SMTP_USER && config.SMTP_PASSWORD ? { auth: { user: config.SMTP_USER, pass: config.SMTP_PASSWORD } } : {})
 })
 
-export default async function send({ to, subject, text, html, attachments }: MailOptions): Promise<string> {
-    if (config.DISABLE_SMTP) {
-        return 'SMTP disabled'
-    }
-    const mailOptions = { to, subject, text, html, attachments }
-
-    try {
-        const info = await attemptSend(mailOptions)
-        return info?.response || 'Sent'
-    } catch {
-        await enqueueEmail(mailOptions)
-        return 'Email failed initially, queued for retry'
-    }
+const templateBuilders: { [T in QueuedEmailType]: (p: EmailPayloadMap[T]) => EmailTemplate | Promise<EmailTemplate> } = {
+    submission: createSubmissionEmailTemplate,
+    account_deletion_warning: createAccountDeletionWarningTemplate,
+    form_deletion_warning: createFormDeletionWarningTemplate,
 }
 
-async function attemptSend(mailOptions: MailOptions) {
-    return await transporter?.sendMail({
-        from: {
-            name: 'Login Forms',
-            address: config.SMTP_FROM
-        },
-        ...mailOptions,
-    })
+async function dispatchEmail(type: QueuedEmailType, to: string, payload: unknown): Promise<void> {
+    const builder = templateBuilders[type] as (p: unknown) => EmailTemplate | Promise<EmailTemplate>
+    const template = await builder(payload)
+    await transporter?.sendMail({ from: { name: 'Login Forms', address: config.SMTP_FROM }, to, ...template })
 }
 
-async function enqueueEmail(mailOptions: MailOptions): Promise<void> {
-    try {
-        const result = await run(
-            `INSERT INTO email_queue ("to", subject, text, html) VALUES ($1, $2, $3, $4) RETURNING id`,
-            [mailOptions.to, mailOptions.subject, mailOptions.text, mailOptions.html ?? null]
-        )
-        const id: string = result.rows[0]?.id
-        if (id) {
-            setTimeout(() => retryFromQueue(id, mailOptions, 0), retryDelays[0])
-        }
-    } catch (err) {
-        logError('Failed to queue email in database', {
-            event: 'email.queue.enqueue_failed',
-            error: err
-        })
-    }
-}
-
-async function retryFromQueue(id: string, mailOptions: MailOptions, retryIndex: number): Promise<void> {
+async function queueEmail(type: QueuedEmailType, to: string, payload: object): Promise<void> {
     try {
         await run(
-            `UPDATE email_queue SET retry_count = $1, last_attempted_at = NOW() WHERE id = $2`,
-            [retryIndex + 1, id]
+            `INSERT INTO email_queue ("to", email_type, payload) VALUES ($1, $2, $3)`,
+            [to, type, JSON.stringify(payload)]
         )
-        await attemptSend(mailOptions)
-        await run(`DELETE FROM email_queue WHERE id = $1`, [id])
-        logInfo('Queued email sent successfully', {
-            event: 'email.queue.retry_success',
-            queueId: id,
-            retry: retryIndex + 1
-        })
-    } catch (error) {
-        logError('Queued email retry failed', {
-            event: 'email.queue.retry_failed',
-            queueId: id,
-            retry: retryIndex + 1,
-            error
-        })
-        const nextIndex = retryIndex + 1
-        if (nextIndex < retryDelays.length) {
-            setTimeout(() => retryFromQueue(id, mailOptions, nextIndex), retryDelays[nextIndex])
-        } else {
-            logWarn('Queued email exhausted all retries, deleting from database', {
-                event: 'email.queue.retry_exhausted',
-                queueId: id,
-                retry: retryIndex + 1
-            })
-            await run(`DELETE FROM email_queue WHERE id = $1`, [id])
-        }
-    }
-}
-
-export async function processEmailQueue(): Promise<void> {
-    if (config.DISABLE_SMTP) return
-    try {
-        await run(`DELETE FROM email_queue WHERE retry_count >= $1`, [retryDelays.length])
-
-        const result = await run(
-            `SELECT id, "to", subject, text, html, retry_count FROM email_queue WHERE retry_count < $1`,
-            [retryDelays.length]
-        )
-        if (result.rows.length === 0) return
-        logInfo('Resuming queued emails from previous session', {
-            event: 'email.queue.resume',
-            count: result.rows.length
-        })
-        for (const row of result.rows) {
-            const mailOptions: MailOptions = {
-                to: row.to,
-                subject: row.subject,
-                text: row.text,
-                html: row.html ?? undefined
-            }
-            retryFromQueue(row.id, mailOptions, row.retry_count)
-        }
     } catch (err) {
-        logError('Failed to process email queue from database', {
-            event: 'email.queue.process_failed',
-            error: err
-        })
+        logError('Failed to queue email in database', { event: 'email.queue.enqueue_failed', error: err })
     }
 }
 
-export async function sendTemplatedMail(to: string, content: EmailContent): Promise<string> {
-    const template = await createSubmissionEmailTemplate(content)
-    return send({
-        to,
-        subject: template.subject,
-        text: template.text,
-        html: template.html,
-        attachments: template.attachments
+async function processQueue(): Promise<void> {
+    await run(`DELETE FROM email_queue WHERE retry_count >= $1`, [MAX_RETRIES])
+    const result = await run(
+        `SELECT id, "to", email_type, payload, retry_count FROM email_queue WHERE retry_count < $1`,
+        [MAX_RETRIES]
+    )
+    if (result.rows.length === 0) return
+    logInfo('Processing queued emails', { event: 'email.queue.process', count: result.rows.length })
+    for (const row of result.rows) {
+        try {
+            await run(`UPDATE email_queue SET retry_count = retry_count + 1, last_attempted_at = NOW() WHERE id = $1`, [row.id])
+            await dispatchEmail(row.email_type as QueuedEmailType, row.to, row.payload)
+            await run(`DELETE FROM email_queue WHERE id = $1`, [row.id])
+            logInfo('Queued email sent successfully', { event: 'email.queue.retry_success', queueId: row.id })
+        } catch (error) {
+            logError('Queued email retry failed', { event: 'email.queue.retry_failed', queueId: row.id, error })
+        }
+    }
+}
+
+export async function emailQueueScheduler() {
+    try {
+        await processQueue()
+    } catch (err) {
+        logError('Failed to process email queue', { event: 'email.queue.process_failed', error: err })
+    }
+    Bun.cron('*/15 * * * *', async () => {
+        try {
+            await processQueue()
+        } catch (err) {
+            logError('Failed to process email queue', { event: 'email.queue.process_failed', error: err })
+        }
     })
+}
+
+export async function sendTypedEmail<T extends QueuedEmailType>(type: T, to: string, payload: EmailPayloadMap[T]): Promise<string> {
+    if (config.DISABLE_SMTP) return 'SMTP disabled'
+    try {
+        await dispatchEmail(type, to, payload)
+        return 'Sent'
+    } catch {
+        await queueEmail(type, to, payload)
+        return 'Email failed initially, queued for retry'
+    }
 }

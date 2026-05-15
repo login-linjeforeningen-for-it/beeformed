@@ -162,6 +162,22 @@ export function renderEmailLayout(options: {
     </html>`
 }
 
+export function buildWarningCard(name: string | null | undefined, ...paragraphs: string[]): string {
+    const recipientName = Bun.escapeHTML(name?.trim() || 'there')
+    const lines = [`Hi ${recipientName},`, ...paragraphs]
+    const p = (content: string, last: boolean) =>
+        `<p style="margin: ${last ? '0' : '0 0 12px 0'}; font-size: 15px; line-height: 24px; color: #e5e2e1;">${content}</p>`
+    return `
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #1c1c1c; border: 1px solid #333333; border-radius: 12px; margin-bottom: 16px; border-collapse: separate !important;">
+            <tr>
+                <td style="padding: 20px;">
+                    ${lines.map((line, i) => p(line, i === lines.length - 1)).join('\n                    ')}
+                </td>
+            </tr>
+        </table>
+    `
+}
+
 export function appendEmailFooter(lines: string[]) {
     return [
         ...lines,

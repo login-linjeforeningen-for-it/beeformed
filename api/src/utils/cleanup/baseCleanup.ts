@@ -1,8 +1,6 @@
 import run from '#db'
-import send from '#utils/email/sendSMTP.ts'
-import { logError, logInfo } from '#utils/logger.ts'
-
-const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000
+import { sendTypedEmail, QueuedEmailType, EmailPayloadMap } from '#utils/email/sendSMTP.ts'
+import { logError } from '#utils/logger.ts'
 
 function assertSafeIdentifier(value: string, label: string) {
     if (!/^[a-z_]+$/.test(value)) {
@@ -23,7 +21,8 @@ export async function sendWarnings<T extends { email: string }>(
     options: {
         name: string
         logEventPrefix: string
-        buildEmail: (candidate: T) => { subject: string; text: string; html: string }
+        emailType: QueuedEmailType
+        buildPayload: (candidate: T) => object
         markSent: (candidate: T) => Promise<void>
         logContext?: (candidate: T) => Record<string, unknown>
     }
@@ -31,8 +30,8 @@ export async function sendWarnings<T extends { email: string }>(
     let sentCount = 0
     for (const candidate of candidates) {
         try {
-            const { subject, text, html } = options.buildEmail(candidate)
-            await send({ to: candidate.email, subject, text, html })
+            const payload = options.buildPayload(candidate)
+            await sendTypedEmail(options.emailType, candidate.email, payload as EmailPayloadMap[QueuedEmailType])
             await options.markSent(candidate)
             sentCount += 1
         } catch (error) {
@@ -71,54 +70,3 @@ export async function deleteExpiredRecords(tableName: string, dateColumn: string
     return result.rowCount ?? 0
 }
 
-export async function startCleanupTask({
-    name,
-    runCleanup
-}: {
-    name: string
-    runCleanup: () => Promise<{ warned?: number; deleted?: number }>
-}) {
-    const eventPrefix = name.toLowerCase().replace(/\s+/g, '_')
-
-    async function execute() {
-        try {
-            const { warned, deleted } = await runCleanup()
-
-            if (warned && warned > 0) {
-                logInfo(`${name} cleanup warned items`, {
-                    event: `${eventPrefix}.cleanup.warned`,
-                    count: warned
-                })
-            }
-
-            if (deleted && deleted > 0) {
-                logInfo(`${name} cleanup deleted items`, {
-                    event: `${eventPrefix}.cleanup.deleted`,
-                    count: deleted
-                })
-            }
-        } catch (error) {
-            logError(`${name} cleanup run failed`, {
-                event: `${eventPrefix}.cleanup.failed`,
-                error
-            })
-        }
-    }
-
-    // Run immediately on start
-    await execute()
-
-    const interval = setInterval(() => {
-        void execute()
-    }, DAILY_INTERVAL_MS)
-
-    interval.unref?.()
-
-    logInfo(`${name} cleanup scheduled to run daily`, {
-        event: `${eventPrefix}.cleanup.scheduled`
-    })
-
-    return () => {
-        clearInterval(interval)
-    }
-}

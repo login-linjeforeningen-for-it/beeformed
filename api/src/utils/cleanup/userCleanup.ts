@@ -1,21 +1,14 @@
+import type { FastifyInstance } from 'fastify'
 import run from '#db'
 import config from '#constants'
-import { createAccountDeletionWarningTemplate } from '../email/accountDeletionTemplate.ts'
-import { startCleanupTask, markWarningSent, deleteExpiredRecords, sendWarnings } from './baseCleanup.ts'
+import { logError, logInfo } from '#utils/logger.ts'
+import { markWarningSent, deleteExpiredRecords, sendWarnings } from './baseCleanup.ts'
 
 type InactiveWarningCandidate = {
     user_id: string
     email: string
     name: string | null
     warning_days_remaining: number
-}
-
-function buildWarningEmail(candidate: InactiveWarningCandidate) {
-    return createAccountDeletionWarningTemplate({
-        name: candidate.name,
-        warningDays: candidate.warning_days_remaining,
-        actionUrl: `${config.FRONTEND_URL}/profile`
-    })
 }
 
 async function getUsersNeedingWarningEmail() {
@@ -37,25 +30,32 @@ async function getUsersNeedingWarningEmail() {
     return result.rows as InactiveWarningCandidate[]
 }
 
-export async function startUserCleanup() {
-    return startCleanupTask({
-        name: 'Inactive user',
-        runCleanup: async () => {
-            const candidates = await getUsersNeedingWarningEmail()
-            
-            const warned = await sendWarnings(candidates, {
-                name: 'inactivity',
-                logEventPrefix: 'inactive_user',
-                buildEmail: buildWarningEmail,
-                markSent: (c) => markWarningSent('users', 'user_id', c.user_id, 'inactivity_warning_sent_at'),
-                logContext: (c) => ({ userId: c.user_id })
-            })
-            
-            const deleted = await deleteExpiredRecords('users', 'last_active_at', '6 months')
-            
-            return { warned, deleted }
-        }
-    })
+async function runUserCleanup() {
+    try {
+        const candidates = await getUsersNeedingWarningEmail()
+        const warned = await sendWarnings(candidates, {
+            name: 'inactivity',
+            logEventPrefix: 'inactive_user',
+            emailType: 'account_deletion_warning',
+            buildPayload: (c) => ({
+                name: c.name,
+                warningDays: c.warning_days_remaining,
+                actionUrl: `${config.FRONTEND_URL}/profile`
+            }),
+            markSent: (c) => markWarningSent('users', 'user_id', c.user_id, 'inactivity_warning_sent_at'),
+            logContext: (c) => ({ userId: c.user_id })
+        })
+        const deleted = await deleteExpiredRecords('users', 'last_active_at', '6 months')
+        if (warned > 0) logInfo('Inactive user cleanup warned users', { event: 'inactive_user.cleanup.warned', count: warned })
+        if (deleted > 0) logInfo('Inactive user cleanup deleted users', { event: 'inactive_user.cleanup.deleted', count: deleted })
+    } catch (error) {
+        logError('Inactive user cleanup failed', { event: 'inactive_user.cleanup.failed', error })
+    }
+}
+
+export async function userCleanupScheduler(_fastify: FastifyInstance) {
+    await runUserCleanup()
+    Bun.cron('0 0 * * *', runUserCleanup)
 }
 
 export async function touchUserActivity(userId: string) {

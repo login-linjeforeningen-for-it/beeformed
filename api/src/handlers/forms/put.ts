@@ -3,7 +3,7 @@ import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
+import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
 import { isValidSlug, validatePublicationWindow } from '#utils/validators.ts'
 
@@ -109,7 +109,7 @@ export default async function updateForm(
         const { updatedForm, toPromote } = result
 
         for (const person of toPromote) {
-            await sendTemplatedMail(person.email!, {
+            await sendTypedEmail('submission', person.email!, {
                 title: updatedForm.title,
                 status: 'bumped',
                 ownerEmail: body.owner_email || '',

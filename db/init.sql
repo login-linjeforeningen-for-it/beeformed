@@ -123,9 +123,8 @@ CREATE TABLE template_permissions (
 CREATE TABLE email_queue (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     "to" TEXT NOT NULL,
-    subject TEXT NOT NULL,
-    text TEXT NOT NULL,
-    html TEXT,
+    email_type TEXT NOT NULL,
+    payload JSONB NOT NULL,
     retry_count INTEGER DEFAULT 0,
     last_attempted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

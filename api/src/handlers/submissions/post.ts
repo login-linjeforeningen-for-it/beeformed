@@ -3,7 +3,7 @@ import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
-import { sendTemplatedMail } from '#utils/email/sendSMTP.ts'
+import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
 
 function isRequiredSwitchValue(value: unknown): boolean {
@@ -156,7 +156,7 @@ export default async function createSubmission(
 
         try {
             if (req.user.email) {
-                await sendTemplatedMail(req.user.email, {
+                await sendTypedEmail('submission', req.user.email, {
                     title: form.title,
                     status,
                     ownerEmail: form.creator_email,
