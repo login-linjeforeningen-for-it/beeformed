@@ -17,6 +17,10 @@ export default async function createForm(
         return res.status(403).send({ error: 'Forbidden' })
     }
 
+    if (body.anonymous_submissions && body.waitlist) {
+        return res.status(400).send({ error: 'Waitlist cannot be enabled for anonymous submission forms' })
+    }
+
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at, {
         baseDate: new Date(),
         maxRangeMonths: 6,
@@ -33,7 +37,7 @@ export default async function createForm(
         user_id,
         body.slug,
         body.title,
-        body.description || null,
+        body.description ?? null,
         body.anonymous_submissions || false,
         body.limit ?? null,
         body.waitlist || false,

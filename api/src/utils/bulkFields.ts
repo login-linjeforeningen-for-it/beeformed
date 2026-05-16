@@ -62,7 +62,7 @@ export async function executeBulkFieldOps(
         const validationJson = extractValidationJson(op.data.validation)
         const updateSql = await loadSQL(`${sqlDir}/update.sql`)
         const result = await client.query(updateSql, [
-            op.id, op.data.field_type, op.data.title, op.data.description || null,
+            op.id, op.data.field_type, op.data.title, op.data.description ?? null,
             op.data.required, op.data.options || null, validationJson, op.data.field_order, routeId
         ])
         if (!result.rows[0]) throw Object.assign(new Error(`Field not found on this ${entityType}`), { statusCode: 404 })
@@ -81,7 +81,7 @@ export async function executeBulkFieldOps(
         const validationJson = extractValidationJson(op.data.validation)
         const createSql = await loadSQL(`${sqlDir}/insert.sql`)
         const result = await client.query(createSql, [
-            routeId, op.data.field_type, op.data.title, op.data.description || null,
+            routeId, op.data.field_type, op.data.title, op.data.description ?? null,
             op.data.required, op.data.options || null, validationJson, op.data.field_order
         ])
         results.created.push(result.rows[0])

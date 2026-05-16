@@ -6,7 +6,7 @@ const identifierRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?$/
 const searchableFieldRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?(?:::[a-zA-Z_][a-zA-Z0-9_]*)?$/
 
 export function assertSafeIdentifier(value: string, label: string) {
-    if (!/^[a-z_]+$/.test(value)) {
+    if (!/^[a-z_][a-z0-9_]*$/.test(value)) {
         throw new Error(`Unsafe SQL identifier for ${label}`)
     }
 }
@@ -52,14 +52,24 @@ export async function buildFilteredQuery(
 
     // Strip any top-level ORDER BY to prevent duplicate clauses when we append our own
     let parenDepth = 0
+    let inString = false
     let topLevelOrderByAt = -1
     const upperBase = sql.toUpperCase()
     for (let i = 0; i < upperBase.length; i++) {
-        if (upperBase[i] === '(') parenDepth++
-        else if (upperBase[i] === ')') parenDepth--
-        else if (parenDepth === 0 && upperBase.startsWith('ORDER BY', i)) {
-            topLevelOrderByAt = i
-            break
+        if (inString) {
+            if (sql[i] === "'") {
+                // escaped quote '' stays in string; anything else ends it
+                if (sql[i + 1] === "'") { i++; continue }
+                inString = false
+            }
+        } else {
+            if (sql[i] === "'") { inString = true }
+            else if (upperBase[i] === '(') parenDepth++
+            else if (upperBase[i] === ')') parenDepth--
+            else if (parenDepth === 0 && upperBase.startsWith('ORDER BY', i)) {
+                topLevelOrderByAt = i
+                break
+            }
         }
     }
     if (topLevelOrderByAt !== -1) {

@@ -13,6 +13,10 @@ export default async function updateTemplate(
     const body = req.body
     const id = req.params.id
 
+    if (body.anonymous_submissions && body.waitlist) {
+        return res.status(400).send({ error: 'Waitlist cannot be enabled for anonymous submission forms' })
+    }
+
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
         return res.status(400).send({ error: publicationWindow.error })
@@ -26,7 +30,7 @@ export default async function updateTemplate(
             id,
             body.slug,
             body.title,
-            body.description || null,
+            body.description ?? null,
             body.anonymous_submissions || false,
             body.limit ?? null,
             body.waitlist || false,

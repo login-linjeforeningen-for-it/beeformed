@@ -17,4 +17,4 @@ ON CONFLICT (user_id) DO UPDATE SET
     name = EXCLUDED.name,
     last_active_at = CURRENT_TIMESTAMP,
     inactivity_warning_sent_at = NULL
-RETURNING user_id, email, name, created_at;
+RETURNING user_id, email, name, created_at, (xmax = 0) AS is_new;

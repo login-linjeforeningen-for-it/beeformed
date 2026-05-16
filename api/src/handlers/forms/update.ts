@@ -22,6 +22,10 @@ export default async function updateForm(
                 throw Object.assign(new Error('Entity not found'), { statusCode: 404 })
             }
 
+            if (body.anonymous_submissions && body.waitlist) {
+                throw Object.assign(new Error('Waitlist cannot be enabled for anonymous submission forms'), { statusCode: 400 })
+            }
+
             const createdAt = formResult.rows[0].created_at as Date
             const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at, {
                 baseDate: createdAt,
@@ -48,7 +52,7 @@ export default async function updateForm(
                 formId,
                 body.slug,
                 body.title,
-                body.description || null,
+                body.description ?? null,
                 body.anonymous_submissions || false,
                 newLimit,
                 body.waitlist || false,

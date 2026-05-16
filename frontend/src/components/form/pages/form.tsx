@@ -111,7 +111,11 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                             name='anonymous_submissions'
                             label='Allow anonymous submissions'
                             checked={formData.anonymous_submissions}
-                            onChange={(e) => setFormData(prev => ({ ...prev, anonymous_submissions: e.target.checked }))}
+                            onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                anonymous_submissions: e.target.checked,
+                                ...(e.target.checked && { waitlist: false })
+                            }))}
                         />
 
                         <Switch
@@ -137,7 +141,7 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                             name='waitlist'
                             label='Enable waitlist when full'
                             checked={formData.waitlist}
-                            disabled={formData.limit === '' || parseInt(formData.limit) <= 0}
+                            disabled={formData.anonymous_submissions || formData.limit === '' || parseInt(formData.limit) <= 0}
                             onChange={(e) => setFormData(prev => ({ ...prev, waitlist: e.target.checked }))}
                         />
 

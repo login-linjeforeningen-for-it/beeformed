@@ -38,6 +38,9 @@ export default async function deleteSubmission(
             const newStatus = submission.user_id === user.id ? 'cancelled' : 'rejected'
             await client.query(updateStatusSql, [submissionId, newStatus])
 
+            // Lock the form row to serialize concurrent deletions that would both try to promote from the waitlist
+            await client.query('SELECT id FROM forms WHERE id = $1 FOR UPDATE', [submission.form_id])
+
             let promoted: { id: string; email: string | null } | null = null
             if (submission.status === 'registered' && submission.limit !== null) {
                 const countSql = await loadSQL('submissions/countRegistered.sql')

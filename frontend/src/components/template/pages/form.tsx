@@ -108,7 +108,11 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
                             name='anonymous_submissions'
                             label='Allow anonymous submissions'
                             checked={templateData.anonymous_submissions}
-                            onChange={(e) => setTemplateData(prev => ({ ...prev, anonymous_submissions: e.target.checked }))}
+                            onChange={(e) => setTemplateData(prev => ({
+                                ...prev,
+                                anonymous_submissions: e.target.checked,
+                                ...(e.target.checked && { waitlist: false })
+                            }))}
                         />
 
                         <Switch
@@ -134,7 +138,7 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
                             name='waitlist'
                             label='Enable waitlist when full'
                             checked={templateData.waitlist}
-                            disabled={templateData.limit === '' || parseInt(templateData.limit) <= 0}
+                            disabled={templateData.anonymous_submissions || templateData.limit === '' || parseInt(templateData.limit) <= 0}
                             onChange={(e) => setTemplateData(prev => ({ ...prev, waitlist: e.target.checked }))}
                         />
                     </div>

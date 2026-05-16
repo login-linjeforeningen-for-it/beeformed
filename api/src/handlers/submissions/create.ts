@@ -104,6 +104,10 @@ export default async function createSubmission(
                     throw Object.assign(new Error('field_id must be a non-empty string'), { statusCode: 400 })
                 }
 
+                if (valuesByFieldId.has(fieldId)) {
+                    throw Object.assign(new Error(`Duplicate field_id in submission: ${fieldId}`), { statusCode: 400 })
+                }
+
                 const formField = formFieldById.get(fieldId)
                 if (!formField) {
                     throw Object.assign(new Error(`Field ${fieldId} does not belong to this form`), { statusCode: 400 })

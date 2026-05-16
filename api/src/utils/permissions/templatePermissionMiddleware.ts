@@ -1,7 +1,7 @@
 import { checkTemplatePermission, createPermissionMiddleware } from '#utils/permissions/permissions.ts'
 
 export default createPermissionMiddleware({
-    idParams: ['id', 'templateId'],
+    idParams: ['templateId', 'id'],
     missingIdMessage: 'Missing template ID',
     checkPermission: checkTemplatePermission
 })
