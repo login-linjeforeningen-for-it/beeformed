@@ -1,5 +1,6 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { PermissionGrantBody } from '#/schemas.ts'
 import { handlePermissionGrant } from '#utils/permissions/permissionGrants.ts'
 
 export default async function createTemplatePermission(
@@ -9,7 +10,6 @@ export default async function createTemplatePermission(
     return handlePermissionGrant(req, res, {
         resourceTable: 'form_templates',
         resourceLabel: 'Template',
-        requiredResourceIdMessage: 'template_id and granted_by are required',
-        insertSQLPath: 'template-permissions/post.sql'
+        insertSQLPath: 'template-permissions/insert.sql'
     })
 }

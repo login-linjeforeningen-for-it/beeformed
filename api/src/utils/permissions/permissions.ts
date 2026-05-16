@@ -49,3 +49,13 @@ export function createPermissionMiddleware(options: PermissionMiddlewareOptions)
         }
     }
 }
+
+export const checkPermission = createPermissionChecker(
+    'form-permissions/checkPermission.sql',
+    'Error checking permission:'
+)
+
+export const checkTemplatePermission = createPermissionChecker(
+    'template-permissions/checkPermission.sql',
+    'Error checking template permission:'
+)

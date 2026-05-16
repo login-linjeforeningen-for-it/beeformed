@@ -15,7 +15,7 @@ export default async function deleteTemplate(req: AuthenticatedRequest<{ Params:
         const result = await run(sql, [req.params.id, req.user.id])
 
         if (result.rowCount === 0) {
-            return res.status(404).send({ error: 'Entity not found or permission denied' })
+            return res.status(403).send({ error: 'Forbidden' })
         }
 
         return res.status(204).send()

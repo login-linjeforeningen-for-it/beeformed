@@ -1,9 +1,10 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { CreateOrUpdateFormBody } from '#/schemas.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup, isValidSlug, validatePublicationWindow, validateLengths, MAX_SLUG_LENGTH, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH } from '#utils/validators.ts'
+import { hasRequiredGroup, validatePublicationWindow } from '#utils/validators.ts'
 
 export default async function createForm(
     req: AuthenticatedRequest<{ Body: CreateOrUpdateFormBody }>,
@@ -16,25 +17,10 @@ export default async function createForm(
         return res.status(403).send({ error: 'Forbidden' })
     }
 
-    if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'slug, title, published_at, and expires_at are required' })
-    }
-
-    if (!isValidSlug(body.slug)) {
-        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
-    }
-
-    const lengthError = validateLengths([
-        { value: body.slug,        max: MAX_SLUG_LENGTH,        label: 'slug' },
-        { value: body.title,       max: MAX_TITLE_LENGTH,       label: 'title' },
-        { value: body.description, max: MAX_DESCRIPTION_LENGTH, label: 'description' },
-    ])
-    if (lengthError) return res.status(400).send({ error: lengthError })
-
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at, {
         baseDate: new Date(),
         maxRangeMonths: 6,
-        maxRangeMessage: 'expires_at cannot be more than 6 months after created_at'
+        maxRangeMessage: 'expires_at cannot be more than 6 months from now'
     })
     if (!publicationWindow.valid) {
         return res.status(400).send({ error: publicationWindow.error })
@@ -43,17 +29,13 @@ export default async function createForm(
     const publishedAt = publicationWindow.publishedAt as Date
     const expiresAt = publicationWindow.expiresAt as Date
 
-    if (body.limit != null && (!Number.isInteger(Number(body.limit)) || Number(body.limit) < 1)) {
-        return res.status(400).send({ error: 'limit must be a positive integer' })
-    }
-
     const sqlParams = [
         user_id,
         body.slug,
         body.title,
         body.description || null,
         body.anonymous_submissions || false,
-        body.limit != null ? Number(body.limit) : null,
+        body.limit ?? null,
         body.waitlist || false,
         body.multiple_submissions || false,
         publishedAt,
@@ -61,7 +43,7 @@ export default async function createForm(
     ]
 
     try {
-        const sql = await loadSQL('forms/post.sql')
+        const sql = await loadSQL('forms/insert.sql')
         const result = await run(sql, sqlParams)
         return res.status(201).send(result.rows[0])
     } catch (error) {

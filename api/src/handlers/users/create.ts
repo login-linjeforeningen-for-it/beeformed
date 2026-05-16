@@ -5,16 +5,10 @@ import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
 
 export default async function createUser(req: AuthenticatedRequest, res: FastifyReply) {
-    const user_id = req.user.id
-    const email = req.user.email
-    const name = req.user.name
-
-    if (!user_id || !email || !name) {
-        return res.status(400).send({ error: 'user_id, email, and name are required' })
-    }
+    const { id: user_id, email, name } = req.user
 
     try {
-        const sql = await loadSQL('users/post.sql')
+        const sql = await loadSQL('users/insert.sql')
         const result = await run(sql, [user_id, email, name])
         return res.status(201).send(result.rows[0])
     } catch (error) {

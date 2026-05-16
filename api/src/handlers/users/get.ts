@@ -8,7 +8,7 @@ export default async function getUser(req: AuthenticatedRequest, res: FastifyRep
     const id = req.user.id
 
     try {
-        const sql = await loadSQL('users/get.sql')
+        const sql = await loadSQL('users/select.sql')
         const result = await run(sql, [id])
         if (result.rows.length === 0) {
             return res.status(404).send({ error: 'User not found' })

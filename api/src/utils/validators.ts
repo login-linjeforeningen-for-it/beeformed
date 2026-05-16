@@ -11,29 +11,7 @@ type DateRangeValidationOptions = {
     maxRangeMessage?: string
 }
 
-const SLUG_PATTERN = /^[a-z0-9-_]+$/
 const MAX_RANGE_MONTHS = 6
-
-export const MAX_SLUG_LENGTH = 100
-export const MAX_TITLE_LENGTH = 255
-export const MAX_DESCRIPTION_LENGTH = 5000
-export const MAX_FIELD_TITLE_LENGTH = 255
-export const MAX_FIELD_DESCRIPTION_LENGTH = 2000
-
-export function validateLengths(
-    fields: { value: string | null | undefined; max: number; label: string }[]
-): string | null {
-    for (const { value, max, label } of fields) {
-        if (value && value.length > max) {
-            return `${label} must be at most ${max} characters`
-        }
-    }
-    return null
-}
-
-export function isValidSlug(slug: string): boolean {
-    return SLUG_PATTERN.test(slug)
-}
 
 function addMonths(date: Date, months: number) {
     const result = new Date(date)
@@ -80,12 +58,6 @@ export function validatePublicationWindow(
         expiresAt
     }
 }
-
-export const VALID_FIELD_TYPES = [
-    'text', 'textarea', 'number', 'select', 'radio', 'checkbox', 'date', 'time', 'datetime'
-] as const
-
-export type FieldType = typeof VALID_FIELD_TYPES[number]
 
 export function hasRequiredGroup(groups: string[] | undefined, requiredGroup: string): boolean {
     return Array.isArray(groups) && groups.includes(requiredGroup)

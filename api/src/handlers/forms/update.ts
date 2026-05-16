@@ -1,12 +1,12 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { CreateOrUpdateFormBody } from '#/schemas.ts'
 import config from '#constants'
 import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
-import { isValidSlug, validatePublicationWindow, validateLengths, MAX_SLUG_LENGTH, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH } from '#utils/validators.ts'
-import { createHttpError } from '#utils/httpError.ts'
+import { validatePublicationWindow } from '#utils/validators.ts'
 
 export default async function updateForm(
     req: AuthenticatedRequest<{ Params: IdParams; Body: CreateOrUpdateFormBody }>,
@@ -15,30 +15,11 @@ export default async function updateForm(
     const body = req.body
     const formId = req.params.id
 
-    if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
-    }
-
-    if (body.limit != null && (!Number.isInteger(Number(body.limit)) || Number(body.limit) < 1)) {
-        return res.status(400).send({ error: 'limit must be a positive integer' })
-    }
-
-    if (!isValidSlug(body.slug)) {
-        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
-    }
-
-    const lengthError = validateLengths([
-        { value: body.slug,        max: MAX_SLUG_LENGTH,        label: 'slug' },
-        { value: body.title,       max: MAX_TITLE_LENGTH,       label: 'title' },
-        { value: body.description, max: MAX_DESCRIPTION_LENGTH, label: 'description' },
-    ])
-    if (lengthError) return res.status(400).send({ error: lengthError })
-
     try {
         const result = await runInTransaction(async (client) => {
             const formResult = await client.query('SELECT created_at FROM forms WHERE id = $1 FOR UPDATE', [formId])
             if (formResult.rows.length === 0) {
-                throw createHttpError(404, 'Entity not found')
+                throw Object.assign(new Error('Entity not found'), { statusCode: 404 })
             }
 
             const createdAt = formResult.rows[0].created_at as Date
@@ -49,18 +30,18 @@ export default async function updateForm(
             })
 
             if (!publicationWindow.valid) {
-                throw createHttpError(400, publicationWindow.error ?? 'Invalid publication window')
+                throw Object.assign(new Error(publicationWindow.error ?? 'Invalid publication window'), { statusCode: 400 })
             }
 
             const { publishedAt, expiresAt } = publicationWindow
 
-            const newLimit = body.limit != null ? Number(body.limit) : null
+            const newLimit = body.limit ?? null
             const countSql = await loadSQL('submissions/countRegistered.sql')
             const countResult = await client.query(countSql, [formId])
             const registeredCount = Number(countResult.rows[0].count)
 
             if (newLimit !== null && newLimit < registeredCount) {
-                throw createHttpError(400, 'Limit cannot be lower than the number of registered submissions')
+                throw Object.assign(new Error('Limit cannot be lower than the number of registered submissions'), { statusCode: 400 })
             }
 
             const sqlParams = [
@@ -75,11 +56,11 @@ export default async function updateForm(
                 publishedAt,
                 expiresAt
             ]
-            const putSql = await loadSQL('forms/put.sql')
+            const putSql = await loadSQL('forms/update.sql')
             const putResult = await client.query(putSql, sqlParams)
 
             if (putResult.rows.length === 0) {
-                throw createHttpError(404, 'Entity not found')
+                throw Object.assign(new Error('Entity not found'), { statusCode: 404 })
             }
 
             const updatedForm = putResult.rows[0]
@@ -93,7 +74,7 @@ export default async function updateForm(
 
             const toPromote: { id: string; email: string | null }[] = []
             if (spotsToFill === null || spotsToFill > 0) {
-                const getWaitlistSql = await loadSQL('submissions/getWaitlistBatch.sql')
+                const getWaitlistSql = await loadSQL('submissions/selectWaitlistBatch.sql')
                 const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
 
                 const waitlistResult = await client.query(getWaitlistSql, [formId, spotsToFill])

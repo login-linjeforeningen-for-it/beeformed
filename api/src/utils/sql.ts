@@ -5,6 +5,12 @@ const sqlCache = new Map<string, string>()
 const identifierRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?$/
 const searchableFieldRegex = /^[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?(?:::[a-zA-Z_][a-zA-Z0-9_]*)?$/
 
+export function assertSafeIdentifier(value: string, label: string) {
+    if (!/^[a-z_]+$/.test(value)) {
+        throw new Error(`Unsafe SQL identifier for ${label}`)
+    }
+}
+
 export async function loadSQL(file: string) {
     if (sqlCache.has(file)) {
         return sqlCache.get(file)!
@@ -29,8 +35,6 @@ export async function buildFilteredQuery(
     tablePrefix?: string,
     options?: {
         searchFields?: string[]
-        searchFieldKeys?: string[]
-        searchFieldMap?: Record<string, string>
         explicitOrderField?: string
     }
 ) {
@@ -44,30 +48,32 @@ export async function buildFilteredQuery(
     const orderBy = query.order_by || 'created_at'
     const sort = query.sort === 'asc' ? 'ASC' : 'DESC'
 
-
     let sql = baseSQL.trim()
+
+    // Strip any top-level ORDER BY to prevent duplicate clauses when we append our own
+    let parenDepth = 0
+    let topLevelOrderByAt = -1
+    const upperBase = sql.toUpperCase()
+    for (let i = 0; i < upperBase.length; i++) {
+        if (upperBase[i] === '(') parenDepth++
+        else if (upperBase[i] === ')') parenDepth--
+        else if (parenDepth === 0 && upperBase.startsWith('ORDER BY', i)) {
+            topLevelOrderByAt = i
+            break
+        }
+    }
+    if (topLevelOrderByAt !== -1) {
+        sql = sql.slice(0, topLevelOrderByAt).trimEnd()
+    }
+
     const params = [...initialParams]
 
     if (search) {
         const defaultFields = [tablePrefix ? `${tablePrefix}.title` : 'title', tablePrefix ? `${tablePrefix}.description` : 'description']
-        const mappedSearchFields = options?.searchFieldKeys && options.searchFieldKeys.length
-            ? options.searchFieldKeys.map((key) => {
-                const mappedField = options.searchFieldMap?.[key]
-                if (!mappedField) {
-                    throw new Error(`Invalid search field key: ${key}`)
-                }
-                return mappedField
-            })
-            : undefined
-        const fieldsToSearch: string[] = mappedSearchFields
-            || (options?.searchFields && options.searchFields.length
-                ? options.searchFields
-                : defaultFields)
+        const fieldsToSearch = options?.searchFields?.length ? options.searchFields : defaultFields
 
         for (const field of fieldsToSearch) {
-            const isMappedField = mappedSearchFields?.includes(field)
-            const isValidField = isMappedField ? searchableFieldRegex.test(field) : identifierRegex.test(field)
-            if (!isValidField) {
+            if (!searchableFieldRegex.test(field)) {
                 throw new Error(`Invalid search field: ${field}`)
             }
         }
@@ -104,10 +110,8 @@ export async function buildFilteredQuery(
     }
     sql += ` ORDER BY ${orderField} ${sort}`
 
-    if (limit) {
-        sql += ` LIMIT $${params.length + 1}`
-        params.push(limit)
-    }
+    sql += ` LIMIT $${params.length + 1}`
+    params.push(limit)
 
     if (offset > 0) {
         sql += ` OFFSET $${params.length + 1}`

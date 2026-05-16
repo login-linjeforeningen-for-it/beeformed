@@ -13,7 +13,7 @@ export default async function getSubmission(
     const userId = req.user.id
 
     try {
-        const sql = await loadSQL('submissions/get.sql')
+        const sql = await loadSQL('submissions/selectById.sql')
         const result = await run(sql, [id, userId, formId || null, req.user.groups])
         const entity = result.rows.length > 0 ? result.rows[0] : null
 

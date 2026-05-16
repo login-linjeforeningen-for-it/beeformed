@@ -1,2 +1,2 @@
-export { default as getTemplateFields } from './get.ts'
-export { default as bulkTemplateFields } from './bulk.ts'
+export { default as listTemplateFields } from './list.ts'
+export { default as syncTemplateFields } from './sync.ts'

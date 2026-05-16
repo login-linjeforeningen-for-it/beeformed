@@ -1,14 +1,13 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { PermissionGrantBody } from '#/schemas.ts'
 import run, { runInTransaction } from '#db'
-import { loadSQL } from '#utils/sql.ts'
+import { loadSQL, assertSafeIdentifier } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { createHttpError } from '#utils/httpError.ts'
 
 type PermissionGrantConfig = {
     resourceTable: 'forms' | 'form_templates'
     resourceLabel: 'Form' | 'Template'
-    requiredResourceIdMessage: string
     insertSQLPath: string
 }
 
@@ -39,9 +38,7 @@ export async function handlePermissionGrant(
     const resourceId = req.params.id
     const grantedBy = req.user.id
 
-    if (!/^[a-z_]+$/.test(config.resourceTable)) {
-        throw new Error(`Unsafe SQL identifier: ${config.resourceTable}`)
-    }
+    assertSafeIdentifier(config.resourceTable, 'resourceTable')
 
     const sql = await loadSQL(config.insertSQLPath)
 
@@ -53,11 +50,11 @@ export async function handlePermissionGrant(
             )
 
             if (ownerResult.rows.length === 0) {
-                throw createHttpError(404, `${config.resourceLabel} not found`)
+                throw Object.assign(new Error(`${config.resourceLabel} not found`), { statusCode: 404 })
             }
 
             if ((ownerResult.rows[0].user_id as string) !== grantedBy) {
-                throw createHttpError(403, 'Forbidden')
+                throw Object.assign(new Error('Forbidden'), { statusCode: 403 })
             }
 
             const result = await client.query(sql, [resourceId, userId, body.group || null, grantedBy])
@@ -69,7 +66,60 @@ export async function handlePermissionGrant(
         const statusCode = (error as Error & { statusCode?: number }).statusCode
         if (statusCode === 404) return res.status(404).send({ error: (error as Error).message })
         if (statusCode === 403) return res.status(403).send({ error: 'Forbidden' })
+        if ((error as { code?: string }).code === '23505') return res.status(409).send({ error: 'Permission already exists' })
         logError('Error creating entity', { event: 'http.internal_error', error })
+        return res.status(500).send({ error: 'Internal server error' })
+    }
+}
+
+export async function handlePermissionGet(
+    req: AuthenticatedRequest<{ Params: IdParams }>,
+    res: FastifyReply,
+    sqlPath: string
+) {
+    try {
+        const sql = await loadSQL(sqlPath)
+        const result = await run(sql, [req.params.id])
+        return res.send({ data: result.rows, total: result.rows.length })
+    } catch (error) {
+        logError('Error reading entity', { event: 'http.internal_error', requestId: req.id, error })
+        return res.status(500).send({ error: 'Internal server error' })
+    }
+}
+
+type DeletePermissionConfig = {
+    checkSqlPath: string
+    ownerField: string
+    deleteSqlPath: string
+}
+
+export async function handlePermissionDelete(
+    req: AuthenticatedRequest<{ Params: { id: string } }>,
+    res: FastifyReply,
+    config: DeletePermissionConfig
+) {
+    try {
+        await runInTransaction(async (client) => {
+            const checkSql = await loadSQL(config.checkSqlPath)
+            const checkResult = await client.query(checkSql, [req.params.id])
+
+            if (checkResult.rows.length === 0) {
+                throw Object.assign(new Error('Permission not found'), { statusCode: 404 })
+            }
+
+            if (checkResult.rows[0][config.ownerField] !== req.user.id) {
+                throw Object.assign(new Error('Forbidden'), { statusCode: 403 })
+            }
+
+            const sql = await loadSQL(config.deleteSqlPath)
+            await client.query(sql, [req.params.id, req.user.id])
+        })
+        return res.status(204).send()
+    } catch (error) {
+        const statusCode = (error as Error & { statusCode?: number }).statusCode
+        if (statusCode === 404) return res.status(404).send({ error: (error as Error).message })
+        if (statusCode === 403) return res.status(403).send({ error: 'Forbidden' })
+        logError('Error deleting entity', { event: 'http.internal_error', requestId: req.id, error })
         return res.status(500).send({ error: 'Internal server error' })
     }
 }

@@ -1,5 +1,4 @@
-import { checkPermission } from '#utils/permissions/checkPermissions.ts'
-import { createPermissionMiddleware } from '#utils/permissions/permissions.ts'
+import { checkPermission, createPermissionMiddleware } from '#utils/permissions/permissions.ts'
 
 export default createPermissionMiddleware({
     idParams: ['id', 'formId'],

@@ -5,7 +5,6 @@ import { runInTransaction } from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
-import { createHttpError } from '#utils/httpError.ts'
 
 export default async function deleteSubmission(
     req: AuthenticatedRequest<{ Params: IdParams }>,
@@ -16,27 +15,28 @@ export default async function deleteSubmission(
 
     try {
         const result = await runInTransaction(async (client) => {
-            const getSql = await loadSQL('submissions/getForDeletion.sql')
+            const getSql = await loadSQL('submissions/selectForDeletion.sql')
             const getResult = await client.query(getSql, [submissionId])
 
             if (getResult.rows.length === 0) {
-                throw createHttpError(404, 'Submission not found')
+                throw Object.assign(new Error('Submission not found'), { statusCode: 404 })
             }
 
             const submission = getResult.rows[0]
 
             if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
-                throw createHttpError(403, 'You do not have permission to delete this submission')
+                throw Object.assign(new Error('You do not have permission to delete this submission'), { statusCode: 403 })
             }
 
             const now = new Date()
             const expiresAt = new Date(submission.expires_at)
             if (now > expiresAt) {
-                throw createHttpError(400, 'Cannot remove submission after form has closed')
+                throw Object.assign(new Error('Cannot remove submission after form has closed'), { statusCode: 400 })
             }
 
             const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
-            await client.query(updateStatusSql, [submissionId, 'cancelled'])
+            const newStatus = submission.user_id === user.id ? 'cancelled' : 'rejected'
+            await client.query(updateStatusSql, [submissionId, newStatus])
 
             let promoted: { id: string; email: string | null } | null = null
             if (submission.status === 'registered' && submission.limit !== null) {
@@ -45,16 +45,8 @@ export default async function deleteSubmission(
                 const registeredCount = Number(countResult.rows[0].count)
 
                 if (registeredCount < submission.limit) {
-                    const nextWaitlistedResult = await client.query(
-                        `SELECT s.id, u.email
-                         FROM submissions s
-                         JOIN users u ON s.user_id = u.user_id
-                         WHERE s.form_id = $1 AND s.status = 'waitlisted'
-                         ORDER BY s.submitted_at ASC
-                         LIMIT 1
-                         FOR UPDATE SKIP LOCKED`,
-                        [submission.form_id]
-                    )
+                    const getWaitlistSql = await loadSQL('submissions/selectWaitlistBatch.sql')
+                    const nextWaitlistedResult = await client.query(getWaitlistSql, [submission.form_id, 1])
 
                     if (nextWaitlistedResult.rows.length > 0) {
                         const nextPerson = nextWaitlistedResult.rows[0] as { id: string; email: string | null }
@@ -64,17 +56,16 @@ export default async function deleteSubmission(
                 }
             }
 
-            return { submission, promoted }
+            return { submission, promoted, newStatus }
         })
 
-        const { submission, promoted } = result
+        const { submission, promoted, newStatus } = result
 
         if (submission.user_email) {
-            const isOwner = submission.user_id === user.id
             try {
                 await sendTypedEmail('submission', submission.user_email, {
                     title: submission.form_title,
-                    status: isOwner ? 'cancelled' : 'rejected',
+                    status: newStatus,
                     ownerEmail: submission.form_owner_email,
                     actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
                     actionText: 'View Form',
@@ -108,7 +99,7 @@ export default async function deleteSubmission(
             }
         }
 
-        return res.send({ success: true, message: 'Submission cancelled' })
+        return res.status(204).send()
     } catch (error: unknown) {
         const statusCode = (error as Error & { statusCode?: number }).statusCode
         if (statusCode) {

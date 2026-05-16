@@ -1,9 +1,10 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { CreateTemplateBody } from '#/schemas.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup, isValidSlug, validatePublicationWindow, validateLengths, MAX_SLUG_LENGTH, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH } from '#utils/validators.ts'
+import { hasRequiredGroup, validatePublicationWindow } from '#utils/validators.ts'
 
 export default async function createTemplate(
     req: AuthenticatedRequest<{ Body: CreateTemplateBody }>,
@@ -15,21 +16,6 @@ export default async function createTemplate(
     if (!hasRequiredGroup(req.user.groups, 'QueenBee')) {
         return res.status(403).send({ error: 'Forbidden' })
     }
-
-    if (!user_id || !body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'user_id, slug, title, published_at, and expires_at are required' })
-    }
-
-    if (!isValidSlug(body.slug)) {
-        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
-    }
-
-    const lengthError = validateLengths([
-        { value: body.slug,        max: MAX_SLUG_LENGTH,        label: 'slug' },
-        { value: body.title,       max: MAX_TITLE_LENGTH,       label: 'title' },
-        { value: body.description, max: MAX_DESCRIPTION_LENGTH, label: 'description' },
-    ])
-    if (lengthError) return res.status(400).send({ error: lengthError })
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
@@ -46,7 +32,7 @@ export default async function createTemplate(
         body.title,
         body.description || null,
         body.anonymous_submissions || false,
-        body.limit || null,
+        body.limit ?? null,
         body.waitlist || false,
         body.multiple_submissions || false,
         publishedAt,
@@ -54,7 +40,7 @@ export default async function createTemplate(
     ]
 
     try {
-        const sql = await loadSQL('templates/post.sql')
+        const sql = await loadSQL('templates/insert.sql')
         const result = await run(sql, sqlParams)
         return res.status(201).send(result.rows[0])
     } catch (error) {

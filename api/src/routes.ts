@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import {
     createOrUpdateFormBodySchema,
     createTemplateBodySchema,
@@ -7,7 +8,13 @@ import {
     createSubmissionBodySchema,
     scanSubmissionBodySchema,
     bulkFormFieldBodySchema,
-    bulkTemplateFieldBodySchema
+    bulkTemplateFieldBodySchema,
+    idParamsSchema,
+    formIdAndIdParamsSchema,
+    templateIdAndIdParamsSchema,
+    listQuerystringSchema,
+    submissionsByFormQuerystringSchema,
+    submissionByIdQuerystringSchema
 } from './schemas.ts'
 
 import getIndex from './handlers/index/get.ts'
@@ -28,8 +35,8 @@ import {
 
 import {
     createForm,
-    getForms,
-    getSharedForms,
+    listForms,
+    listSharedForms,
     getForm,
     getPublicForm,
     updateForm,
@@ -41,8 +48,8 @@ import {
     createTemplate,
     createTemplateFromForm,
     createFormFromTemplate,
-    getTemplates,
-    getSharedTemplates,
+    listTemplates,
+    listSharedTemplates,
     getTemplate,
     updateTemplate,
     deleteTemplate
@@ -50,40 +57,41 @@ import {
 
 import {
     createFormPermission,
-    getFormPermission,
+    listFormPermissions,
     deleteFormPermission
 } from './handlers/form-permissions/index.ts'
 
 import {
     createTemplatePermission,
-    getTemplatePermission,
+    listTemplatePermissions,
     deleteTemplatePermission
 } from './handlers/template-permissions/index.ts'
 
 import {
-    getFormFields,
-    bulkFormFields
+    listFormFields,
+    syncFormFields
 } from './handlers/form-fields/index.ts'
 
 import {
-    getTemplateFields,
-    bulkTemplateFields
+    listTemplateFields,
+    syncTemplateFields
 } from './handlers/template-fields/index.ts'
 
 import {
     createSubmission,
     getSubmission,
-    getSubmissionsByForm,
-    getSubmissionsByUser,
+    listSubmissionsByForm,
+    listSubmissionsByUser,
     deleteSubmission,
-    scanSubmission
+    scanSubmission,
+    getLiveCount
 } from './handlers/submissions/index.ts'
 
-import getLiveCount from './handlers/submissions/getLiveCount.ts'
-
 export default async function apiRoutes(
-    fastify: FastifyInstance
+    instance: FastifyInstance
 ) {
+    const fastify = instance.withTypeProvider<ZodTypeProvider>()
+
     // Index
     fastify.get('/', getIndex)
 
@@ -104,142 +112,208 @@ export default async function apiRoutes(
     )
 
     // Forms
-    fastify.post<{ Body: CreateOrUpdateFormBody }>(
-        '/forms', { preHandler: authMiddleware, schema: { body: createOrUpdateFormBodySchema } }, withAuthenticatedUser(createForm)
+    fastify.post(
+        '/forms',
+        { preHandler: authMiddleware, schema: { body: createOrUpdateFormBodySchema } },
+        withAuthenticatedUser(createForm)
     )
 
-    fastify.get<{ Querystring: ListQuerystring }>(
-        '/forms', { preHandler: authMiddleware }, withAuthenticatedUser(getForms)
+    fastify.get(
+        '/forms',
+        { preHandler: authMiddleware, schema: { querystring: listQuerystringSchema } },
+        withAuthenticatedUser(listForms)
     )
 
-    fastify.get<{ Querystring: ListQuerystring }>(
-        '/forms/shared', { preHandler: authMiddleware }, withAuthenticatedUser(getSharedForms)
+    fastify.get(
+        '/forms/shared',
+        { preHandler: authMiddleware, schema: { querystring: listQuerystringSchema } },
+        withAuthenticatedUser(listSharedForms)
     )
 
-    fastify.get<{ Params: IdParams }>(
-        '/forms/:id', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(getForm)
+    fastify.get(
+        '/forms/:id',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(getForm)
     )
 
-    fastify.get<{ Params: IdParams }>(
-        '/forms/:id/public', getPublicForm
+    fastify.get(
+        '/forms/:id/public',
+        { schema: { params: idParamsSchema } },
+        getPublicForm
     )
 
-    fastify.put<{ Params: IdParams, Body: CreateOrUpdateFormBody }>(
-        '/forms/:id', { preHandler: [authMiddleware, permissionMiddleware], schema: { body: createOrUpdateFormBodySchema } }, withAuthenticatedUser(updateForm)
+    fastify.put(
+        '/forms/:id',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema, body: createOrUpdateFormBodySchema } },
+        withAuthenticatedUser(updateForm)
     )
 
-    fastify.delete<{ Params: IdParams }>(
-        '/forms/:id', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(deleteForm)
+    fastify.delete(
+        '/forms/:id',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(deleteForm)
     )
 
-    fastify.post<{ Params: IdParams }>(
-        '/forms/:id/duplicate', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(duplicateForm)
+    fastify.post(
+        '/forms/:id/duplicate',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(duplicateForm)
     )
 
-    fastify.post<{ Params: IdParams }>(
-        '/forms/:id/templates', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(createTemplateFromForm)
+    fastify.post(
+        '/forms/:id/templates',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(createTemplateFromForm)
     )
 
     // Templates
-    fastify.post<{ Body: CreateTemplateBody }>(
-        '/templates', { preHandler: authMiddleware, schema: { body: createTemplateBodySchema } }, withAuthenticatedUser(createTemplate)
+    fastify.post(
+        '/templates',
+        { preHandler: authMiddleware, schema: { body: createTemplateBodySchema } },
+        withAuthenticatedUser(createTemplate)
     )
 
-    fastify.get<{ Querystring: ListQuerystring }>(
-        '/templates', { preHandler: authMiddleware }, withAuthenticatedUser(getTemplates)
+    fastify.get(
+        '/templates',
+        { preHandler: authMiddleware, schema: { querystring: listQuerystringSchema } },
+        withAuthenticatedUser(listTemplates)
     )
 
-    fastify.get<{ Querystring: ListQuerystring }>(
-        '/templates/shared', { preHandler: authMiddleware }, withAuthenticatedUser(getSharedTemplates)
+    fastify.get(
+        '/templates/shared',
+        { preHandler: authMiddleware, schema: { querystring: listQuerystringSchema } },
+        withAuthenticatedUser(listSharedTemplates)
     )
 
-    fastify.get<{ Params: IdParams }>(
-        '/templates/:id', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(getTemplate)
+    fastify.get(
+        '/templates/:id',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(getTemplate)
     )
 
-    fastify.put<{ Params: IdParams, Body: UpdateTemplateBody }>(
-        '/templates/:id', { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { body: updateTemplateBodySchema } }, withAuthenticatedUser(updateTemplate)
+    fastify.put(
+        '/templates/:id',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema, body: updateTemplateBodySchema } },
+        withAuthenticatedUser(updateTemplate)
     )
 
-    fastify.delete<{ Params: IdParams }>(
-        '/templates/:id', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(deleteTemplate)
+    fastify.delete(
+        '/templates/:id',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(deleteTemplate)
     )
 
-    fastify.post<{ Params: IdParams }>(
-        '/templates/:id/duplicate', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(createFormFromTemplate)
+    fastify.post(
+        '/templates/:id/duplicate',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(createFormFromTemplate)
     )
 
     // Form Permissions
-    fastify.get<{ Params: IdParams }>(
-        '/forms/:id/permissions', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(getFormPermission)
+    fastify.get(
+        '/forms/:id/permissions',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(listFormPermissions)
     )
 
-    fastify.post<{ Params: IdParams, Body: PermissionGrantBody }>(
-        '/forms/:id/permissions', { preHandler: [authMiddleware, permissionMiddleware], schema: { body: permissionGrantBodySchema } }, withAuthenticatedUser(createFormPermission)
+    fastify.post(
+        '/forms/:id/permissions',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema, body: permissionGrantBodySchema } },
+        withAuthenticatedUser(createFormPermission)
     )
 
-    fastify.delete<{ Params: FormIdAndIdParams }>(
-        '/forms/:formId/permissions/:id', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(deleteFormPermission)
+    fastify.delete(
+        '/forms/:formId/permissions/:id',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: formIdAndIdParamsSchema } },
+        withAuthenticatedUser(deleteFormPermission)
     )
 
     // Template Permissions
-    fastify.get<{ Params: IdParams }>(
-        '/templates/:id/permissions', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(getTemplatePermission)
+    fastify.get(
+        '/templates/:id/permissions',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(listTemplatePermissions)
     )
 
-    fastify.post<{ Params: IdParams, Body: PermissionGrantBody }>(
-        '/templates/:id/permissions', { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { body: permissionGrantBodySchema } }, withAuthenticatedUser(createTemplatePermission)
+    fastify.post(
+        '/templates/:id/permissions',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema, body: permissionGrantBodySchema } },
+        withAuthenticatedUser(createTemplatePermission)
     )
 
-    fastify.delete<{ Params: TemplateIdAndIdParams }>(
-        '/templates/:templateId/permissions/:id', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(deleteTemplatePermission)
+    fastify.delete(
+        '/templates/:templateId/permissions/:id',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: templateIdAndIdParamsSchema } },
+        withAuthenticatedUser(deleteTemplatePermission)
     )
 
     // Form Fields
-    fastify.get<{ Params: IdParams }>(
-        '/forms/:id/fields', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(getFormFields)
+    fastify.get(
+        '/forms/:id/fields',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(listFormFields)
     )
 
-    fastify.patch<{ Params: IdParams, Body: BulkFormFieldOperation[] }>(
-        '/forms/:id/fields', { preHandler: [authMiddleware, permissionMiddleware], schema: { body: bulkFormFieldBodySchema } }, withAuthenticatedUser(bulkFormFields)
+    fastify.patch(
+        '/forms/:id/fields',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema, body: bulkFormFieldBodySchema } },
+        withAuthenticatedUser(syncFormFields)
     )
 
     // Template Fields
-    fastify.get<{ Params: IdParams }>(
-        '/templates/:id/fields', { preHandler: [authMiddleware, templatePermissionMiddleware] }, withAuthenticatedUser(getTemplateFields)
+    fastify.get(
+        '/templates/:id/fields',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema } },
+        withAuthenticatedUser(listTemplateFields)
     )
 
-    fastify.patch<{ Params: IdParams, Body: BulkTemplateFieldOperation[] }>(
-        '/templates/:id/fields', { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { body: bulkTemplateFieldBodySchema } }, withAuthenticatedUser(bulkTemplateFields)
+    fastify.patch(
+        '/templates/:id/fields',
+        { preHandler: [authMiddleware, templatePermissionMiddleware], schema: { params: idParamsSchema, body: bulkTemplateFieldBodySchema } },
+        withAuthenticatedUser(syncTemplateFields)
     )
 
     // Live
-    fastify.get<{ Params: IdParams }>(
-        '/forms/:id/live', getLiveCount
+    fastify.get(
+        '/forms/:id/live',
+        { schema: { params: idParamsSchema } },
+        getLiveCount
     )
 
     // Submissions
-    fastify.get<{ Params: IdParams, Querystring: SubmissionsByFormQuerystring }>(
-        '/forms/:id/submissions', { preHandler: [authMiddleware, permissionMiddleware] }, withAuthenticatedUser(getSubmissionsByForm)
+    fastify.get(
+        '/forms/:id/submissions',
+        { preHandler: [authMiddleware, permissionMiddleware], schema: { params: idParamsSchema, querystring: submissionsByFormQuerystringSchema } },
+        withAuthenticatedUser(listSubmissionsByForm)
     )
 
-    fastify.post<{ Params: IdParams, Body: CreateSubmissionBody }>(
-        '/forms/:id/submissions', { preHandler: authMiddleware, schema: { body: createSubmissionBodySchema } }, withAuthenticatedUser(createSubmission)
+    fastify.post(
+        '/forms/:id/submissions',
+        { preHandler: authMiddleware, schema: { params: idParamsSchema, body: createSubmissionBodySchema } },
+        withAuthenticatedUser(createSubmission)
     )
 
-    fastify.get<{ Params: IdParams, Querystring: SubmissionByIdQuerystring }>(
-        '/submissions/:id', { preHandler: authMiddleware }, withAuthenticatedUser(getSubmission)
+    fastify.get(
+        '/submissions/:id',
+        { preHandler: authMiddleware, schema: { params: idParamsSchema, querystring: submissionByIdQuerystringSchema } },
+        withAuthenticatedUser(getSubmission)
     )
 
-    fastify.post<{ Params: IdParams, Body: ScanSubmissionBody }>(
-        '/submissions/:id/scan', { preHandler: authMiddleware, schema: { body: scanSubmissionBodySchema } }, withAuthenticatedUser(scanSubmission)
+    fastify.post(
+        '/submissions/:id/scan',
+        { preHandler: authMiddleware, schema: { params: idParamsSchema, body: scanSubmissionBodySchema } },
+        withAuthenticatedUser(scanSubmission)
     )
 
-    fastify.get<{ Querystring: ListQuerystring }>(
-        '/submissions', { preHandler: authMiddleware }, withAuthenticatedUser(getSubmissionsByUser)
+    fastify.get(
+        '/submissions',
+        { preHandler: authMiddleware, schema: { querystring: listQuerystringSchema } },
+        withAuthenticatedUser(listSubmissionsByUser)
     )
 
-    fastify.delete<{ Params: IdParams }>(
-        '/submissions/:id', { preHandler: authMiddleware }, withAuthenticatedUser(deleteSubmission)
+    fastify.delete(
+        '/submissions/:id',
+        { preHandler: authMiddleware, schema: { params: idParamsSchema } },
+        withAuthenticatedUser(deleteSubmission)
     )
 }

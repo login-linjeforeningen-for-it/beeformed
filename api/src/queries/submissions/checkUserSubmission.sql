@@ -1,1 +1,1 @@
-SELECT COUNT(*) as count FROM submissions WHERE form_id = $1 AND user_id = $2 AND status IN ('registered', 'waitlisted')
+SELECT COUNT(*)::int as count FROM submissions WHERE form_id = $1 AND user_id = $2 AND status IN ('registered', 'waitlisted')

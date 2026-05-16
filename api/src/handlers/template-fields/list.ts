@@ -4,11 +4,11 @@ import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
 
-export default async function getFormPermissions(req: AuthenticatedRequest<{ Params: IdParams }>, res: FastifyReply) {
+export default async function listTemplateFields(req: AuthenticatedRequest<{ Params: IdParams }>, res: FastifyReply) {
     try {
-        const sql = await loadSQL('form-permissions/get.sql')
+        const sql = await loadSQL('template-fields/selectByTemplate.sql')
         const result = await run(sql, [req.params.id])
-        return res.send({ data: result.rows, total: result.rows.length })
+        return res.send(result.rows)
     } catch (error) {
         logError('Error reading entity', {
             event: 'http.internal_error',

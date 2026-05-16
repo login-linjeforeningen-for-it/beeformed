@@ -1,12 +1,7 @@
 import run from '#db'
+import { assertSafeIdentifier } from '#utils/sql.ts'
 import { sendTypedEmail, QueuedEmailType, EmailPayloadMap } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
-
-function assertSafeIdentifier(value: string, label: string) {
-    if (!/^[a-z_]+$/.test(value)) {
-        throw new Error(`Unsafe SQL identifier for ${label}`)
-    }
-}
 
 function normalizeInterval(value: string) {
     const normalized = value.trim().toLowerCase()
@@ -69,4 +64,3 @@ export async function deleteExpiredRecords(tableName: string, dateColumn: string
 
     return result.rowCount ?? 0
 }
-

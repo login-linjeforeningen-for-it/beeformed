@@ -1,2 +1,2 @@
-export { default as getFormFields } from './get.ts'
-export { default as bulkFormFields } from './bulk.ts'
+export { default as listFormFields } from './list.ts'
+export { default as syncFormFields } from './sync.ts'

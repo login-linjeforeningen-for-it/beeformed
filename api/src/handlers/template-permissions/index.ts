@@ -1,9 +1,3 @@
-import createTemplatePermission from './post.ts'
-import getTemplatePermission from './get.ts'
-import deleteTemplatePermission from './delete.ts'
-
-export {
-	createTemplatePermission,
-	getTemplatePermission,
-	deleteTemplatePermission
-}
+export { default as createTemplatePermission } from './create.ts'
+export { default as listTemplatePermissions } from './list.ts'
+export { default as deleteTemplatePermission } from './delete.ts'

@@ -1,9 +1,10 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { UpdateTemplateBody } from '#/schemas.ts'
 import run from '#db'
 import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
-import { isValidSlug, validatePublicationWindow, validateLengths, MAX_SLUG_LENGTH, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH } from '#utils/validators.ts'
+import { validatePublicationWindow } from '#utils/validators.ts'
 
 export default async function updateTemplate(
     req: AuthenticatedRequest<{ Params: IdParams; Body: UpdateTemplateBody }>,
@@ -11,21 +12,6 @@ export default async function updateTemplate(
 ) {
     const body = req.body
     const id = req.params.id
-
-    if (!body.slug || !body.title || !body.published_at || !body.expires_at) {
-        return res.status(400).send({ error: 'slug, title, published_at and expires_at are required' })
-    }
-
-    if (!isValidSlug(body.slug)) {
-        return res.status(400).send({ error: 'Slug can only contain lowercase letters, numbers, hyphens, and underscores' })
-    }
-
-    const lengthError = validateLengths([
-        { value: body.slug,        max: MAX_SLUG_LENGTH,        label: 'slug' },
-        { value: body.title,       max: MAX_TITLE_LENGTH,       label: 'title' },
-        { value: body.description, max: MAX_DESCRIPTION_LENGTH, label: 'description' },
-    ])
-    if (lengthError) return res.status(400).send({ error: lengthError })
 
     const publicationWindow = validatePublicationWindow(body.published_at, body.expires_at)
     if (!publicationWindow.valid) {
@@ -42,14 +28,14 @@ export default async function updateTemplate(
             body.title,
             body.description || null,
             body.anonymous_submissions || false,
-            body.limit || null,
+            body.limit ?? null,
             body.waitlist || false,
             body.multiple_submissions || false,
             publishedAt,
             expiresAt
         ]
 
-        const sql = await loadSQL('templates/put.sql')
+        const sql = await loadSQL('templates/update.sql')
         const result = await run(sql, sqlParams)
 
         if (result.rows.length === 0) {

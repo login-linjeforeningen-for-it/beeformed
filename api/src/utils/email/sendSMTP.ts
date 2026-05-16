@@ -59,11 +59,11 @@ async function processQueue(): Promise<void> {
          WHERE id IN (
              SELECT id FROM email_queue
              WHERE retry_count < $1
-               AND (last_attempted_at IS NULL OR last_attempted_at < NOW() - INTERVAL '${CLAIM_LOCK_MINUTES} minutes')
+               AND (last_attempted_at IS NULL OR last_attempted_at < NOW() - ($2::int * INTERVAL '1 minute'))
              FOR UPDATE SKIP LOCKED
          )
          RETURNING id, "to", email_type, payload`,
-        [MAX_RETRIES]
+        [MAX_RETRIES, CLAIM_LOCK_MINUTES]
     )
 
     if (claimed.rows.length === 0) return

@@ -5,7 +5,7 @@ import { loadSQL, buildFilteredQuery } from '#utils/sql.ts'
 import { buildListResponse } from '#utils/listResponse.ts'
 import { logError } from '#utils/logger.ts'
 
-export default async function getSubmissionsByForm(
+export default async function listSubmissionsByForm(
     req: AuthenticatedRequest<{ Params: IdParams; Querystring: SubmissionsByFormQuerystring }>,
     res: FastifyReply
 ) {
@@ -26,8 +26,8 @@ export default async function getSubmissionsByForm(
         }
 
         const sqlFile = req.query.include_answers === 'true'
-            ? 'submissions/getAllByFormWithAnswers.sql'
-            : 'submissions/getAllByForm.sql'
+            ? 'submissions/selectByFormWithAnswers.sql'
+            : 'submissions/selectByForm.sql'
 
         const { sql, params } = await buildFilteredQuery(
             sqlFile,
@@ -35,12 +35,7 @@ export default async function getSubmissionsByForm(
             req.query,
             undefined,
             {
-                searchFieldKeys: ['email', 'name', 'submission_id'],
-                searchFieldMap: {
-                    email: 'u.email',
-                    name: 'u.name',
-                    submission_id: 's.id::text'
-                },
+                searchFields: ['u.email', 'u.name', 's.id::text'],
                 explicitOrderField: orderMap[orderBy]
             }
         )
@@ -48,7 +43,7 @@ export default async function getSubmissionsByForm(
         const responseBody = buildListResponse(result.rows as Record<string, unknown>[])
 
         if (req.query.include_answers === 'true') {
-            const fieldsSql = await loadSQL('form-fields/get.sql')
+            const fieldsSql = await loadSQL('form-fields/selectByForm.sql')
             const fieldsResult = await run(fieldsSql, [formId])
             return res.send({
                 ...responseBody,

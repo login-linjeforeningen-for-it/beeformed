@@ -21,7 +21,7 @@ export default async function getPublicForm(req: FastifyRequest<{ Params: IdPara
     }
 
     try {
-        const sql = await loadSQL('forms/getPublic.sql')
+        const sql = await loadSQL('forms/selectPublic.sql')
         const result = await run(sql, [id, userId])
         const entity = result.rows.length > 0 ? result.rows[0] : null
 

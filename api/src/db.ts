@@ -1,5 +1,6 @@
 import pg from 'pg'
 import config from '#constants'
+import { logError } from '#utils/logger.ts'
 
 const {
     DB,
@@ -13,9 +14,9 @@ const {
 } = config
 const { Pool } = pg
 const pool = new Pool({
-    user: DB_USER || 'beeformed',
+    user: DB_USER,
     host: DB_HOST,
-    database: DB || 'beeformed',
+    database: DB,
     password: DB_PASSWORD,
     port: DB_PORT,
     max: DB_MAX_CONN,
@@ -24,17 +25,13 @@ const pool = new Pool({
     keepAlive: true
 })
 
+pool.on('error', (err) => logError('Unexpected DB pool error', { event: 'db.pool_error', error: err }))
+
 export default async function run(query: string, params?: SQLParamType[]): Promise<pg.QueryResult> {
-    const client = await pool.connect()
-    try {
-        return await client.query(query, params ?? [])
-    } finally {
-        client.release()
-    }
+    return pool.query(query, params ?? [])
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function runInTransaction(callback: (client: pg.PoolClient) => Promise<any>) {
+export async function runInTransaction<T>(callback: (client: pg.PoolClient) => Promise<T>): Promise<T> {
     const client = await pool.connect()
     try {
         await client.query('BEGIN')

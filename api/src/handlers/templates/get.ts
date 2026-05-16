@@ -1,39 +1,22 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
 import run from '#db'
-import { buildFilteredQuery } from '#utils/sql.ts'
-import { buildListResponse } from '#utils/listResponse.ts'
+import { loadSQL } from '#utils/sql.ts'
 import { logError } from '#utils/logger.ts'
 
-export default async function getTemplates(
-    req: AuthenticatedRequest<{ Querystring: ListQuerystring }>,
-    res: FastifyReply
-) {
+export default async function getTemplate(req: AuthenticatedRequest<{ Params: IdParams }>, res: FastifyReply) {
     try {
-        const orderBy = req.query.order_by || 'created_at'
-        const orderMap: Record<string, string> = {
-            created_at: 'created_at',
-            updated_at: 'updated_at',
-            title: 'title',
-            expires_at: 'expires_at',
-            published_at: 'published_at'
-        }
-        if (!orderMap[orderBy]) {
-            return res.status(400).send({ error: 'Invalid order_by parameter' })
+        const sql = await loadSQL('templates/selectById.sql')
+        const result = await run(sql, [req.params.id])
+        const entity = result.rows.length > 0 ? result.rows[0] : null
+
+        if (!entity) {
+            return res.status(404).send({ error: 'Template not found' })
         }
 
-        const { sql, params } = await buildFilteredQuery(
-            'templates/getByUserId.sql',
-            [req.user.id],
-            req.query,
-            undefined,
-            { explicitOrderField: orderMap[orderBy] }
-        )
-
-        const result = await run(sql, params)
-        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
+        return res.send(entity)
     } catch (error) {
-        logError('Error getting templates', {
+        logError('Error reading entity', {
             event: 'http.internal_error',
             requestId: req.id,
             error
