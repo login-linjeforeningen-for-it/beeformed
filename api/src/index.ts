@@ -14,6 +14,7 @@ import { emailQueueScheduler} from './utils/email/sendSMTP.ts'
 import { userCleanupScheduler } from './utils/cleanup/userCleanup.ts'
 import { formCleanupScheduler } from './utils/cleanup/formCleanup.ts'
 import { logError, logInfo } from '#utils/logger.ts'
+import getIndex from './handlers/index/get.ts'
 
 const fastify = Fastify({
     logger: true
@@ -52,6 +53,7 @@ fastify.register(userCleanupScheduler)
 fastify.register(formCleanupScheduler)
 fastify.register(emailQueueScheduler)
 fastify.get('/favicon.ico', getFavicon)
+fastify.get('/', getIndex)
 
 const port = config.PORT
 
