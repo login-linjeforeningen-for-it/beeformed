@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import run from '#db'
-import { loadSQL } from '#utils/sql.ts'
+import { loadSQL } from '#utils/db/sql.ts'
 import { logError } from '#utils/logger.ts'
 
 type PermissionChecker = (entityId: string, userId: string, groups?: string[]) => Promise<boolean>
@@ -42,7 +42,6 @@ export function createPermissionMiddleware(options: PermissionMiddlewareOptions)
         }
 
         const hasPermission = await options.checkPermission(id, userId, userGroups)
-
         if (!hasPermission) {
             res.status(403).send({ error: 'Forbidden' })
             return
@@ -59,3 +58,15 @@ export const checkTemplatePermission = createPermissionChecker(
     'template-permissions/checkPermission.sql',
     'Error checking template permission:'
 )
+
+export const formPermissionMiddleware = createPermissionMiddleware({
+    idParams: ['formId', 'id'],
+    missingIdMessage: 'Missing form ID',
+    checkPermission
+})
+
+export const templatePermissionMiddleware = createPermissionMiddleware({
+    idParams: ['templateId', 'id'],
+    missingIdMessage: 'Missing template ID',
+    checkPermission: checkTemplatePermission
+})

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import EditTemplateFieldsPage from '@components/template/pages/fields'
 import EditTemplatePermissionsPage from '@components/template/pages/permissions'
+import EditTemplatePage from '@components/template/pages/form'
 
 type PageProps = {
     params: Promise<{ id: string, slug?: string[] | string }>
@@ -12,27 +13,29 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
     const { id, slug } = await params
     const rawType = Array.isArray(slug) ? slug[0] : slug
-    const type = rawType === 'settings' || !rawType ? 'fields' : rawType
+    const type = rawType || 'fields'
 
     let data
-    let templateData
 
     try {
         switch (type) {
+            case 'settings':
+                data = await getTemplate(id)
+                break
             case 'permissions':
                 data = await getTemplatePermissions(id)
                 break
             default:
                 data = await getTemplateFields(id)
         }
-
-        templateData = await getTemplate(id)
     } catch {
         notFound()
     }
 
     function renderContent(content: unknown) {
         switch (type) {
+            case 'settings':
+                return <EditTemplatePage template={content as GetTemplateProps} />
             case 'permissions':
                 return <EditTemplatePermissionsPage permissions={content as GetTemplatePermissionsProps} templateId={id} />
             default:
@@ -43,16 +46,13 @@ export default async function Page({ params }: PageProps) {
     return (
         <PageContainer title={`Template - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
             <div className='flex flex-wrap gap-2 mb-4'>
-                <LinkButton
-                    href={`/template/${id}/fields`}
-                    highlight={type === 'fields'}
-                >
+                <LinkButton href={`/template/${id}/fields`} highlight={type === 'fields'}>
                     Fields
                 </LinkButton>
-                <LinkButton
-                    href={`/template/${id}/permissions`}
-                    highlight={type === 'permissions'}
-                >
+                <LinkButton href={`/template/${id}/settings`} highlight={type === 'settings'}>
+                    Settings
+                </LinkButton>
+                <LinkButton href={`/template/${id}/permissions`} highlight={type === 'permissions'}>
                     Permissions
                 </LinkButton>
             </div>
@@ -61,7 +61,6 @@ export default async function Page({ params }: PageProps) {
                     {renderContent(data)}
                 </div>
             </div>
-            <p className='text-sm text-login-200 mt-4'>Template: {templateData.title}</p>
         </PageContainer>
     )
 }

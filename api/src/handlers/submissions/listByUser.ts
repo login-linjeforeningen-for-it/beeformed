@@ -1,48 +1,32 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
-import run from '#db'
-import { buildFilteredQuery } from '#utils/sql.ts'
-import { buildListResponse } from '#utils/listResponse.ts'
-import { logError } from '#utils/logger.ts'
+import type { ListQuerystring } from '#schemas.ts'
+import run, { HttpError } from '#db'
+import { buildFilteredQuery } from '#utils/db/sql.ts'
+import { buildListResponse } from '#utils/db/listResponse.ts'
+
+const ORDER_MAP: Record<string, string> = {
+    submitted_at: 'submitted_at',
+    id: 'id',
+    form_id: 'form_id',
+    form_title: 'form_title',
+    user_name: 'user_name',
+    user_email: 'user_email'
+}
 
 export default async function listSubmissionsByUser(
     req: AuthenticatedRequest<{ Querystring: ListQuerystring }>,
     res: FastifyReply
 ) {
-    const userId = req.user.id
+    const orderBy = req.query.order_by || 'submitted_at'
+    if (!ORDER_MAP[orderBy]) throw new HttpError(400, 'Invalid order_by parameter')
 
-    try {
-        const orderBy = req.query.order_by || 'submitted_at'
-        const orderMap: Record<string, string> = {
-            submitted_at: 's.submitted_at',
-            id: 's.id',
-            form_id: 's.form_id',
-            form_title: 'f.title',
-            user_name: 'u.name',
-            user_email: 'u.email'
-        }
-        if (!orderMap[orderBy]) {
-            return res.status(400).send({ error: 'Invalid order_by parameter' })
-        }
-
-        const { sql, params } = await buildFilteredQuery(
-            'submissions/selectByUser.sql',
-            [userId],
-            req.query,
-            undefined,
-            {
-                searchFields: ['f.title', 'u.email', 'u.name'],
-                explicitOrderField: orderMap[orderBy]
-            }
-        )
-        const result = await run(sql, params)
-        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
-    } catch (error) {
-        logError('Error reading entity', {
-            event: 'http.internal_error',
-            requestId: req.id,
-            error
-        })
-        return res.status(500).send({ error: 'Internal server error' })
-    }
+    const { sql, params } = await buildFilteredQuery(
+        'submissions/selectByUser.sql',
+        [req.user.id],
+        req.query,
+        { searchFields: ['form_title', 'user_email', 'user_name'], orderField: ORDER_MAP[orderBy] }
+    )
+    const result = await run(sql, params)
+    return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
 }

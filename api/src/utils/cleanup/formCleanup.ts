@@ -58,6 +58,5 @@ async function runFormCleanup() {
 }
 
 export async function formCleanupScheduler(_fastify: FastifyInstance) {
-    await runFormCleanup()
     Bun.cron('0 0 * * *', runFormCleanup)
 }

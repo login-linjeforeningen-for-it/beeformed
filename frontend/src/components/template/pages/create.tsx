@@ -5,16 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Input, toast } from 'uibee/components'
 import { postTemplate } from '@utils/api/client'
 
-function toDateTimeLocal(date: Date): string {
-    const pad = (n: number) => String(n).padStart(2, '0')
-    const year = date.getFullYear()
-    const month = pad(date.getMonth() + 1)
-    const day = pad(date.getDate())
-    const hours = pad(date.getHours())
-    const minutes = pad(date.getMinutes())
-    return `${year}-${month}-${day}T${hours}:${minutes}`
-}
-
 export default function CreateTemplateButton() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
@@ -40,8 +30,6 @@ export default function CreateTemplateButton() {
         setLoading(true)
 
         try {
-            const now = new Date()
-            const expires = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
             const suffix = Date.now().toString(36)
             const slugBase = slugify(trimmedTitle) || 'template'
 
@@ -53,8 +41,6 @@ export default function CreateTemplateButton() {
                 limit: null,
                 waitlist: false,
                 multiple_submissions: false,
-                published_at: toDateTimeLocal(now),
-                expires_at: toDateTimeLocal(expires),
                 source_form_id: null
             })
 

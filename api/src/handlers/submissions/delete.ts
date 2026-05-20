@@ -1,118 +1,99 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
+import type { IdParams } from '#schemas.ts'
 import config from '#constants'
-import { runInTransaction } from '#db'
-import { loadSQL } from '#utils/sql.ts'
+import { runInTransaction, HttpError } from '#db'
+import { loadSQL } from '#utils/db/sql.ts'
 import { sendTypedEmail } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
+
+const getSql = await loadSQL('submissions/selectForDeletion.sql')
+const formLockSql = await loadSQL('forms/selectLimitForUpdate.sql')
+const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
+const countSql = await loadSQL('submissions/countRegistered.sql')
+const waitlistSql = await loadSQL('submissions/selectWaitlistBatch.sql')
 
 export default async function deleteSubmission(
     req: AuthenticatedRequest<{ Params: IdParams }>,
     res: FastifyReply
 ) {
-    const submissionId = req.params.id
     const user = req.user
 
-    try {
-        const result = await runInTransaction(async (client) => {
-            const getSql = await loadSQL('submissions/selectForDeletion.sql')
-            const getResult = await client.query(getSql, [submissionId])
+    const result = await runInTransaction(async (client) => {
+        const getResult = await client.query(getSql, [req.params.id])
+        if (getResult.rows.length === 0) throw new HttpError(404, 'Submission not found')
 
-            if (getResult.rows.length === 0) {
-                throw Object.assign(new Error('Submission not found'), { statusCode: 404 })
-            }
+        const submission = getResult.rows[0]
+        if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
+            throw new HttpError(403, 'You do not have permission to delete this submission')
+        }
+        if (new Date() > new Date(submission.expires_at)) {
+            throw new HttpError(400, 'Cannot remove submission after form has closed')
+        }
 
-            const submission = getResult.rows[0]
+        const newStatus: 'cancelled' | 'rejected' = submission.user_id === user.id ? 'cancelled' : 'rejected'
+        await client.query(updateStatusSql, [req.params.id, newStatus])
 
-            if (submission.user_id !== user.id && submission.form_owner_id !== user.id) {
-                throw Object.assign(new Error('You do not have permission to delete this submission'), { statusCode: 403 })
-            }
+        const formLockResult = await client.query(formLockSql, [submission.form_id])
+        const currentLimit = formLockResult.rows[0]?.limit ?? null
 
-            const now = new Date()
-            const expiresAt = new Date(submission.expires_at)
-            if (now > expiresAt) {
-                throw Object.assign(new Error('Cannot remove submission after form has closed'), { statusCode: 400 })
-            }
+        let promoted: { id: string; email: string | null } | null = null
+        if (submission.status === 'registered' && currentLimit !== null) {
+            const countResult = await client.query(countSql, [submission.form_id])
+            const registeredCount = Number(countResult.rows[0].count)
 
-            const updateStatusSql = await loadSQL('submissions/updateStatus.sql')
-            const newStatus = submission.user_id === user.id ? 'cancelled' : 'rejected'
-            await client.query(updateStatusSql, [submissionId, newStatus])
-
-            // Lock the form row to serialize concurrent deletions that would both try to promote from the waitlist
-            await client.query('SELECT id FROM forms WHERE id = $1 FOR UPDATE', [submission.form_id])
-
-            let promoted: { id: string; email: string | null } | null = null
-            if (submission.status === 'registered' && submission.limit !== null) {
-                const countSql = await loadSQL('submissions/countRegistered.sql')
-                const countResult = await client.query(countSql, [submission.form_id])
-                const registeredCount = Number(countResult.rows[0].count)
-
-                if (registeredCount < submission.limit) {
-                    const getWaitlistSql = await loadSQL('submissions/selectWaitlistBatch.sql')
-                    const nextWaitlistedResult = await client.query(getWaitlistSql, [submission.form_id, 1])
-
-                    if (nextWaitlistedResult.rows.length > 0) {
-                        const nextPerson = nextWaitlistedResult.rows[0] as { id: string; email: string | null }
-                        promoted = nextPerson
-                        await client.query(updateStatusSql, [nextPerson.id, 'registered'])
-                    }
+            if (registeredCount < currentLimit) {
+                const nextResult = await client.query(waitlistSql, [submission.form_id, 1])
+                if (nextResult.rows.length > 0) {
+                    const nextPerson = nextResult.rows[0] as { id: string; email: string | null }
+                    promoted = nextPerson
+                    await client.query(updateStatusSql, [nextPerson.id, 'registered'])
                 }
             }
-
-            return { submission, promoted, newStatus }
-        })
-
-        const { submission, promoted, newStatus } = result
-
-        if (submission.user_email) {
-            try {
-                await sendTypedEmail('submission', submission.user_email, {
-                    title: submission.form_title,
-                    status: newStatus,
-                    ownerEmail: submission.form_owner_email,
-                    actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
-                    actionText: 'View Form',
-                    submissionId: submission.id
-                })
-            } catch (emailError) {
-                logError('Failed to send cancellation email', {
-                    event: 'submission.cancellation_email_failed',
-                    submissionId: submission.id,
-                    error: emailError
-                })
-            }
         }
 
-        if (promoted?.email) {
-            try {
-                await sendTypedEmail('submission', promoted.email, {
-                    title: submission.form_title,
-                    status: 'bumped',
-                    ownerEmail: submission.form_owner_email,
-                    actionUrl: `${config.FRONTEND_URL}/submissions/${promoted.id}`,
-                    actionText: 'View Submission',
-                    submissionId: promoted.id
-                })
-            } catch (emailError) {
-                logError('Failed to send promotion email', {
-                    event: 'submission.promotion_email_failed',
-                    submissionId: promoted.id,
-                    error: emailError
-                })
-            }
-        }
+        return { submission, promoted, newStatus }
+    })
 
-        return res.status(204).send()
-    } catch (error: unknown) {
-        const statusCode = (error as Error & { statusCode?: number }).statusCode
-        if (statusCode) {
-            return res.status(statusCode).send({ error: (error as Error).message })
+    const { submission, promoted, newStatus } = result
+
+    if (submission.user_email) {
+        try {
+            await sendTypedEmail('submission', submission.user_email, {
+                title: submission.form_title,
+                status: newStatus,
+                ownerEmail: submission.form_owner_email,
+                actionUrl: `${config.FRONTEND_URL}/f/${submission.form_slug}`,
+                actionText: 'View Form',
+                submissionId: submission.id
+            })
+        } catch (emailError) {
+            logError('Failed to send cancellation email', {
+                event: 'submission.cancellation_email_failed',
+                submissionId: submission.id,
+                error: emailError
+            })
         }
-        logError('Error deleting submission', {
-            event: 'http.internal_error',
-            requestId: req.id,
-            error
-        })
-        return res.status(500).send({ error: 'Internal server error' })
     }
+
+    if (promoted?.email) {
+        try {
+            await sendTypedEmail('submission', promoted.email, {
+                title: submission.form_title,
+                status: 'bumped',
+                ownerEmail: submission.form_owner_email,
+                actionUrl: `${config.FRONTEND_URL}/submissions/${promoted.id}`,
+                actionText: 'View Submission',
+                submissionId: promoted.id
+            })
+        } catch (emailError) {
+            logError('Failed to send promotion email', {
+                event: 'submission.promotion_email_failed',
+                submissionId: promoted.id,
+                error: emailError
+            })
+        }
+    }
+
+    return res.status(204).send()
 }

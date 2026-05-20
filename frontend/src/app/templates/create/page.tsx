@@ -5,7 +5,7 @@ import CreateTemplateButton from '@components/template/pages/create'
 
 export default async function CreateTemplatePage() {
     const groups = (await cookies()).get('user_groups')?.value.split(',') || []
-    if (!groups.map((g: string) => g.toLowerCase()).includes('queenbee')) {
+    if (!groups.map((g: string) => g.toLowerCase()).includes('aktiv')) {
         return forbidden()
     }
 

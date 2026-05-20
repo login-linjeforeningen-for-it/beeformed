@@ -1,3 +1,4 @@
+import type { AccountDeletionWarningEmailContent, EmailTemplate } from '../sendSMTP.ts'
 import { appendEmailFooter, buildWarningCard, renderEmailLayout } from './templateLayout.ts'
 
 export function createAccountDeletionWarningTemplate(content: AccountDeletionWarningEmailContent): EmailTemplate {

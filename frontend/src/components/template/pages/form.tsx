@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { toast, Input, Switch, Textarea } from 'uibee/components'
 import { useRouter } from 'next/navigation'
-import { CalendarClock, FileText, Settings } from 'lucide-react'
+import { FileText, Settings } from 'lucide-react'
 import { postTemplate, putTemplate } from '@utils/api/client'
 
 export default function EditTemplatePage({ template }: { template?: GetTemplateProps }) {
@@ -17,8 +17,6 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
         limit: template?.limit ? String(template.limit) : '',
         waitlist: template?.waitlist || false,
         multiple_submissions: template?.multiple_submissions || false,
-        published_at: template?.published_at ? new Date(template.published_at).toISOString().slice(0, 16) : '',
-        expires_at: template?.expires_at ? new Date(template.expires_at).toISOString().slice(0, 16) : ''
     })
 
     async function handleSubmit(e: React.FormEvent) {
@@ -33,9 +31,7 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
                 anonymous_submissions: templateData.anonymous_submissions,
                 limit: templateData.limit ? parseInt(templateData.limit) : null,
                 waitlist: templateData.waitlist,
-                multiple_submissions: templateData.multiple_submissions,
-                published_at: templateData.published_at,
-                expires_at: templateData.expires_at,
+                multiple_submissions: templateData.anonymous_submissions ? true : templateData.multiple_submissions,
                 source_form_id: template?.source_form_id || null
             }
 
@@ -144,37 +140,10 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
                     </div>
                 </div>
 
-                <div className='space-y-4'>
-                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
-                        <CalendarClock className='w-5 h-5 text-login-100' />
-                        <h3 className='font-medium text-lg'>Availability</h3>
-                    </div>
-
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 pl-1'>
-                        <Input
-                            name='published_at'
-                            type='datetime-local'
-                            label='Publish date'
-                            value={templateData.published_at}
-                            onChange={(e) => setTemplateData(prev => ({ ...prev, published_at: e.target.value }))}
-                            required
-                        />
-
-                        <Input
-                            name='expires_at'
-                            type='datetime-local'
-                            label='Expiration date'
-                            value={templateData.expires_at}
-                            onChange={(e) => setTemplateData(prev => ({ ...prev, expires_at: e.target.value }))}
-                            required
-                        />
-                    </div>
-                </div>
-
                 <div className='flex flex-col sm:flex-row gap-3 pt-6 border-t border-login-800/30 mt-8'>
                     <button
                         type='submit'
-                        disabled={loading || !templateData.title.trim() || !templateData.published_at || !templateData.expires_at}
+                        disabled={loading || !templateData.title.trim()}
                         className='flex-1 px-4 py-2 bg-login text-login-900 rounded-md
                             hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed
                             transition-colors focus:outline-none focus:ring-2 focus:ring-login

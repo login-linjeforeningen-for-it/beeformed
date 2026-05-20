@@ -5,8 +5,6 @@ SELECT
     anonymous_submissions,
     "limit",
     waitlist,
-    multiple_submissions,
-    published_at,
-    expires_at
+    multiple_submissions
 FROM form_templates
 WHERE id = $1;

@@ -6,8 +6,9 @@ SELECT
     tp."group",
     gu.email as granted_by_email,
     tp.created_at,
-    tp.updated_at
+    tp.updated_at,
+    COUNT(*) OVER() as total_count
 FROM template_permissions tp
 LEFT JOIN users u ON tp.user_id = u.user_id
 LEFT JOIN users gu ON tp.granted_by = gu.user_id
-WHERE tp.template_id = $1;
+WHERE tp.template_id = $1

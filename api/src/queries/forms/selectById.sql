@@ -14,7 +14,6 @@ SELECT
             'description', ff.description,
             'required', ff.required,
             'options', ff.options,
-            'validation', ff.validation,
             'field_order', ff.field_order
         ) ORDER BY ff.field_order
     ) FILTER (WHERE ff.id IS NOT NULL), '[]'::json) as fields

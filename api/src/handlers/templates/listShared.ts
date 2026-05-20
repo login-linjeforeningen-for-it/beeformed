@@ -1,43 +1,30 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
-import run from '#db'
-import { buildFilteredQuery } from '#utils/sql.ts'
-import { buildListResponse } from '#utils/listResponse.ts'
-import { logError } from '#utils/logger.ts'
+import type { ListQuerystring } from '#schemas.ts'
+import run, { HttpError } from '#db'
+import { buildFilteredQuery } from '#utils/db/sql.ts'
+import { buildListResponse } from '#utils/db/listResponse.ts'
+
+const ORDER_MAP: Record<string, string> = {
+    created_at: 'created_at',
+    updated_at: 'updated_at',
+    title: 'title',
+}
 
 export default async function listSharedTemplates(
     req: AuthenticatedRequest<{ Querystring: ListQuerystring }>,
     res: FastifyReply
 ) {
-    try {
-        const orderBy = req.query.order_by || 'created_at'
-        const orderMap: Record<string, string> = {
-            created_at: 't.created_at',
-            updated_at: 't.updated_at',
-            title: 't.title',
-            expires_at: 't.expires_at',
-            published_at: 't.published_at'
-        }
-        if (!orderMap[orderBy]) {
-            return res.status(400).send({ error: 'Invalid order_by parameter' })
-        }
+    const orderBy = req.query.order_by || 'created_at'
+    if (!ORDER_MAP[orderBy]) throw new HttpError(400, 'Invalid order_by parameter')
 
-        const { sql, params } = await buildFilteredQuery(
-            'templates/selectShared.sql',
-            [req.user.id, req.user.groups],
-            req.query,
-            't',
-            { explicitOrderField: orderMap[orderBy] }
-        )
+    const { sql, params } = await buildFilteredQuery(
+        'templates/selectShared.sql',
+        [req.user.id, req.user.groups],
+        req.query,
+        { searchFields: ['title', 'description'], orderField: ORDER_MAP[orderBy] }
+    )
 
-        const result = await run(sql, params)
-        return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
-    } catch (error) {
-        logError('Error getting shared templates', {
-            event: 'http.internal_error',
-            requestId: req.id,
-            error
-        })
-        return res.status(500).send({ error: 'Internal server error' })
-    }
+    const result = await run(sql, params)
+    return res.send(buildListResponse(result.rows as Record<string, unknown>[]))
 }

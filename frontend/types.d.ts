@@ -23,7 +23,14 @@ declare global {
         total: number
     }
 
-    type Template = Form & {
+    type Template = {
+        slug: string
+        title: string
+        description: string | null
+        anonymous_submissions: boolean
+        limit: number | null
+        waitlist: boolean
+        multiple_submissions: boolean
         source_form_id?: string | null
     }
 
@@ -40,7 +47,6 @@ declare global {
             description: string | null
             required: boolean
             options: string[] | null
-            validation: Record<string, any> | null
             field_order: number
         }[]
     }
@@ -60,9 +66,8 @@ declare global {
 
     type GetPublicFormProps = Form & {
         id: string
-        creator_email: string
         creator_name: string
-        registered_count: string
+        registered_count: number
         user_has_submitted?: boolean
         fields: {
             id: string
@@ -71,8 +76,6 @@ declare global {
             description: string | null
             required: boolean
             options: string[] | null
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            validation: Record<string, any> | null
             field_order: number
         }[]
     }
@@ -85,8 +88,6 @@ declare global {
         description: string | null
         required: boolean
         options: string[] | null
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        validation: Record<string, any> | null
         field_order: number
     }
 

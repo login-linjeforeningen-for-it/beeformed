@@ -14,10 +14,10 @@ export async function deleteForm(formId: string) {
     return apiRequestClient({ method: 'DELETE', path: `forms/${formId}` })
 }
 
-export async function duplicateForm(formId: string): Promise<{ id: string }> {
-    return apiRequestClient({ method: 'POST', path: `forms/${formId}/duplicate` })
+export async function duplicateForm(formId: string, data: { title: string; slug: string; published_at: string; expires_at: string }): Promise<{ id: string }> {
+    return apiRequestClient({ method: 'POST', path: `forms/${formId}/duplicate`, data })
 }
 
-export async function createTemplateFromForm(formId: string): Promise<{ id: string }> {
-    return apiRequestClient({ method: 'POST', path: `forms/${formId}/templates` })
+export async function createTemplateFromForm(formId: string, data: { title: string; slug: string }): Promise<{ id: string }> {
+    return apiRequestClient({ method: 'POST', path: `forms/${formId}/templates`, data })
 }

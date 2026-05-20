@@ -2,20 +2,19 @@
 SELECT
     t.id, t.user_id, t.source_form_id, t.slug, t.title, t.description,
     t.anonymous_submissions, t.limit, t.waitlist, t.multiple_submissions,
-    t.published_at, t.expires_at, t.created_at, t.updated_at,
+    t.created_at, t.updated_at,
     u.name as creator_name,
     u.email as creator_email,
     COALESCE(json_agg(
-        DISTINCT jsonb_build_object(
+        jsonb_build_object(
             'id', tf.id,
             'field_type', tf.field_type,
             'title', tf.title,
             'description', tf.description,
             'required', tf.required,
             'options', tf.options,
-            'validation', tf.validation,
             'field_order', tf.field_order
-        )
+        ) ORDER BY tf.field_order
     ) FILTER (WHERE tf.id IS NOT NULL), '[]'::json) as fields
 FROM form_templates t
 LEFT JOIN users u ON t.user_id = u.user_id

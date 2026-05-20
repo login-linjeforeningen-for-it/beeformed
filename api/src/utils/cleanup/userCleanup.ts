@@ -54,7 +54,6 @@ async function runUserCleanup() {
 }
 
 export async function userCleanupScheduler(_fastify: FastifyInstance) {
-    await runUserCleanup()
     Bun.cron('0 0 * * *', runUserCleanup)
 }
 

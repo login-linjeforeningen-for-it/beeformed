@@ -113,6 +113,9 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
             userInfo
         }
 
+        const isRefresh = tokenCache.has(token)
+        if (isRefresh) tokenCache.delete(token)
+
         if (tokenCache.size >= MAX_CACHE_SIZE) {
             const oldestKey = tokenCache.keys().next().value
             if (oldestKey !== undefined) tokenCache.delete(oldestKey)

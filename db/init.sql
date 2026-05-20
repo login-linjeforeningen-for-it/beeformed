@@ -40,7 +40,6 @@ CREATE TABLE form_fields (
     description VARCHAR(2000),
     required BOOLEAN DEFAULT FALSE,
     options TEXT[],
-    validation JSONB,
     field_order INTEGER NOT NULL CHECK (field_order >= 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -89,11 +88,8 @@ CREATE TABLE form_templates (
     "limit" INTEGER CHECK ("limit" IS NULL OR "limit" > 0),
     waitlist BOOLEAN DEFAULT FALSE,
     multiple_submissions BOOLEAN DEFAULT FALSE,
-    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CHECK (published_at < expires_at)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Template fields
@@ -105,7 +101,6 @@ CREATE TABLE template_fields (
     description VARCHAR(2000),
     required BOOLEAN DEFAULT FALSE,
     options TEXT[],
-    validation JSONB,
     field_order INTEGER NOT NULL CHECK (field_order >= 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

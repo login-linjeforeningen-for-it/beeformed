@@ -6,6 +6,7 @@ import { postForm, putForm } from '@utils/api/client'
 import { Input, Switch, Textarea } from 'uibee/components'
 import { useRouter } from 'next/navigation'
 import { CalendarClock, FileText, Settings } from 'lucide-react'
+import { toISOWithOffset, toDateTimeLocal } from '@utils/dateTime'
 
 export default function EditFormPage({ form }: { form?: GetFormProps }) {
     const router = useRouter()
@@ -18,8 +19,8 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
         limit: form?.limit ? String(form.limit) : '',
         waitlist: form?.waitlist || false,
         multiple_submissions: form?.multiple_submissions || false,
-        published_at: form?.published_at ? new Date(form.published_at).toISOString().slice(0, 16) : '',
-        expires_at: form?.expires_at ? new Date(form.expires_at).toISOString().slice(0, 16) : ''
+        published_at: form?.published_at ? toDateTimeLocal(form.published_at) : '',
+        expires_at: form?.expires_at ? toDateTimeLocal(form.expires_at) : ''
     })
 
     async function handleSubmit(e: React.FormEvent) {
@@ -34,9 +35,9 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                 anonymous_submissions: formData.anonymous_submissions,
                 limit: formData.limit ? parseInt(formData.limit) : null,
                 waitlist: formData.waitlist,
-                multiple_submissions: formData.multiple_submissions,
-                published_at: formData.published_at,
-                expires_at: formData.expires_at
+                multiple_submissions: formData.anonymous_submissions ? true : formData.multiple_submissions,
+                published_at: toISOWithOffset(formData.published_at),
+                expires_at: toISOWithOffset(formData.expires_at)
             }
 
             if (form?.id) {

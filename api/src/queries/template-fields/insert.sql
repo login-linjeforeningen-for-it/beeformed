@@ -6,7 +6,6 @@ INSERT INTO template_fields (
     description,
     required,
     options,
-    validation,
     field_order
 )
 VALUES (
@@ -16,7 +15,6 @@ VALUES (
     $4,
     $5,
     $6,
-    $7,
-    $8
+    $7
 )
-RETURNING *;
+RETURNING id, template_id, field_type, title, description, required, options, field_order, created_at;

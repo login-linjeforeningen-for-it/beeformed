@@ -25,18 +25,12 @@ export async function scanSubmission(submissionId: string, formId: string): Prom
     const normalizedSubmissionId = submissionId.trim()
     const normalizedFormId = formId.trim()
 
-    if (!normalizedSubmissionId) {
-        throw new Error('Missing submission ID')
-    }
-
-    if (!normalizedFormId) {
-        throw new Error('Missing form ID')
-    }
+    if (!normalizedSubmissionId) throw new Error('Missing submission ID')
+    if (!normalizedFormId) throw new Error('Missing form ID')
 
     return apiRequestClient({
         method: 'POST',
-        path: `submissions/${normalizedSubmissionId}/scan`,
-        data: { form_id: normalizedFormId }
+        path: `forms/${normalizedFormId}/scan/${normalizedSubmissionId}`
     })
 }
 

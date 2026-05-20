@@ -8,8 +8,6 @@ SET
     "limit" = $6,
     waitlist = $7,
     multiple_submissions = $8,
-    published_at = $9,
-    expires_at = $10,
     updated_at = NOW()
 WHERE id = $1
-RETURNING *;
+RETURNING id, user_id, source_form_id, slug, title, description, anonymous_submissions, "limit", waitlist, multiple_submissions, created_at, updated_at;

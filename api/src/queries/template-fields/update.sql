@@ -6,8 +6,7 @@ SET
     description = $4,
     required = $5,
     options = $6,
-    validation = $7,
-    field_order = $8
+    field_order = $7
 WHERE
-    id = $1 AND template_id = $9
-RETURNING *;
+    id = $1 AND template_id = $8
+RETURNING id, template_id, field_type, title, description, required, options, field_order, created_at;

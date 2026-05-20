@@ -8,9 +8,7 @@ INSERT INTO form_templates (
     anonymous_submissions,
     "limit",
     waitlist,
-    multiple_submissions,
-    published_at,
-    expires_at
+    multiple_submissions
 )
 VALUES (
     $1,
@@ -21,8 +19,6 @@ VALUES (
     $6,
     $7,
     $8,
-    $9,
-    $10,
-    $11
+    $9
 )
 RETURNING *;

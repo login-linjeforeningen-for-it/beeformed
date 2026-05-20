@@ -1,1 +1,1 @@
-SELECT * FROM users WHERE user_id = $1
+SELECT user_id, email, name, created_at, last_active_at FROM users WHERE user_id = $1

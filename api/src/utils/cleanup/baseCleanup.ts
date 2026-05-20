@@ -1,5 +1,5 @@
 import run from '#db'
-import { assertSafeIdentifier } from '#utils/sql.ts'
+import { assertSafeIdentifier } from '#utils/db/sql.ts'
 import { sendTypedEmail, QueuedEmailType, EmailPayloadMap } from '#utils/email/sendSMTP.ts'
 import { logError } from '#utils/logger.ts'
 

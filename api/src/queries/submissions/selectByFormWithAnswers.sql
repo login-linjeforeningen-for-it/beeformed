@@ -1,9 +1,8 @@
 SELECT s.id, u.email as user_email, u.name as user_name, s.submitted_at, s.status, s.scanned_at,
-    COUNT(*) OVER() as total_count,
     COALESCE(
         json_agg(
             json_build_object('field_id', sd.field_id, 'value', sd.value)
-        ) FILTER (WHERE sd.field_id IS NOT NULL), 
+        ) FILTER (WHERE sd.field_id IS NOT NULL),
         '[]'
     ) as answers
 FROM submissions s

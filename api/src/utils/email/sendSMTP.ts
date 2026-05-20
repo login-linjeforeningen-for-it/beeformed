@@ -9,6 +9,39 @@ import { logError, logInfo } from '#utils/logger.ts'
 
 export type QueuedEmailType = 'submission' | 'account_deletion_warning' | 'form_deletion_warning'
 
+export type EmailTemplate = {
+    subject: string
+    html: string
+    text: string
+    attachments?: Array<{
+        filename: string
+        content: Buffer
+        contentType: string
+    }>
+}
+
+export type EmailContent = {
+    title: string
+    status: 'registered' | 'waitlisted' | 'rejected' | 'cancelled' | 'bumped'
+    ownerEmail: string
+    actionUrl?: string
+    actionText?: string
+    submissionId: string
+}
+
+export type AccountDeletionWarningEmailContent = {
+    name?: string | null
+    warningDays: number
+    actionUrl: string
+}
+
+export type FormDeletionWarningEmailContent = {
+    name?: string | null
+    formTitle: string
+    warningDays: number
+    actionUrl: string
+}
+
 export type EmailPayloadMap = {
     submission: EmailContent
     account_deletion_warning: AccountDeletionWarningEmailContent

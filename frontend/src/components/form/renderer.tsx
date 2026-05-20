@@ -12,7 +12,6 @@ interface FormField {
     description: string | null
     required: boolean
     options: string[] | null
-    validation: Record<string, unknown> | null
     field_order: number
 }
 
@@ -21,12 +20,11 @@ interface FormData {
     title: string
     description: string | null
     creator_name: string
-    creator_email: string
     fields: FormField[]
     limit: number | null
     waitlist: boolean
     multiple_submissions: boolean
-    registered_count: string
+    registered_count: number
     user_has_submitted?: boolean
 }
 
@@ -34,7 +32,7 @@ interface FormData {
 
 export default function FormRenderer({ form, submission }: { form: FormData; submission?: Submission }) {
     const [loading, setLoading] = useState(false)
-    const registeredCount = parseInt(form.registered_count || '0')
+    const registeredCount = form.registered_count
     const isFull = form.limit !== null && registeredCount >= form.limit
     const isWaitlist = isFull && form.waitlist
     const blockMultiple = !form.multiple_submissions && form.user_has_submitted
@@ -100,9 +98,9 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
                 value: formData[field.id] || ''
             }))
 
-            const result = await postSubmission(form.id, { fields }) as { id: string }
+            const result = await postSubmission(form.id, { fields }) as { id: string; status: 'registered' | 'waitlisted' }
 
-            toast.success('Form submitted successfully!')
+            toast.success(result.status === 'waitlisted' ? "You've been added to the waitlist!" : 'Form submitted successfully!')
             setFormData({})
             router.push(`/submissions/${result.id}`)
         } catch (error) {

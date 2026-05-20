@@ -1,59 +1,39 @@
 import type { FastifyReply } from 'fastify'
 import type { AuthenticatedRequest } from '#utils/auth/authMiddleware.ts'
-import { runInTransaction } from '#db'
-import { loadSQL } from '#utils/sql.ts'
-import { logError } from '#utils/logger.ts'
-import { hasRequiredGroup } from '#utils/validators.ts'
-import { buildUniqueTitle, findUniqueSlug, copyFieldsToTarget, type SourceEntity } from '#utils/duplicate.ts'
+import type { IdParams, DuplicateFormBody, SourceEntity } from '#schemas.ts'
+import { runInTransaction, HttpError } from '#db'
+import { loadSQL } from '#utils/db/sql.ts'
+import { validatePublicationWindow } from '#utils/validators.ts'
+
+const getSourceFormSql = await loadSQL('forms/selectForDuplicate.sql')
+const createFormSql = await loadSQL('forms/insert.sql')
+const copyFieldsSql = await loadSQL('form-fields/copyByFormId.sql')
+const checkSlugSql = await loadSQL('forms/checkSlug.sql')
 
 export default async function duplicateForm(
-    req: AuthenticatedRequest<{ Params: IdParams }>,
+    req: AuthenticatedRequest<{ Params: IdParams; Body: DuplicateFormBody }>,
     res: FastifyReply
 ) {
-    if (!hasRequiredGroup(req.user.groups, 'Aktiv')) {
-        return res.status(403).send({ error: 'Forbidden' })
-    }
+    const { publishedAt, expiresAt } = validatePublicationWindow(req.body.published_at, req.body.expires_at)
 
-    const sourceFormId = req.params.id
-    const userId = req.user.id
+    const duplicatedForm = await runInTransaction(async (client) => {
+        const sourceResult = await client.query(getSourceFormSql, [req.params.id])
+        const source = sourceResult.rows[0] as SourceEntity | undefined
+        if (!source) return null
 
-    try {
-        const getSourceFormSql = await loadSQL('forms/selectForDuplicate.sql')
-        const getSourceFieldsSql = await loadSQL('form-fields/selectByForm.sql')
-        const createFormSql = await loadSQL('forms/insert.sql')
-        const createFieldSql = await loadSQL('form-fields/insert.sql')
-        const checkSlugExistsSql = await loadSQL('forms/checkSlug.sql')
+        const existing = await client.query(checkSlugSql, [req.body.slug])
+        if (existing.rows[0].exists) throw new HttpError(409, 'Slug is already in use')
 
-        const duplicatedForm = await runInTransaction(async (client) => {
-            const sourceResult = await client.query(getSourceFormSql, [sourceFormId])
-            const source = sourceResult.rows[0] as SourceEntity | undefined
-            if (!source) return null
+        const createResult = await client.query(createFormSql, [
+            req.user.id, req.body.slug, req.body.title, source.description, source.anonymous_submissions,
+            source.limit, source.waitlist, source.multiple_submissions, publishedAt, expiresAt
+        ])
+        const createdForm = createResult.rows[0]
 
-            const { slug, copyIndex } = await findUniqueSlug(
-                client, checkSlugExistsSql, source.slug, 'copy',
-                'Could not generate a unique slug for the duplicated form'
-            )
-            const title = buildUniqueTitle(source.title, copyIndex, '- Copy')
+        await client.query(copyFieldsSql, [createdForm.id, req.params.id])
+        return createdForm
+    })
 
-            const createFormResult = await client.query(createFormSql, [
-                userId, slug, title, source.description, source.anonymous_submissions,
-                source.limit, source.waitlist, source.multiple_submissions, source.published_at, source.expires_at
-            ])
-            const createdForm = createFormResult.rows[0]
-
-            await copyFieldsToTarget(client, getSourceFieldsSql, createFieldSql, sourceFormId, createdForm.id)
-            return createdForm
-        })
-
-        if (!duplicatedForm) return res.status(404).send({ error: 'Form not found' })
-        return res.status(201).send(duplicatedForm)
-    } catch (error: unknown) {
-        const err = error as Error & { statusCode?: number; code?: string }
-        if (err.statusCode && err.statusCode >= 400 && err.statusCode < 500) {
-            return res.status(err.statusCode).send({ error: err.message })
-        }
-        if (err.code === '23505') return res.status(409).send({ error: 'Slug is already taken' })
-        logError('Error duplicating form', { event: 'http.internal_error', requestId: req.id, error })
-        return res.status(500).send({ error: 'Internal server error' })
-    }
+    if (!duplicatedForm) return res.status(404).send({ error: 'Form not found' })
+    return res.status(201).send(duplicatedForm)
 }

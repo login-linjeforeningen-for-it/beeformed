@@ -27,6 +27,14 @@ const pool = new Pool({
 
 pool.on('error', (err) => logError('Unexpected DB pool error', { event: 'db.pool_error', error: err }))
 
+export type SQLParamType = string | number | boolean | null | Date | string[]
+
+export class HttpError extends Error {
+    constructor(readonly statusCode: number, message: string) {
+        super(message)
+    }
+}
+
 export default async function run(query: string, params?: SQLParamType[]): Promise<pg.QueryResult> {
     return pool.query(query, params ?? [])
 }

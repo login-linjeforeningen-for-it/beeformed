@@ -6,6 +6,7 @@ import { Table, MenuButton } from 'uibee/components'
 import { Edit, Trash, Settings, Shield, List, QrCode, Share, Copy, FilePlus2, MoreHorizontal } from 'lucide-react'
 import MobileCard from './mobile-card'
 import { toast } from 'uibee/components'
+import FormActionModal, { type ModalMode } from './form-action-modal'
 import {
     deleteForm,
     duplicateForm,
@@ -13,6 +14,7 @@ import {
     createFormFromTemplate,
     deleteTemplate
 } from '@utils/api/client'
+import { toDateTimeLocal } from '@utils/dateTime'
 
 type FormsTableProps = {
     data: object[]
@@ -20,9 +22,23 @@ type FormsTableProps = {
     resourceType?: 'form' | 'template'
 }
 
+type ModalState = {
+    id: string
+    mode: ModalMode
+    initialTitle: string
+    initialSlug: string
+    initialPublishedAt?: string
+    initialExpiresAt?: string
+}
+
 export default function FormsTable({ data, variant = 'minimal', resourceType = 'form' }: FormsTableProps) {
     const router = useRouter()
     const isTemplate = resourceType === 'template'
+    const [modal, setModal] = useState<ModalState | null>(null)
+
+    function openModal(state: ModalState) {
+        setModal(state)
+    }
 
     const actions = {
         edit: (id: string) => router.push(isTemplate ? `/template/${id}/fields` : `/form/${id}`),
@@ -48,37 +64,52 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                 toast.error(error instanceof Error ? error.message : 'Unable to delete template')
             }
         },
-        duplicate: async (id: string) => {
-            try {
-                const duplicated = await duplicateForm(id)
-                toast.success('Form duplicated')
-                router.push(`/form/${duplicated.id}/fields`)
-            } catch (error) {
-                toast.error(error instanceof Error ? error.message : 'Unable to duplicate form')
-            }
+        duplicate: (id: string, title: string, slug: string) => {
+            const now = new Date()
+            openModal({
+                id,
+                mode: 'duplicate',
+                initialTitle: title,
+                initialSlug: `${slug}-copy`,
+                initialPublishedAt: toDateTimeLocal(now),
+                initialExpiresAt: toDateTimeLocal(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)),
+            })
         },
-        createTemplate: async (id: string) => {
-            try {
-                const template = await createTemplateFromForm(id)
-                toast.success('Template created')
-                router.push(`/template/${template.id}/fields`)
-            } catch (error) {
-                toast.error(error instanceof Error ? error.message : 'Unable to create template')
-            }
+        createTemplate: (id: string, title: string, slug: string) => {
+            openModal({ id, mode: 'save-as-template', initialTitle: title, initialSlug: `${slug}-template` })
         },
-        useTemplate: async (id: string) => {
-            try {
-                const created = await createFormFromTemplate(id)
-                toast.success('Form created from template')
-                router.push(`/form/${created.id}/fields`)
-            } catch (error) {
-                toast.error(error instanceof Error ? error.message : 'Unable to use template')
-            }
+        useTemplate: (id: string, title: string, slug: string) => {
+            const now = new Date()
+            openModal({
+                id,
+                mode: 'use-template',
+                initialTitle: title,
+                initialSlug: `${slug}-copy`,
+                initialPublishedAt: toDateTimeLocal(now),
+                initialExpiresAt: toDateTimeLocal(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)),
+            })
         },
         share: (slug: string) => {
             const link = `${window.location.origin}/f/${slug}`
             navigator.clipboard.writeText(link)
             toast.success('Form link copied to clipboard!')
+        }
+    }
+
+    async function handleModalSubmit(data: { title: string; slug: string; published_at: string; expires_at: string }) {
+        if (!modal) return
+        if (modal.mode === 'duplicate') {
+            const created = await duplicateForm(modal.id, data)
+            toast.success('Form duplicated')
+            router.push(`/form/${created.id}/fields`)
+        } else if (modal.mode === 'save-as-template') {
+            const created = await createTemplateFromForm(modal.id, { title: data.title, slug: data.slug })
+            toast.success('Template created')
+            router.push(`/template/${created.id}/fields`)
+        } else {
+            const created = await createFormFromTemplate(modal.id, data)
+            toast.success('Form created from template')
+            router.push(`/form/${created.id}/fields`)
         }
     }
 
@@ -94,7 +125,6 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                         { key: 'created_at' },
                     ]}
                     idKey='id'
-
                     menuItems={renderMenuItems}
                     redirectPath={{ path: isTemplate ? '/template' : '/form', key: 'id' }}
                 />
@@ -109,6 +139,19 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                     />
                 ))}
             </div>
+
+            {modal && (
+                <FormActionModal
+                    key={modal.id + modal.mode}
+                    mode={modal.mode}
+                    initialTitle={modal.initialTitle}
+                    initialSlug={modal.initialSlug}
+                    initialPublishedAt={modal.initialPublishedAt}
+                    initialExpiresAt={modal.initialExpiresAt}
+                    onSubmit={handleModalSubmit}
+                    onClose={() => setModal(null)}
+                />
+            )}
         </>
     )
 
@@ -164,14 +207,12 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                     hotKey='E'
                     onClick={() => actions.edit(id)}
                 />
-                {!isTemplate && (
-                    <MenuButton
-                        icon={<Settings />}
-                        text='Settings'
-                        hotKey='S'
-                        onClick={() => actions.settings(id)}
-                    />
-                )}
+                <MenuButton
+                    icon={<Settings />}
+                    text='Settings'
+                    hotKey='S'
+                    onClick={() => actions.settings(id)}
+                />
                 <MenuButton
                     icon={<Shield />}
                     text='Permissions'
@@ -199,7 +240,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                         icon={<Copy />}
                         text='Duplicate'
                         hotKey='U'
-                        onClick={() => actions.duplicate(id)}
+                        onClick={() => actions.duplicate(id, formItem.title, formItem.slug)}
                     />
                 )}
                 {!isTemplate && (
@@ -207,7 +248,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                         icon={<FilePlus2 />}
                         text='Template'
                         hotKey='T'
-                        onClick={() => actions.createTemplate(id)}
+                        onClick={() => actions.createTemplate(id, formItem.title, formItem.slug)}
                     />
                 )}
                 {isTemplate && (
@@ -215,7 +256,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                         icon={<Copy />}
                         text='Use Template'
                         hotKey='U'
-                        onClick={() => actions.useTemplate(id)}
+                        onClick={() => actions.useTemplate(id, (item as GetTemplateProps).title, (item as GetTemplateProps).slug)}
                     />
                 )}
                 {!isTemplate && (

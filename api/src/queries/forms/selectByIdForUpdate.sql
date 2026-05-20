@@ -13,7 +13,6 @@ SELECT
             'description', ff.description,
             'required', ff.required,
             'options', ff.options,
-            'validation', ff.validation,
             'field_order', ff.field_order
         ) ORDER BY ff.field_order
     ), '[]'::json) FROM form_fields ff WHERE ff.form_id = f.id) as fields

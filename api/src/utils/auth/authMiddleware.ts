@@ -13,25 +13,9 @@ export type AuthUser = {
 export type AuthenticatedRequest<T extends RouteGenericInterface = RouteGenericInterface> =
     FastifyRequest<T> & { user: AuthUser }
 
-export type AuthenticatedHandler<T extends RouteGenericInterface = RouteGenericInterface> =
-    (req: AuthenticatedRequest<T>, res: FastifyReply) => unknown | Promise<unknown>
-
 declare module 'fastify' {
     interface FastifyRequest {
-        user?: AuthUser
-    }
-}
-
-export function withAuthenticatedUser<T extends RouteGenericInterface = RouteGenericInterface>(
-    handler: AuthenticatedHandler<T>
-) {
-    return async (req: FastifyRequest<T>, res: FastifyReply) => {
-        if (!req.user) {
-            res.status(401).send({ error: 'Unauthorized' })
-            return
-        }
-
-        return handler(req as AuthenticatedRequest<T>, res)
+        user: AuthUser
     }
 }
 
@@ -58,7 +42,7 @@ export default async function authMiddleware(req: FastifyRequest, res: FastifyRe
     void touchUserActivity(req.user.id).catch((error: unknown) => {
         logWarn('Failed to update user activity', {
             event: 'user.activity.touch_failed',
-            userId: req.user?.id,
+            userId: req.user.id,
             error
         })
     })

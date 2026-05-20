@@ -62,7 +62,6 @@ export default function EditFieldsPage({ fields, formId }: { fields: GetFieldsPr
             field_type: 'text',
             required: false,
             options: null,
-            validation: null,
             field_order: fieldsData.length + 1,
             operation: 'create'
         }
@@ -78,7 +77,6 @@ export default function EditFieldsPage({ fields, formId }: { fields: GetFieldsPr
             field_type: 'text',
             required: false,
             options: null,
-            validation: null,
             field_order: position + 1,
             operation: 'create'
         }
@@ -128,7 +126,6 @@ export default function EditFieldsPage({ fields, formId }: { fields: GetFieldsPr
                     description: field.description,
                     required: field.required,
                     options: Array.isArray(field.options) ? field.options : null,
-                    validation: field.validation,
                     field_order: field.field_order
                 }
 

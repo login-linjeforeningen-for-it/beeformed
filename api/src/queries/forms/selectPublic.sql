@@ -3,7 +3,6 @@ SELECT
     f.limit, f.waitlist, f.multiple_submissions, f.published_at, f.expires_at,
     f.created_at, f.updated_at,
     u.name as creator_name,
-    u.email as creator_email,
     (SELECT COUNT(*)::int FROM submissions s WHERE s.form_id = f.id AND s.status = 'registered') as registered_count,
     EXISTS (SELECT 1 FROM submissions s WHERE s.form_id = f.id AND s.user_id = $2 AND s.status IN ('registered', 'waitlisted')) as user_has_submitted,
     COALESCE(json_agg(
@@ -14,7 +13,6 @@ SELECT
             'description', ff.description,
             'required', ff.required,
             'options', ff.options,
-            'validation', ff.validation,
             'field_order', ff.field_order
         ) ORDER BY ff.field_order
     ) FILTER (WHERE ff.id IS NOT NULL), '[]'::json) as fields
@@ -28,4 +26,4 @@ AND (
     OR f.user_id = $2
     OR EXISTS (SELECT 1 FROM submissions s WHERE s.form_id = f.id AND s.user_id = $2)
 )
-GROUP BY f.id, u.name, u.email;
+GROUP BY f.id, u.name;

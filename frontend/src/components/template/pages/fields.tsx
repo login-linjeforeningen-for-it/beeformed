@@ -60,7 +60,6 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
             field_type: 'text',
             required: false,
             options: null,
-            validation: null,
             field_order: fieldsData.length + 1,
             operation: 'create'
         }
@@ -75,7 +74,6 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
             field_type: 'text',
             required: false,
             options: null,
-            validation: null,
             field_order: position + 1,
             operation: 'create'
         }
@@ -119,7 +117,6 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                     description: field.description,
                     required: field.required,
                     options: field.options,
-                    validation: field.validation,
                     field_order: field.field_order
                 }
 

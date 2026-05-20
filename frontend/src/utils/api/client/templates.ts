@@ -14,8 +14,11 @@ export async function deleteTemplate(templateId: string) {
     return apiRequestClient({ method: 'DELETE', path: `templates/${templateId}` })
 }
 
-export async function createFormFromTemplate(templateId: string): Promise<{ id: string }> {
-    return apiRequestClient({ method: 'POST', path: `templates/${templateId}/duplicate` })
+export async function createFormFromTemplate(
+    templateId: string,
+    data: { published_at: string; expires_at: string; title: string; slug: string }
+): Promise<{ id: string }> {
+    return apiRequestClient({ method: 'POST', path: `templates/${templateId}/form`, data })
 }
 
 export async function patchTemplateFields(templateId: string, data: PatchTemplateFieldsProps) {
