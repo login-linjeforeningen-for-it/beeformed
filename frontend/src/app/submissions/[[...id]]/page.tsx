@@ -40,27 +40,26 @@ export default async function Page(
         return (
             <PageContainer title='Submission Details'>
                 <div className='flex flex-col gap-4'>
-                    {submission.status === 'waitlisted' && (
-                        <div className='bg-orange-500/10 border border-orange-500 text-orange-500 rounded p-4'>
-                            <strong>Status: Waitlisted</strong><br/>
-                            This form is full. You are currently on the waitlist.
+                    {submission.status === 'registered' && (
+                        <div className='bg-green-500/20 text-green-400 px-4 py-3 rounded-lg'>
+                            You are registered for this form.
                         </div>
                     )}
-                    {submission.status === 'registered' && (
-                        <div className='bg-green-500/10 border border-green-500 text-green-500 rounded p-4'>
-                            <strong>Status: Registered</strong><br/>
-                            Your submission has been registered.
+                    {submission.status === 'waitlisted' && (
+                        <div className='bg-yellow-500/20 text-yellow-400 px-4 py-3 rounded-lg'>
+                            You are on the waitlist, this form is currently full.
+                            {submission.waitlist_position != null && (
+                                <span className='ml-2 font-medium'>Position nr: {submission.waitlist_position}</span>
+                            )}
                         </div>
                     )}
                     {submission.status === 'rejected' && (
-                        <div className='bg-red-500/10 border border-red-500 text-red-500 rounded p-4'>
-                            <strong>Status: Rejected</strong><br/>
+                        <div className='bg-red-500/20 text-red-400 px-4 py-3 rounded-lg'>
                             Your submission has been rejected.
                         </div>
                     )}
                     {submission.status === 'cancelled' && (
-                        <div className='bg-gray-500/10 border border-gray-500 text-gray-500 rounded p-4'>
-                            <strong>Status: Cancelled</strong><br/>
+                        <div className='bg-gray-500/20 text-gray-400 px-4 py-3 rounded-lg'>
                             Your submission has been cancelled.
                         </div>
                     )}

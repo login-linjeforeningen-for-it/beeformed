@@ -165,6 +165,7 @@ declare global {
         data: SubmissionProps[]
         scanned_at?: string | null
         already_scanned?: boolean
+        waitlist_position?: number | null
     }
 
     type GetSubmissionsProps = {
