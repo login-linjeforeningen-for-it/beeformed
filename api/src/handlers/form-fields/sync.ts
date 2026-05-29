@@ -12,7 +12,8 @@ export default async function syncFormFields(
         executeBulkFieldOps(client, req.body, req.params.id, {
             entityIdKey: 'form_id',
             entityType: 'form',
-            sqlDir: 'form-fields'
+            sqlDir: 'form-fields',
+            softDeleteWhenReferenced: true
         })
     )
     return res.status(200).send(results)

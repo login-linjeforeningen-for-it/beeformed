@@ -12,7 +12,8 @@ export default async function syncTemplateFields(
         executeBulkFieldOps(client, req.body, req.params.id, {
             entityIdKey: 'template_id',
             entityType: 'template',
-            sqlDir: 'template-fields'
+            sqlDir: 'template-fields',
+            softDeleteWhenReferenced: false
         })
     )
     return res.status(200).send(results)

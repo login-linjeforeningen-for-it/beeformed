@@ -15,7 +15,7 @@ SELECT
             'options', ff.options,
             'field_order', ff.field_order
         ) ORDER BY ff.field_order
-    ), '[]'::json) FROM form_fields ff WHERE ff.form_id = f.id) as fields
+    ), '[]'::json) FROM form_fields ff WHERE ff.form_id = f.id AND ff.deleted_at IS NULL) as fields
 FROM forms f
 LEFT JOIN users u ON f.user_id = u.user_id
 WHERE (f.id::text = $1 OR f.slug = $1)

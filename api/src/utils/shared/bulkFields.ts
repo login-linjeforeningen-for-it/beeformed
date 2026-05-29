@@ -9,6 +9,7 @@ type BulkFieldsConfig = {
     entityIdKey: 'form_id' | 'template_id'
     entityType: 'form' | 'template'
     sqlDir: 'form-fields' | 'template-fields'
+    softDeleteWhenReferenced: boolean
 }
 
 type BulkFieldsResult = {
@@ -29,9 +30,23 @@ export async function executeBulkFieldOps(
     for (const op of operations) {
         switch (op.operation) {
             case 'delete': {
-                const deleteSql = await loadSQL(`${sqlDir}/delete.sql`)
-                const delResult = await client.query(deleteSql, [op.id, routeId])
-                if (delResult.rowCount === 0) throw new HttpError(404, `Field not found on this ${entityType}`)
+                if (config.softDeleteWhenReferenced) {
+                    const checkSql = await loadSQL(`${sqlDir}/selectForDelete.sql`)
+                    const checkResult = await client.query(checkSql, [op.id, routeId])
+                    if (checkResult.rowCount === 0) throw new HttpError(404, `Field not found on this ${entityType}`)
+
+                    if (checkResult.rows[0].has_answers) {
+                        const softDeleteSql = await loadSQL(`${sqlDir}/softDelete.sql`)
+                        await client.query(softDeleteSql, [op.id, routeId])
+                    } else {
+                        const deleteSql = await loadSQL(`${sqlDir}/delete.sql`)
+                        await client.query(deleteSql, [op.id, routeId])
+                    }
+                } else {
+                    const deleteSql = await loadSQL(`${sqlDir}/delete.sql`)
+                    const delResult = await client.query(deleteSql, [op.id, routeId])
+                    if (delResult.rowCount === 0) throw new HttpError(404, `Field not found on this ${entityType}`)
+                }
                 results.deleted.push(op.id)
                 break
             }

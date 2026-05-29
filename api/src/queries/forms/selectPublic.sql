@@ -18,7 +18,7 @@ SELECT
     ) FILTER (WHERE ff.id IS NOT NULL), '[]'::json) as fields
 FROM forms f
 LEFT JOIN users u ON f.user_id = u.user_id
-LEFT JOIN form_fields ff ON f.id = ff.form_id
+LEFT JOIN form_fields ff ON f.id = ff.form_id AND ff.deleted_at IS NULL
 WHERE (f.id::text = $1 OR f.slug = $1)
 AND f.published_at < NOW()
 AND (

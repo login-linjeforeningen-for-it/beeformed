@@ -41,7 +41,8 @@ CREATE TABLE form_fields (
     required BOOLEAN DEFAULT FALSE,
     options TEXT[],
     field_order INTEGER NOT NULL CHECK (field_order >= 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 -- Form submissions
@@ -133,6 +134,7 @@ CREATE TABLE email_queue (
 CREATE INDEX idx_forms_user_id ON forms(user_id);
 CREATE INDEX idx_forms_form_deletion_warning_sent_at ON forms(form_deletion_warning_sent_at);
 CREATE INDEX idx_form_fields_form_id ON form_fields(form_id);
+CREATE INDEX idx_form_fields_form_id_active ON form_fields(form_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_submissions_form_id ON submissions(form_id);
 CREATE INDEX idx_submissions_user_id ON submissions(user_id);
 CREATE INDEX idx_submission_data_submission_id ON submission_data(submission_id);
