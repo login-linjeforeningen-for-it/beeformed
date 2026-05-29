@@ -21,6 +21,15 @@ type CheckTokenResponse = {
 const MAX_CACHE_SIZE = 500
 const tokenCache = new Map<string, { response: CheckTokenResponse; expiresAt: number }>()
 
+function cacheResponse(token: string, response: CheckTokenResponse, ttl: number) {
+    if (tokenCache.has(token)) tokenCache.delete(token)
+    if (tokenCache.size >= MAX_CACHE_SIZE) {
+        const oldestKey = tokenCache.keys().next().value
+        if (oldestKey !== undefined) tokenCache.delete(oldestKey)
+    }
+    tokenCache.set(token, { response, expiresAt: Date.now() + ttl })
+}
+
 function parseUserInfoClaims(data: unknown): UserInfoClaims | null {
     if (data === null || typeof data !== 'object') {
         return null
@@ -59,7 +68,7 @@ function parseUserInfoClaims(data: unknown): UserInfoClaims | null {
 }
 
 export default async function checkToken(req: FastifyRequest): Promise<CheckTokenResponse> {
-    const { USERINFO_URL, CACHE_TTL } = config
+    const { USERINFO_URL, CACHE_TTL, NEGATIVE_CACHE_TTL } = config
     const authHeaderRaw = req.headers['authorization']
     const authHeader = Array.isArray(authHeaderRaw) ? authHeaderRaw[0] : authHeaderRaw
 
@@ -88,11 +97,13 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
         })
 
         if (!userInfoRes.ok) {
-            return {
+            const response: CheckTokenResponse = {
                 valid: false,
                 errorCode: 'UNAUTHORIZED',
                 error: 'Unauthorized'
             }
+            cacheResponse(token, response, NEGATIVE_CACHE_TTL)
+            return response
         }
 
         const rawBody: unknown = await userInfoRes.json()
@@ -101,11 +112,13 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
             logWarn('Token check: userinfo payload missing or invalid sub, email, name, or groups shape', {
                 event: 'auth.userinfo.invalid'
             })
-            return {
+            const response: CheckTokenResponse = {
                 valid: false,
                 errorCode: 'UNAUTHORIZED',
                 error: 'Unauthorized'
             }
+            cacheResponse(token, response, NEGATIVE_CACHE_TTL)
+            return response
         }
 
         const response: CheckTokenResponse = {
@@ -113,17 +126,7 @@ export default async function checkToken(req: FastifyRequest): Promise<CheckToke
             userInfo
         }
 
-        const isRefresh = tokenCache.has(token)
-        if (isRefresh) tokenCache.delete(token)
-
-        if (tokenCache.size >= MAX_CACHE_SIZE) {
-            const oldestKey = tokenCache.keys().next().value
-            if (oldestKey !== undefined) tokenCache.delete(oldestKey)
-        }
-        tokenCache.set(token, {
-            response,
-            expiresAt: Date.now() + CACHE_TTL
-        })
+        cacheResponse(token, response, CACHE_TTL)
 
         return response
     } catch (err) {
