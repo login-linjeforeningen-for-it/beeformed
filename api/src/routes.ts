@@ -101,7 +101,7 @@ export default async function apiRoutes(instance: FastifyInstance) {
     const fastify = instance.withTypeProvider<ZodTypeProvider>()
 
     // Index
-    fastify.get('/', getIndex)
+    fastify.get('/', { onRequest: authMiddleware }, getIndex)
 
     // Ping
     fastify.get('/ping', getPing)

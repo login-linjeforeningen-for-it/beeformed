@@ -16,6 +16,7 @@ import { formCleanupScheduler } from './utils/cleanup/formCleanup.ts'
 import { logError, logInfo } from '#utils/logger.ts'
 import { HttpError } from '#db'
 import getIndex from './handlers/index/get.ts'
+import authMiddleware from './utils/auth/authMiddleware.ts'
 
 const GENERIC_CLIENT_ERROR_MESSAGES: Record<number, string> = {
     400: 'Bad request',
@@ -81,7 +82,7 @@ fastify.register(userCleanupScheduler)
 fastify.register(formCleanupScheduler)
 fastify.register(emailQueueScheduler)
 fastify.get('/favicon.ico', getFavicon)
-fastify.get('/', getIndex)
+fastify.get('/', { onRequest: authMiddleware }, getIndex)
 
 const port = config.PORT
 
