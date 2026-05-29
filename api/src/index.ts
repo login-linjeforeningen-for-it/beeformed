@@ -1,4 +1,5 @@
 import cors from '@fastify/cors'
+import rateLimit from '@fastify/rate-limit'
 import Fastify from 'fastify'
 import {
     serializerCompiler,
@@ -33,7 +34,8 @@ const GENERIC_CLIENT_ERROR_MESSAGES: Record<number, string> = {
 }
 
 const fastify = Fastify({
-    logger: true
+    logger: true,
+    trustProxy: config.TRUST_PROXY
 })
 
 fastify.setValidatorCompiler(validatorCompiler)
@@ -68,6 +70,15 @@ fastify.setErrorHandler((error, req, reply) => {
 
     logError('Unhandled error', { event: 'http.internal_error', requestId: req.id, error })
     return reply.status(500).send({ error: 'Internal server error' })
+})
+
+fastify.register(rateLimit, {
+    global: true,
+    max: config.RATE_LIMIT_MAX,
+    timeWindow: config.RATE_LIMIT_WINDOW,
+    errorResponseBuilder: (_req, context) => ({
+        error: `Rate limit exceeded, retry in ${Math.ceil(context.ttl / 1000)} seconds`
+    })
 })
 
 fastify.register(cors, {
