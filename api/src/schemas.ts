@@ -143,9 +143,19 @@ export const permissionGrantBodySchema = z.object({
 export type PermissionGrantBody = z.infer<typeof permissionGrantBodySchema>
 
 // Submission
+const MAX_SUBMISSION_VALUE_LENGTH = 10_000
+const MAX_SUBMISSION_SELECTIONS = 50
+
+const submissionFieldValueSchema = z.union([
+    z.string().max(MAX_SUBMISSION_VALUE_LENGTH, 'value is too long'),
+    z.number(),
+    z.boolean(),
+    z.array(z.string().max(500, 'selection is too long')).max(MAX_SUBMISSION_SELECTIONS, 'too many selections')
+])
+
 const submissionFieldInputSchema = z.object({
     field_id: z.string().trim().min(1, 'field_id must be a non-empty string'),
-    value: z.unknown().optional()
+    value: submissionFieldValueSchema.nullable().optional()
 })
 
 export const createSubmissionBodySchema = z.object({
