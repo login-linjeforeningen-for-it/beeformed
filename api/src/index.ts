@@ -14,7 +14,7 @@ import getFavicon from './handlers/favicon/get.ts'
 import { emailQueueScheduler } from './utils/email/sendSMTP.ts'
 import { userCleanupScheduler } from './utils/cleanup/userCleanup.ts'
 import { formCleanupScheduler } from './utils/cleanup/formCleanup.ts'
-import { logError, logInfo } from '#utils/logger.ts'
+import { logError, logInfo, logger } from '#utils/logger.ts'
 import { HttpError } from '#db'
 import getIndex from './handlers/index/get.ts'
 import optionalAuthMiddleware from './utils/auth/optionalAuthMiddleware.ts'
@@ -34,7 +34,7 @@ const GENERIC_CLIENT_ERROR_MESSAGES: Record<number, string> = {
 }
 
 const fastify = Fastify({
-    logger: true,
+    loggerInstance: logger,
     trustProxy: config.TRUST_PROXY
 })
 

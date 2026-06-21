@@ -17,6 +17,7 @@
     "fastify-type-provider-zod": "^6.1.0",
     "nodemailer": "^9.0.1",
     "pg": "^8.21.0",
+    "pino": "^10.3.1",
     "qrcode": "^1.5.4",
     "utilbee": "^1.4.7",
     "zod": "^4.4.3"

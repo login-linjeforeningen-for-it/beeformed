@@ -2,7 +2,6 @@ import { HttpError } from '#db'
 
 type DateRangeValidationOptions = {
     baseDate?: Date
-    maxRangeMonths?: number
     maxRangeMessage?: string
 }
 
@@ -23,8 +22,7 @@ export function validatePublicationWindow(
     const expiresAt = new Date(expiresAtRaw)
 
     const baseDate = options.baseDate ?? new Date()
-    const maxRangeMonths = options.maxRangeMonths ?? MAX_RANGE_MONTHS
-    const maxAllowedDate = addMonths(baseDate, maxRangeMonths)
+    const maxAllowedDate = addMonths(baseDate, MAX_RANGE_MONTHS)
 
     if (expiresAt > maxAllowedDate) {
         throw new HttpError(400, options.maxRangeMessage ?? 'expires_at cannot be more than six months in the future')

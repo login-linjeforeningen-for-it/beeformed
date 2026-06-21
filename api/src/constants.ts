@@ -39,24 +39,14 @@ if (missingVariables.length > 0) {
     )
 }
 
-const env = Object.fromEntries(
-    requiredEnvironmentVariables.map((key) => [key, process.env[key]])
-)
-
-if (!disableSMTP) {
-    smtpVariables.forEach((key) => {
-        env[key] = process.env[key]
-    })
-}
-
 const config = {
     PORT: Number(process.env.PORT) || 8080,
-    USERINFO_URL: `${env.AUTH_URL}/application/o/userinfo/`,
-    DB: env.DB,
-    DB_USER: env.DB_USER,
-    DB_HOST: env.DB_HOST,
-    DB_PASSWORD: env.DB_PASSWORD,
-    DB_PORT: Number(env.DB_PORT) || 5432,
+    USERINFO_URL: `${process.env.AUTH_URL}/application/o/userinfo/`,
+    DB: process.env.DB,
+    DB_USER: process.env.DB_USER,
+    DB_HOST: process.env.DB_HOST,
+    DB_PASSWORD: process.env.DB_PASSWORD,
+    DB_PORT: Number(process.env.DB_PORT) || 5432,
     DB_MAX_CONN: 20,
     DB_IDLE_TIMEOUT_MS: 5000,
     DB_TIMEOUT_MS: 3000,
@@ -66,14 +56,14 @@ const config = {
     RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 200,
     RATE_LIMIT_WINDOW: process.env.RATE_LIMIT_WINDOW || '1 minute',
     DISABLE_SMTP: disableSMTP,
-    SMTP_HOST: env.SMTP_HOST,
-    SMTP_NAME: env.SMTP_NAME,
-    SMTP_PORT: Number(env.SMTP_PORT) || 465,
-    SMTP_SECURE: env.SMTP_SECURE === 'true',
-    SMTP_FROM: env.SMTP_FROM || '',
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_NAME: process.env.SMTP_NAME,
+    SMTP_PORT: Number(process.env.SMTP_PORT) || 465,
+    SMTP_SECURE: process.env.SMTP_SECURE === 'true',
+    SMTP_FROM: process.env.SMTP_FROM || '',
     SMTP_USER: process.env.SMTP_USER || '',
     SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
-    FRONTEND_URL: env.FRONTEND_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL,
     COMPANY_INFO: {
         name: 'Login - Linjeforeningen for IT',
         nameShort: 'Login',

@@ -4,7 +4,6 @@ import { logError } from '#utils/logger.ts'
 export type GeneratedQRCode = {
     pngBuffer: Buffer
     pngDataUrl: string
-    svg: string
 }
 
 export async function generateQRCodeImage({ data }: { data: string }): Promise<GeneratedQRCode | null> {
@@ -21,16 +20,14 @@ export async function generateQRCodeImage({ data }: { data: string }): Promise<G
             }
         }
 
-        const [pngBuffer, pngDataUrl, svg] = await Promise.all([
+        const [pngBuffer, pngDataUrl] = await Promise.all([
             QRCode.toBuffer(data, options),
-            QRCode.toDataURL(data, options),
-            QRCode.toString(data, { ...options, type: 'svg' })
+            QRCode.toDataURL(data, options)
         ])
 
         return {
             pngBuffer,
-            pngDataUrl,
-            svg
+            pngDataUrl
         }
     } catch (error) {
         logError('QR Code image generation error', {
