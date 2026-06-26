@@ -1,61 +1,76 @@
-# BeeFormed
+<div align="center">
 
-BeeFormed is a form system with:
+<img src="frontend/public/images/logo-white-small.svg" alt="BeeFormed logo" width="80" height="80" />
 
-- A Next.js frontend for creating/editing forms, sharing public links, and viewing submissions
-- A Fastify API for forms, fields, permissions, and submissions
-- Postgres for persistent storage and an email queue (SMTP with retries)
+<h1>BeeFormed</h1>
 
-## What you can do
+<p>
+  <img src="https://img.shields.io/badge/TypeScript-fd8738?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Bun-fd8738?style=flat-square&logo=bun&logoColor=white" alt="Bun" />
+  <img src="https://img.shields.io/badge/Next.js-fd8738?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-fd8738?style=flat-square&logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-fd8738?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Fastify-fd8738?style=flat-square&logo=fastify&logoColor=white" alt="Fastify" />
+  <img src="https://img.shields.io/badge/PostgreSQL-fd8738?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Docker-fd8738?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Authentik-fd8738?style=flat-square&logo=authentik&logoColor=white" alt="Authentik" />
+</p>
 
-1. Log in via Authentik (OAuth2).
-2. Create and manage forms (including field definitions and publication window).
-3. Share a public form link: `GET /f/:slug`
-4. Let users submit forms (anonymous submissions supported).
-5. Enforce `limit` + `waitlist` and optionally block multiple submissions per user.
-6. Receive confirmation emails for registered/waitlisted submissions (with QR code attachment for the submission).
-7. Scan submissions using QR codes in the admin UI and mark them as scanned.
+</div>
 
-## Architecture
+---
 
-- Frontend: `frontend/` (Next.js)
-- API: `api/` (Fastify + Postgres)
-- Database schema: `db/init.sql`
+A self-hosted form system for creating, sharing, and managing event registrations, built for [Login](https://login.no).
 
-Docker Compose runs three services:
+## Features
 
-- `beeformed` (Frontend)
-- `beeformed_api` (API)
-- `beeformed_database` (Postgres)
+- **Log in via Authentik** (OAuth2)
+- **Create and manage forms**, including field definitions and publication window
+- **Share a public form link** at `GET /f/:slug`
+- **Anonymous and authenticated submissions** both supported
+- **Capacity limits and waitlists**, with optional one-submission-per-user enforcement
+- **Confirmation emails** with a QR code attachment for registered and waitlisted submitters
+- **QR code scanner** in the admin UI to mark submissions as scanned at the door
 
-## Local / Docker setup
+## Getting Started
 
-### 1) Environment variables
+1. **Configure environment**
 
-Docker Compose expects a root `.env` file (used by both services).  
-Go to 1Pass to get the required variables (may need to be changed for local development).
+   Create a `.env` file in the repo root. See [Configuration](#configuration) below or grab the values from 1Password.
 
-The API validates the required variables at startup (`api/src/constants.ts`) and the frontend reads them from `frontend/constants.ts`.
+2. **Start**
 
-### 2) Start with Docker Compose
+   ```bash
+   docker compose up --build
+   ```
 
-From the repo root:
+   | Service  | URL                       |
+   |----------|---------------------------|
+   | Frontend | http://localhost:8700     |
+   | API      | http://localhost:8701/api |
 
-```bash
-docker compose up --build
-```
+## Configuration
 
-Then:
+All variables go in the root `.env` file, shared by both services.
 
-- Frontend: `http://localhost:8700`
-- API: `http://localhost:8701/api`
+| Name                  | Default     | Notes                                                                            |
+|-----------------------|-------------|----------------------------------------------------------------------------------|
+| `AUTH_URL`            |             | Base URL for your Authentik instance                                             |
+| `AUTH_CLIENT_ID`      |             | OAuth2 client ID from Authentik                                                  |
+| `NEXT_PUBLIC_API_URL` |             | Public URL of the API (used by the frontend at build time)                       |
+| `FRONTEND_URL`        |             | Public URL of the frontend (used by the API for CORS)                            |
+| `DB`                  | `beeformed` | Postgres database name                                                           |
+| `DB_HOST`             | `postgres`  | Postgres host                                                                    |
+| `DB_PORT`             | `5432`      | Postgres port                                                                    |
+| `DB_USER`             | `beeformed` | Postgres username                                                                |
+| `DB_PASSWORD`         |             | Postgres password                                                                |
+| `DISABLE_SMTP`        | `false`     | Set to `true` to skip all email sending and queueing                             |
+| `SMTP_HOST`           |             | SMTP server hostname (required unless `DISABLE_SMTP=true`)                       |
+| `SMTP_PORT`           | `465`       | SMTP port                                                                        |
+| `SMTP_SECURE`         |             | Set to `true` for TLS                                                            |
+| `SMTP_FROM`           |             | From address for outgoing emails                                                 |
+| `SMTP_NAME`           |             | Display name shown in the From field                                             |
+| `SMTP_USER`           |             | SMTP username (optional)                                                         |
+| `SMTP_PASSWORD`       |             | SMTP password (optional)                                                         |
 
-## Database schema
-
-Defined in `db/init.sql`.
-
-## Email confirmations
-
-On submission-related events, the API sends templated emails via SMTP (`nodemailer`).
-If SMTP fails, emails are queued in `email_queue` for retry; disable all sending/queueing with `DISABLE_SMTP=true`.
-
+Failed email deliveries are queued in `email_queue` and retried automatically.
