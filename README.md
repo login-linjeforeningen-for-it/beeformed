@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/public/images/logo-white-small.svg" alt="BeeFormed logo" width="80" height="80" />
+<img src="https://s3.login.no/beehive/img/logo/logo-white-small.svg" alt="Login logo" width="80" height="80" />
 
 <h1>BeeFormed</h1>
 
@@ -57,7 +57,9 @@ All variables go in the root `.env` file, shared by both services.
 |-----------------------|-------------|----------------------------------------------------------------------------------|
 | `AUTH_URL`            |             | Base URL for your Authentik instance                                             |
 | `AUTH_CLIENT_ID`      |             | OAuth2 client ID from Authentik                                                  |
-| `NEXT_PUBLIC_API_URL` |             | Public URL of the API (used by the frontend at build time)                       |
+| `AUTH_CLIENT_SECRET`  |             | OAuth2 client secret from Authentik                                              |
+| `API_URL`             |             | Internal URL from the frontend container to the API container (e.g. `http://beeformed_api:8080/api`) |
+| `NEXT_PUBLIC_API_URL` |             | Public URL of the API, baked into the frontend image at build time               |
 | `FRONTEND_URL`        |             | Public URL of the frontend (used by the API for CORS)                            |
 | `DB`                  | `beeformed` | Postgres database name                                                           |
 | `DB_HOST`             | `postgres`  | Postgres host                                                                    |
@@ -74,3 +76,18 @@ All variables go in the root `.env` file, shared by both services.
 | `SMTP_PASSWORD`       |             | SMTP password (optional)                                                         |
 
 Failed email deliveries are queued in `email_queue` and retried automatically.
+
+## Project Structure
+
+- `frontend/` - Next.js frontend
+  - `src/app/f/[slug]/` - Public form page
+  - `src/app/form/` - Admin form management pages
+  - `src/app/submissions/` - Submission management
+  - `src/app/qr/` - QR code scanner
+  - `src/app/api/auth/` - Auth callback and session routes
+- `api/` - Fastify API
+  - `src/handlers/` - HTTP handlers
+  - `src/utils/email/` - Email sending and queue management
+  - `src/config.ts` - Configuration and environment variable loading
+  - `src/db.ts` - Database client
+- `db/` - Database schema
