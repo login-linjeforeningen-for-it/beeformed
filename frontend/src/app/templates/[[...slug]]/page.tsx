@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
 import { Plus } from 'lucide-react'
 import FormsTable from '@components/tables/forms'
+import FAB from '@components/button/fab'
 
 type PageProps = {
     params: Promise<{ slug?: string[] | string }>
@@ -50,10 +51,10 @@ export default async function Page({ params, searchParams }: PageProps) {
 
     return (
         <PageContainer title='Templates'>
-            <div className='flex flex-wrap gap-2 sm:gap-4 mb-4'>
+            <div className='mb-4 flex flex-wrap gap-2 sm:gap-4'>
                 <Link
                     href='/templates'
-                    className={`px-4 py-2 rounded transition-colors text-sm sm:text-base ${
+                    className={`flex min-h-11 items-center rounded px-4 py-3 text-sm transition-colors sm:text-base ${
                         listType === 'templates'
                             ? 'bg-login text-white'
                             : 'bg-login-700 text-login-100 hover:bg-login-600'
@@ -63,7 +64,7 @@ export default async function Page({ params, searchParams }: PageProps) {
                 </Link>
                 <Link
                     href='/templates/shared'
-                    className={`px-4 py-2 rounded transition-colors text-sm sm:text-base ${
+                    className={`flex min-h-11 items-center rounded px-4 py-3 text-sm transition-colors sm:text-base ${
                         listType === 'shared'
                             ? 'bg-login text-white'
                             : 'bg-login-700 text-login-100 hover:bg-login-600'
@@ -72,8 +73,8 @@ export default async function Page({ params, searchParams }: PageProps) {
                     Shared Templates
                 </Link>
             </div>
-            <div className='pt-6 pb-4 flex flex-col h-full'>
-                <div className='flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4 mb-4'>
+            <div className='flex h-full flex-col pt-6 pb-4'>
+                <div className='mb-4 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between'>
                     <div className='w-full md:w-auto'>
                         <SearchInput
                             placeholder='Search templates...'
@@ -83,16 +84,16 @@ export default async function Page({ params, searchParams }: PageProps) {
                     {listType === 'templates' && (
                         <Link
                             href='/templates/create'
-                            className='px-3 py-2 rounded transition-colors hover:bg-login-600
-                                self-end md:self-auto inline-flex items-center gap-2'
+                            aria-label='Create template'
+                            className='hidden items-center rounded p-2 transition-colors hover:bg-login-600 md:flex'
                         >
-                            <Plus className='inline-block size-4' />
+                            <Plus className='inline-block size-6' />
                         </Link>
                     )}
                 </div>
 
                 {templateData && templateData.length > 0 ? (
-                    <div className='flex-1 flex flex-col justify-between min-h-0'>
+                    <div className='flex min-h-0 flex-1 flex-col justify-between'>
                         <FormsTable
                             data={templateData}
                             resourceType='template'
@@ -104,11 +105,12 @@ export default async function Page({ params, searchParams }: PageProps) {
                         />
                     </div>
                 ) : (
-                    <div className='flex-1 flex flex-col items-center justify-center min-h-0'>
-                        <p className='text-gray-500 text-center'>No templates found</p>
+                    <div className='flex min-h-0 flex-1 flex-col items-center justify-center'>
+                        <p className='text-center text-gray-500'>No templates found</p>
                     </div>
                 )}
             </div>
+            {listType === 'templates' && <FAB href='/templates/create' label='Create Template' />}
         </PageContainer>
     )
 }

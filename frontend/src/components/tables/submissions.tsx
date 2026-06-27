@@ -104,7 +104,7 @@ export default function SubmissionsTable({ data }: SubmissionsTableProps) {
                 actions={
                     <div className='relative'>
                         <button
-                            className='p-2 text-login-300 hover:text-login-100'
+                            className='flex min-h-11 min-w-11 items-center justify-center p-3 text-login-300 hover:text-login-100'
                             onClick={(e) => {
                                 e.stopPropagation()
                                 setShowActions(!showActions)
@@ -113,13 +113,19 @@ export default function SubmissionsTable({ data }: SubmissionsTableProps) {
                             <MoreHorizontal size={20} />
                         </button>
                         {showActions && (
-                            <div
-                                className='absolute right-0 mt-2 w-48 bg-login-800 border
-                                    border-login-600 rounded-lg shadow-xl z-50 p-1 flex flex-col'
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {renderMenuItems(row, row.id)}
-                            </div>
+                            <>
+                                <div
+                                    className='fixed inset-0 z-40'
+                                    onClick={(e) => { e.stopPropagation(); setShowActions(false) }}
+                                />
+                                <div
+                                    className='absolute right-0 z-50 mt-2 flex w-48
+                                        flex-col rounded-lg border border-login-600 bg-login-800 p-1 shadow-xl'
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {renderMenuItems(row, row.id)}
+                                </div>
+                            </>
                         )}
                     </div>
                 }

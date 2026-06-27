@@ -47,6 +47,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
         submissions: (id: string) => router.push(`/form/${id}/submissions`),
         scanner: (id: string) => router.push(`/qr/${id}`),
         delete: async (id: string) => {
+            if (!confirm('Are you sure you want to delete this form? This cannot be undone.')) return
             try {
                 await deleteForm(id)
                 toast.success('Form deleted')
@@ -56,6 +57,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
             }
         },
         deleteTemplate: async (id: string) => {
+            if (!confirm('Are you sure you want to delete this template? This cannot be undone.')) return
             try {
                 await deleteTemplate(id)
                 toast.success('Template deleted')
@@ -173,7 +175,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                 actions={
                     <div className='relative'>
                         <button
-                            className='p-2 text-login-300 hover:text-login-100'
+                            className='flex min-h-11 min-w-11 items-center justify-center p-3 text-login-300 hover:text-login-100'
                             onClick={(e) => {
                                 e.stopPropagation()
                                 setShowActions(!showActions)
@@ -182,13 +184,19 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                             <MoreHorizontal size={20} />
                         </button>
                         {showActions && (
-                            <div
-                                className='absolute right-0 mt-2 w-48 bg-login-800 border
-                                    border-login-600 rounded-lg shadow-xl z-50 p-1 flex flex-col'
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {renderMenuItems(item, item.id)}
-                            </div>
+                            <>
+                                <div
+                                    className='fixed inset-0 z-40'
+                                    onClick={(e) => { e.stopPropagation(); setShowActions(false) }}
+                                />
+                                <div
+                                    className='absolute right-0 z-50 mt-2 flex w-48
+                                        flex-col rounded-lg border border-login-600 bg-login-800 p-1 shadow-xl'
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {renderMenuItems(item, item.id)}
+                                </div>
+                            </>
                         )}
                     </div>
                 }

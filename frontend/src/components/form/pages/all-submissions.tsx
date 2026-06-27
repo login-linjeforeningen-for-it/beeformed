@@ -65,15 +65,15 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
     const sortedFields = fields.sort((a, b) => a.field_order - b.field_order)
 
     return (
-        <div className='pt-8 md:pt-20 pb-4 flex flex-col w-full h-full'>
-            <div className='flex flex-col sm:flex-row justify-between mb-4 items-stretch sm:items-center gap-3'>
+        <div className='flex size-full flex-col pb-4'>
+            <div className='mb-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center'>
                 <Button
                     text='Back'
                     onClick={() => router.back()}
                     icon={<ArrowLeft className='size-5' />}
-                    className='px-4 py-2 h-10.5'
+                    className='h-10.5 px-4 py-2'
                 />
-                <div className='flex flex-col sm:flex-row gap-2 items-stretch sm:items-start'>
+                <div className='flex flex-col items-stretch gap-2 sm:flex-row sm:items-start'>
                     <div className='w-full sm:w-48'>
                         <Select
                             name='statusFilter'
@@ -94,11 +94,11 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
                         text='Download CSV'
                         variant='secondary'
                         icon={<></>}
-                        className='px-4 py-2 h-10.5 bg-login-500/50! border-login-500! w-full sm:w-auto'
+                        className='h-10.5 w-full border-login-500! bg-login-500/50! px-4 py-2 sm:w-auto'
                     />
                 </div>
             </div>
-            <div className='flex-1 overflow-y-auto space-y-6'>
+            <div className='flex-1 space-y-6 overflow-y-auto'>
                 {sortedFields.map(field => {
                     const answers = filteredSubmissions.map(s => {
                         const answer = s.answers?.find(a => a.field_id === field.id)
@@ -106,21 +106,21 @@ export default function AllSubmissionsPage({ submissions }: AllSubmissionsPagePr
                     }).filter(val => val !== null && val !== '')
 
                     return (
-                        <div key={field.id} className='bg-login-700 p-4 sm:p-6 rounded-lg border border-login-500'>
+                        <div key={field.id} className='rounded-lg border border-login-500 bg-login-700 p-4 sm:p-6'>
                             <div className='mb-4 border-b border-login-500 pb-2'>
                                 <h2 className='text-lg font-semibold text-login-50'>{field.title}</h2>
-                                {field.description && <p className='text-login-200 text-sm mt-1'>{field.description}</p>}
+                                {field.description && <p className='mt-1 text-sm text-login-200'>{field.description}</p>}
                             </div>
 
                             <div className='space-y-2'>
                                 {answers.length === 0 ? (
-                                    <p className='text-login-300 italic text-sm'>No answers provided</p>
+                                    <p className='text-sm text-login-200 italic'>No answers provided</p>
                                 ) : (
                                     <ul className='list-none space-y-2'>
                                         {answers.map((ans, idx) => (
                                             <li
                                                 key={idx}
-                                                className='text-login-50 bg-login-500/50  p-3 rounded text-sm border border-login-500'
+                                                className='rounded border  border-login-500 bg-login-500/50 p-3 text-sm text-login-50'
                                             >
                                                 {ans}
                                             </li>

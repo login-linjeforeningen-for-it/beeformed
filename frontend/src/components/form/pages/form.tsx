@@ -63,9 +63,9 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                 {form && <input type='hidden' name='id' value={form.id} />}
 
                 <div className='space-y-4'>
-                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
-                        <FileText className='w-5 h-5 text-login-100' />
-                        <h3 className='font-medium text-lg'>General Details</h3>
+                    <div className='flex items-center space-x-2 border-b border-login-500 pb-2 text-login-100'>
+                        <FileText className='size-5 text-login-100' />
+                        <h3 className='text-lg font-medium'>General Details</h3>
                     </div>
 
                     <div className='space-y-4 pl-1'>
@@ -102,9 +102,9 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                 </div>
 
                 <div className='space-y-4'>
-                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
-                        <Settings className='w-5 h-5 text-login-100' />
-                        <h3 className='font-medium text-lg'>Configuration</h3>
+                    <div className='flex items-center space-x-2 border-b border-login-500 pb-2 text-login-100'>
+                        <Settings className='size-5 text-login-100' />
+                        <h3 className='text-lg font-medium'>Configuration</h3>
                     </div>
 
                     <div className='space-y-4 pl-1'>
@@ -150,12 +150,12 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                 </div>
 
                 <div className='space-y-4'>
-                    <div className='flex items-center space-x-2 text-login-100 pb-2 border-b border-login-800/50'>
-                        <CalendarClock className='w-5 h-5 text-login-100' />
-                        <h3 className='font-medium text-lg'>Availability</h3>
+                    <div className='flex items-center space-x-2 border-b border-login-500 pb-2 text-login-100'>
+                        <CalendarClock className='size-5 text-login-100' />
+                        <h3 className='text-lg font-medium'>Availability</h3>
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 pl-1'>
+                    <div className='grid grid-cols-1 gap-4 pl-1 md:grid-cols-2'>
                         <Input
                             name='published_at'
                             type='datetime-local'
@@ -176,14 +176,14 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                     </div>
                 </div>
 
-                <div className='flex flex-col sm:flex-row gap-3 pt-6 border-t border-login-800/30 mt-8'>
+                <div className='mt-8 flex flex-col gap-3 border-t border-login-500 pt-6 sm:flex-row'>
                     {!form && (
                         <button
                             type='button'
                             onClick={() => router.back()}
-                            className='flex-1 px-4 py-2 bg-login-800 text-login-100 rounded-md
-                                hover:bg-login-700 transition-colors focus:outline-none
-                                focus:ring-2 focus:ring-login-400 font-medium cursor-pointer'
+                            className='flex-1 cursor-pointer rounded-md bg-login-800 px-4 py-3
+                                font-medium text-login-100 transition-colors
+                                hover:bg-login-700 focus:ring-2 focus:ring-login-400 focus:outline-none'
                         >
                             Cancel
                         </button>
@@ -191,10 +191,10 @@ export default function EditFormPage({ form }: { form?: GetFormProps }) {
                     <button
                         type='submit'
                         disabled={loading || !formData.title.trim() || !formData.published_at || !formData.expires_at}
-                        className='flex-1 px-4 py-2 bg-login text-login-900 rounded-md
-                            hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed
-                            transition-colors focus:outline-none focus:ring-2 focus:ring-login
-                            focus:ring-offset-2 focus:ring-offset-login-700 font-medium cursor-pointer'
+                        className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
+                            font-medium text-white transition-colors
+                            hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
+                            focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                     >
                         {loading ? (form ? 'Updating...' : 'Creating...') : (form ? 'Update Form' : 'Create Form')}
                     </button>

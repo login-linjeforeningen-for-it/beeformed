@@ -24,10 +24,10 @@ export default async function Page() {
     } catch {
         return (
             <PageContainer title='Profile'>
-                <div className='w-full max-w-3xl mx-auto'>
-                    <div className='p-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 flex items-center gap-3'>
-                        <div className='p-2 bg-red-500/20 rounded-full'>
-                            <UserIcon className='w-5 h-5' />
+                <div className='mx-auto w-full max-w-3xl'>
+                    <div className='flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-6 text-red-500'>
+                        <div className='rounded-full bg-red-500/20 p-2'>
+                            <UserIcon className='size-5' />
                         </div>
                         <div>
                             <h3 className='font-semibold'>User not found</h3>
@@ -47,42 +47,42 @@ export default async function Page() {
 
     return (
         <PageContainer title='Profile'>
-            <div className='w-full max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
+            <div className='animate-in fade-in slide-in-from-bottom-4 mx-auto w-full max-w-5xl space-y-8 duration-700'>
 
-                <div className={`relative overflow-hidden bg-login-900/50 backdrop-blur-sm 
-                    border border-login-800 rounded-3xl p-6 md:p-10 flex flex-col md:flex-row 
-                    items-center md:items-start gap-8`}>
+                <div className={`relative flex flex-col
+                    items-center gap-8 overflow-hidden rounded-3xl border border-login-500 bg-login-600 p-6
+                    md:flex-row md:items-start md:p-10`}>
 
-                    <div className={`absolute top-0 right-0 w-64 h-64 bg-login-500/5 rounded-full 
-                        blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none`} />
+                    <div className={`pointer-events-none absolute top-0 right-0 size-64 translate-x-1/2 -translate-y-1/2 
+                        rounded-full bg-login-500/5 blur-3xl`} />
 
-                    <div className='relative group'>
-                        <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full bg-linear-to-br 
-                            from-login-500 to-login-600 flex items-center justify-center 
-                            text-3xl md:text-5xl font-bold text-white shadow-xl ring-4 
-                            ring-login-800 group-hover:scale-105 transition-transform duration-300`}>
+                    <div className='group relative'>
+                        <div className={`flex size-24 items-center justify-center rounded-full bg-linear-to-br 
+                            from-login-500 to-login-600 text-3xl font-bold text-white 
+                            shadow-xl ring-4 ring-login-800 transition-transform duration-300 group-hover:scale-105 
+                            md:size-32 md:text-5xl`}>
                             {userInitials}
                         </div>
                     </div>
 
-                    <div className='flex-1 flex flex-col items-center md:items-start text-center md:text-left z-10'>
-                        <h2 className='text-3xl md:text-4xl font-bold text-login-50 tracking-tight'>
+                    <div className='z-10 flex flex-1 flex-col items-center text-center md:items-start md:text-left'>
+                        <h2 className='text-3xl font-bold tracking-tight text-login-50 md:text-4xl'>
                             {user.name || 'Anonymous User'}
                         </h2>
-                        <div className='flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 mt-3 text-login-300'>
-                            <div className='flex items-center gap-2 px-3 py-1 rounded-full bg-login-800/50 border border-login-700/50'>
-                                <Mail className='w-4 h-4 text-login-400' />
+                        <div className='mt-3 flex flex-wrap justify-center gap-x-6 gap-y-2 text-login-100 md:justify-start'>
+                            <div className='flex items-center gap-2 rounded-full border border-login-500 bg-login-700 px-3 py-1'>
+                                <Mail className='size-4 text-login-200' />
                                 <span className='text-sm'>{user.email}</span>
                             </div>
-                            <div className='flex items-center gap-2 px-3 py-1 rounded-full bg-login-800/50 border border-login-700/50'>
-                                <Calendar className='w-4 h-4 text-login-400' />
+                            <div className='flex items-center gap-2 rounded-full border border-login-500 bg-login-700 px-3 py-1'>
+                                <Calendar className='size-4 text-login-200' />
                                 <span className='text-sm'>Joined {formatDateTime(user.created_at)}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
+                <div className='grid grid-cols-1 gap-5 md:grid-cols-3'>
                     <Widget
                         href='/forms/create'
                         title='Create Form'
@@ -109,20 +109,20 @@ export default async function Page() {
                     />
                 </div>
 
-                <div className='mt-12 pt-8 border-t border-login-800'>
-                    <h3 className='text-xl font-semibold text-login-50 mb-6 flex items-center gap-2'>
-                        <UserIcon className='w-5 h-5 text-login-400' />
+                <div className='mt-12 border-t border-login-500 pt-8'>
+                    <h3 className='mb-6 flex items-center gap-2 text-xl font-semibold text-login-50'>
+                        <UserIcon className='size-5 text-login-200' />
                         Account Settings
                     </h3>
 
-                    <div className='bg-login-900/30 rounded-xl border border-login-800/50 p-6'>
-                        <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+                    <div className='card p-6'>
+                        <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
                             <div>
                                 <h4 className='font-medium text-login-50'>Delete Account</h4>
-                                <p className='text-sm text-login-400 mt-1'>
+                                <p className='mt-1 text-sm text-login-100'>
                                     Permanently remove your account and all of your content.
                                 </p>
-                                <p className='text-xs text-login-400/90 mt-2'>
+                                <p className='mt-2 text-xs text-login-200'>
                                     Accounts inactive for more than 6 months are automatically deleted.
                                 </p>
                             </div>
@@ -144,20 +144,20 @@ type WidgetProps = {
 
 function Widget({ href, title, description, Icon }: WidgetProps) {
     return (
-        <Link href={href} className={`group relative w-full h-full min-h-40 bg-login-600 
-            border border-login-700 hover:border-login-600 rounded-2xl p-6 text-left 
-            transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block overflow-hidden`}>
-            <div className={`absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 
-                transition-opacity transform group-hover:scale-110 duration-500`}>
+        <Link href={href} className={`group relative block size-full min-h-40 overflow-hidden
+            rounded-2xl border border-login-500 bg-login-600 p-6 text-left
+            transition-all duration-300 hover:-translate-y-1 hover:border-login-400 hover:shadow-xl`}>
+            <div className={`absolute top-0 right-0 transform p-4 opacity-5
+                transition-opacity duration-500 group-hover:scale-110 group-hover:opacity-10`}>
                 <Icon className='size-20 text-login-50' />
             </div>
-            <div className='relative z-10 flex flex-col h-full justify-between'>
-                <div className='p-3 bg-login-700 w-fit rounded-xl group-hover:bg-login-600 transition-colors'>
-                    <Icon className='w-6 h-6 text-login-200 group-hover:text-login-50' />
+            <div className='relative z-10 flex h-full flex-col justify-between'>
+                <div className='w-fit rounded-xl bg-login-500 p-3 transition-colors group-hover:bg-login-400'>
+                    <Icon className='size-6 text-login-100 group-hover:text-login-50' />
                 </div>
                 <div>
-                    <h3 className='text-xl font-bold text-login-50 mb-1'>{title}</h3>
-                    <p className='text-login-400 group-hover:text-login-300 text-sm font-medium transition-colors'>
+                    <h3 className='mb-1 text-xl font-bold text-login-50'>{title}</h3>
+                    <p className='text-sm font-medium text-login-100 transition-colors group-hover:text-white'>
                         {description}
                     </p>
                 </div>

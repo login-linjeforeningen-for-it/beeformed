@@ -164,17 +164,18 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                         key={index}
                         onDragOver={(e) => handleDragOver(e, index)}
                         onDrop={handleDrop}
-                        className={`p-4 border border-login-500 rounded-xl bg-login-700 ${
+                        className={`rounded-xl border border-login-500 bg-login-700 p-4 ${
                             draggedIndex === index ? 'opacity-50' : ''
                         }`}
                     >
-                        <div className='flex justify-between items-center mb-4'>
+                        <div className='mb-4 flex items-center justify-between'>
                             <h3 className='font-semibold text-login-50'>Field {index + 1}</h3>
                             <div className='flex space-x-2'>
                                 <button
                                     type='button'
                                     onClick={() => handleRemove(index)}
-                                    className='text-red-500 cursor-pointer hover:bg-login-600 p-1 rounded transition-colors'
+                                    className='flex min-h-9 min-w-9 cursor-pointer items-center
+                                        justify-center rounded p-2 text-red-500 transition-colors hover:bg-login-600'
                                 >
                                     <X size={16} />
                                 </button>
@@ -182,13 +183,14 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                                     type='button'
                                     draggable
                                     onDragStart={() => handleDragStart(index)}
-                                    className='text-login-50 cursor-move hover:bg-login-600 p-1 rounded transition-colors'
+                                    className='flex min-h-9 min-w-9 cursor-move items-center
+                                        justify-center rounded p-2 text-login-50 transition-colors hover:bg-login-600'
                                 >
                                     <GripVertical size={16} />
                                 </button>
                             </div>
                         </div>
-                        <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                             <Input
                                 name={`field_${index}_title`}
                                 type='text'
@@ -219,7 +221,7 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                                     prev => prev.map((f, i) => i === index ? { ...f, required: e.target.checked } : f)
                                 )}
                                 switchOnly
-                                className='justify-start md:justify-center mt-2 md:mt-0'
+                                className='mt-2 justify-start md:mt-0 md:justify-center'
                             />
                         </div>
 
@@ -236,10 +238,10 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
 
                         {(field.field_type === 'select' || field.field_type === 'checkbox' || field.field_type === 'radio') && (
                             <div>
-                                <label className='block text-sm font-medium text-login-50 mb-2'>Options</label>
+                                <label className='mb-2 block text-sm font-medium text-login-50'>Options</label>
                                 <div className='space-y-2'>
                                     {Array.isArray(field.options) && field.options.map((option, optionIndex) => (
-                                        <div key={optionIndex} className='flex gap-2 items-center'>
+                                        <div key={optionIndex} className='flex items-center gap-2'>
                                             <div className='flex-1'>
                                                 <input
                                                     type='text'
@@ -252,9 +254,9 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                                                         ))
                                                     }}
                                                     placeholder={`Option ${optionIndex + 1}`}
-                                                    className='w-full px-3 py-2 border border-login-500 rounded-md bg-login-700
-                                                        text-login-50 focus:outline-none focus:ring-2 focus:login-50
-                                                        focus:border-transparent'
+                                                    className='w-full rounded-md border border-login-500 bg-login-700 px-3 py-2
+                                                        text-login-50 focus:border-transparent focus:ring-2 focus:ring-login
+                                                        focus:outline-none'
                                                 />
                                             </div>
                                             <button
@@ -266,7 +268,7 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                                                         i === index ? { ...f, options: newOptions } : f
                                                     ))
                                                 }}
-                                                className='p-2 text-red-500 hover:bg-login-600 rounded transition-colors'
+                                                className='rounded p-2 text-red-500 transition-colors hover:bg-login-600'
                                             >
                                                 <X size={20} />
                                             </button>
@@ -280,8 +282,8 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                                                 i === index ? { ...f, options: newOptions } : f
                                             ))
                                         }}
-                                        className='flex items-center gap-2 text-sm text-login-50 hover:text-white px-3 py-2
-                                            rounded hover:bg-login-600 transition-colors'
+                                        className='flex items-center gap-2 rounded px-3 py-2 text-sm text-login-50
+                                            transition-colors hover:bg-login-600 hover:text-white'
                                     >
                                         <Plus size={16} />
                                         Add Option
@@ -290,12 +292,13 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                             </div>
                         )}
                     </div>,
-                    <div key={`add-${index}`} className='flex justify-center opacity-0 hover:opacity-100 transition-opacity duration-200'>
+                    <div key={`add-${index}`} className='flex justify-center opacity-0 transition-opacity duration-200 hover:opacity-100'>
                         <button
                             type='button'
                             onClick={() => handleAddFieldAt(index + 1)}
-                            className='text-login-50 hover:text-login-300 cursor-pointer
-                                rounded-full w-8 h-8 flex items-center justify-center hover:bg-login-600 transition-colors'
+                            className='flex size-11 cursor-pointer
+                                items-center justify-center rounded-full text-login-50
+                                transition-colors hover:bg-login-600 hover:text-login-300'
                         >
                             <Plus size={24} />
                         </button>
@@ -308,17 +311,17 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                 <button
                     type='button'
                     onClick={handleAddField}
-                    className='px-4 py-2 bg-login-500  rounded-md transition-colors'
+                    className='cursor-pointer rounded-md bg-login-500 px-4 py-3 text-login-50 transition-colors hover:bg-login-400'
                 >
                     Add Field
                 </button>
                 <button
                     type='submit'
                     disabled={loading}
-                    className='flex-1 px-4 py-2 bg-login text-login-900 rounded-md
-                        hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed
-                        transition-colors focus:outline-none focus:ring-2 focus:ring-login
-                        focus:ring-offset-2 focus:ring-offset-login-700 font-medium cursor-pointer'
+                    className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
+                        font-medium text-white transition-colors
+                        hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
+                        focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                 >
                     {loading ? 'Saving...' : 'Save Fields'}
                 </button>

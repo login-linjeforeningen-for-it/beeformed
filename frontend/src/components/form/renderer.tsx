@@ -100,7 +100,7 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
 
             const result = await postSubmission(form.id, { fields }) as { id: string; status: 'registered' | 'waitlisted' }
 
-            toast.success(result.status === 'waitlisted' ? "You've been added to the waitlist!" : 'Form submitted successfully!')
+            toast.success(result.status === 'waitlisted' ? 'You\'ve been added to the waitlist!' : 'Form submitted successfully!')
             setFormData({})
             router.push(`/submissions/${result.id}`)
         } catch (error) {
@@ -299,7 +299,7 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
     }
 
     return (
-        <form onSubmit={handleSubmit} className='space-y-6 h-full'>
+        <form onSubmit={handleSubmit} className='h-full space-y-6'>
             {!submission && blockMultiple && (
                 <Alert variant='warning'>
                     <p>
@@ -338,10 +338,10 @@ export default function FormRenderer({ form, submission }: { form: FormData; sub
                     <button
                         type='submit'
                         disabled={loading}
-                        className='w-full px-4 py-3 bg-login text-login-900 rounded-md
-                            hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed
-                            transition-colors focus:outline-none focus:ring-2 focus:ring-login
-                            focus:ring-offset-2 focus:ring-offset-login-700 font-medium cursor-pointer'
+                        className='w-full cursor-pointer rounded-md bg-login px-4 py-3
+                            font-medium text-white transition-colors
+                            hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
+                            focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                     >
                         {loading ? 'Submitting...' : (isWaitlist ? 'Join Waitlist' : 'Submit Form')}
                     </button>

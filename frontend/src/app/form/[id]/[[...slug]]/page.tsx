@@ -4,6 +4,7 @@ import EditFieldsPage from '@components/form/pages/fields'
 import { getFields, getForm, getPermissions, getSubmissions } from '@utils/api/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 import EditPermissionsPage from '@components/form/pages/permissions'
 import SubmissionsPage from '@components/form/pages/submissions'
 import AllSubmissionsPage from '@components/form/pages/all-submissions'
@@ -101,8 +102,8 @@ export default async function Page({ params, searchParams }: PageProps) {
 
     return (
         <PageContainer title={`Form - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
-            <div className='flex flex-col sm:flex-row gap-2 mb-4 pb-2'>
-                <div className='flex flex-col sm:flex-row gap-2'>
+            <div className='mb-4 flex flex-col gap-2 pb-2 sm:flex-row'>
+                <div className='flex flex-col gap-2 sm:flex-row'>
                     <LinkButton
                         href={`/form/${id}/fields`}
                         highlight={type === 'fields'}
@@ -130,14 +131,15 @@ export default async function Page({ params, searchParams }: PageProps) {
                     <LinkButton
                         href={`/qr/${id}`}
                         highlight={type === 'qr'}
+                        icon={<ArrowUpRight size={14} />}
                     >
                         QR Scanner
                     </LinkButton>
                     {formData && <ShareButton slug={formData.slug} />}
                 </div>
             </div>
-            <div className='pt-6 pb-4 flex flex-col h-full'>
-                <div className='flex justify-between h-full min-w-0'>
+            <div className='flex h-full flex-col pt-6 pb-4'>
+                <div className='flex h-full min-w-0 justify-between'>
                     {renderContent(data)}
                 </div>
             </div>
@@ -145,16 +147,16 @@ export default async function Page({ params, searchParams }: PageProps) {
     )
 }
 
-function LinkButton({ href, highlight, children }: { href: string, highlight: boolean, children: React.ReactNode }) {
+type LinkButtonProps = { href: string, highlight: boolean, icon?: React.ReactNode, children: React.ReactNode }
+function LinkButton({ href, highlight, icon, children }: LinkButtonProps) {
+    const c = highlight ? 'bg-login text-white' : 'bg-login-700 text-login-100 hover:bg-login-600'
     return (
         <Link
             href={href}
-            className={`px-3 sm:px-4 py-2 rounded transition-colors text-sm sm:text-base ${highlight ?
-                'bg-login text-white' :
-                'bg-login-700 text-login-100 hover:bg-login-600'
-            }`}
+            className={`inline-flex min-h-11 items-center gap-1 rounded p-3 text-sm transition-colors sm:px-4 sm:text-base ${c}`}
         >
             {children}
+            {icon}
         </Link>
     )
 }

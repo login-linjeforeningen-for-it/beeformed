@@ -24,8 +24,8 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
     }))
 
     return (
-        <div className='flex flex-col w-full h-full'>
-            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4'>
+        <div className='flex size-full flex-col'>
+            <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                 <SearchInput
                     placeholder='Search submissions...'
                     variant='minimal'
@@ -33,21 +33,21 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
                 {formId && (
                     <Link
                         href={`/form/${formId}/all-submissions`}
-                        className='bg-login text-white px-4 py-2 rounded hover:bg-login-600
-                            transition-colors sm:ml-4 flex items-center justify-center'
+                        className='flex min-h-11 items-center justify-center rounded bg-login
+                            px-4 py-3 text-white transition-colors hover:bg-login-600 sm:ml-4'
                     >
                         View All
                     </Link>
                 )}
             </div>
             {submissionsData.length === 0 ? (
-                <div className='flex-1 flex flex-col items-center justify-center min-h-0'>
-                    <p className='text-gray-500 text-center'>
+                <div className='flex min-h-0 flex-1 flex-col items-center justify-center'>
+                    <p className='text-center text-gray-500'>
                         No submissions found
                     </p>
                 </div>
             ) : (
-                <div className='flex-1 flex flex-col justify-between min-h-0'>
+                <div className='flex min-h-0 flex-1 flex-col justify-between'>
                     <Table
                         data={submissionsData}
                         idKey='id'

@@ -41,12 +41,12 @@ export default async function Page(
             <PageContainer title='Submission Details'>
                 <div className='flex flex-col gap-4'>
                     {submission.status === 'registered' && (
-                        <div className='bg-green-500/20 text-green-400 px-4 py-3 rounded-lg'>
+                        <div className='rounded-lg bg-green-500/20 px-4 py-3 text-green-400'>
                             You are registered for this form.
                         </div>
                     )}
                     {submission.status === 'waitlisted' && (
-                        <div className='bg-yellow-500/20 text-yellow-400 px-4 py-3 rounded-lg'>
+                        <div className='rounded-lg bg-yellow-500/20 px-4 py-3 text-yellow-400'>
                             You are on the waitlist, this form is currently full.
                             {submission.waitlist_position != null && (
                                 <span className='ml-2 font-medium'>Position nr: {submission.waitlist_position}</span>
@@ -54,12 +54,12 @@ export default async function Page(
                         </div>
                     )}
                     {submission.status === 'rejected' && (
-                        <div className='bg-red-500/20 text-red-400 px-4 py-3 rounded-lg'>
+                        <div className='rounded-lg bg-red-500/20 px-4 py-3 text-red-400'>
                             Your submission has been rejected.
                         </div>
                     )}
                     {submission.status === 'cancelled' && (
-                        <div className='bg-gray-500/20 text-gray-400 px-4 py-3 rounded-lg'>
+                        <div className='rounded-lg bg-gray-500/20 px-4 py-3 text-gray-400'>
                             Your submission has been cancelled.
                         </div>
                     )}
@@ -82,9 +82,9 @@ export default async function Page(
 
         return (
             <PageContainer title='My Submissions'>
-                <div className='pt-8 md:pt-20 pb-4 flex flex-col h-full'>
-                    <div className='flex flex-1 flex-col min-h-0 overflow-hidden'>
-                        <div className='flex justify-between mb-4'>
+                <div className='flex h-full flex-col pb-4'>
+                    <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+                        <div className='mb-4 flex justify-between'>
                             <SearchInput
                                 placeholder='Search submissions...'
                                 variant='minimal'
@@ -92,7 +92,7 @@ export default async function Page(
                         </div>
                         <div className='flex-1 overflow-auto'>
                             {submissionsData.length === 0 ? (
-                                <div className='flex items-center justify-center h-full'>
+                                <div className='flex h-full items-center justify-center'>
                                     <p>No submissions yet.</p>
                                 </div>
                             ) : (

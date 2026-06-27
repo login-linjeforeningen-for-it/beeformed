@@ -67,9 +67,12 @@ export default function FormActionModal({
     }
 
     return (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/60'>
-            <div className='bg-login-800 border border-login-600 rounded-lg shadow-xl p-6 w-full max-w-sm mx-4'>
-                <h2 className='text-login-100 font-semibold text-lg mb-4'>{TITLES[mode]}</h2>
+        <div
+            className='fixed inset-0 z-50 flex items-center justify-center bg-black/60'
+            onClick={onClose}
+        >
+            <div className='mx-4 w-full max-w-sm card p-6 shadow-xl' onClick={(e) => e.stopPropagation()}>
+                <h2 className='mb-4 text-lg font-semibold text-login-100'>{TITLES[mode]}</h2>
                 <form onSubmit={handleSubmit} className='space-y-4'>
                     <Input
                         name='title'
@@ -110,18 +113,18 @@ export default function FormActionModal({
                             type='button'
                             onClick={onClose}
                             disabled={loading}
-                            className='flex-1 px-4 py-2 border border-login-600 text-login-200 rounded-md
-                                hover:bg-login-700 disabled:opacity-50 disabled:cursor-not-allowed
-                                transition-colors focus:outline-none'
+                            className='flex-1 cursor-pointer rounded-md border border-login-600 px-4 py-3
+                                text-login-200 transition-colors hover:bg-login-700
+                                focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                         >
                             Cancel
                         </button>
                         <button
                             type='submit'
                             disabled={loading || !isValid}
-                            className='flex-1 px-4 py-2 bg-login text-login-900 rounded-md
-                                hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed
-                                transition-colors focus:outline-none font-medium'
+                            className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
+                                font-medium text-white transition-colors
+                                hover:bg-orange-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                         >
                             {loading ? loadingLabel : submitLabel}
                         </button>

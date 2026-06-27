@@ -189,11 +189,11 @@ export default function Page() {
 
     function getStatusIcon(status: string) {
         switch (status) {
-            case 'registered': return <CheckCircle2 className='w-5 h-5' />
-            case 'waitlisted': return <Clock className='w-5 h-5' />
-            case 'cancelled': return <XCircle className='w-5 h-5' />
-            case 'rejected': return <XCircle className='w-5 h-5' />
-            default: return <AlertCircle className='w-5 h-5' />
+            case 'registered': return <CheckCircle2 className='size-5' />
+            case 'waitlisted': return <Clock className='size-5' />
+            case 'cancelled': return <XCircle className='size-5' />
+            case 'rejected': return <XCircle className='size-5' />
+            default: return <AlertCircle className='size-5' />
         }
     }
 
@@ -201,32 +201,32 @@ export default function Page() {
         <PageContainer title='QR Scanner'>
             <canvas ref={canvasRef} className='hidden' />
 
-            <div className='flex flex-col items-center gap-6 w-full max-w-md mx-auto'>
+            <div className='mx-auto flex w-full max-w-md flex-col items-center gap-6'>
                 <div className={`relative w-full ${!submission || loadingSubmission ? 'aspect-square' : ''} 
-                    bg-login-950 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-login-800`}
+                    overflow-hidden rounded-2xl bg-login-950 shadow-2xl ring-1 ring-login-800`}
                 >
                     <video
                         ref={videoRef}
-                        className={`absolute inset-0 w-full h-full object-cover ${scannedData ? 'hidden' : ''}`}
+                        className={`absolute inset-0 size-full object-cover ${scannedData ? 'hidden' : ''}`}
                         playsInline
                         muted
                     />
 
                     {(!isScanning && !scannedData && !error) || loadingSubmission ? (
-                        <div className='absolute inset-0 flex flex-col items-center justify-center text-login-200 bg-login-950'>
-                            <Loader2 className='w-8 h-8 animate-spin mb-4 text-login' />
+                        <div className='absolute inset-0 flex flex-col items-center justify-center bg-login-950 text-login-200'>
+                            <Loader2 className='mb-4 size-8 animate-spin text-login' />
                             <p className='text-sm font-medium'>{loadingSubmission ? 'Fetching details...' : 'Starting camera...'}</p>
                         </div>
                     ) : null}
 
                     {error && (
-                        <div className='absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-login-50
-                                        bg-login-950/95 backdrop-blur-sm z-20'
+                        <div className='absolute inset-0 z-20 flex flex-col items-center justify-center bg-login-950/95 p-6
+                                        text-center text-login-50 backdrop-blur-sm'
                         >
-                            <div className='w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 text-red-500'>
-                                <AlertCircle className='w-6 h-6' />
+                            <div className='mb-4 flex size-12 items-center justify-center rounded-full bg-red-500/10 text-red-500'>
+                                <AlertCircle className='size-6' />
                             </div>
-                            <p className='text-sm text-login-200 mb-6'>{error}</p>
+                            <p className='mb-6 text-sm text-login-200'>{error}</p>
                             <Button
                                 text='Try Again'
                                 icon={<RotateCcw />}
@@ -237,61 +237,61 @@ export default function Page() {
                     )}
 
                     {isScanning && !scannedData && !loadingSubmission && (
-                        <div className='absolute inset-0 p-8 pointer-events-none'>
-                            <div className='w-full h-full border border-login-800 rounded-[2rem] relative overflow-hidden'>
-                                <div className='absolute inset-0 bg-gradient-to-b from-transparent
-                                    via-login/5 to-transparent animate-scan-move' />
+                        <div className='pointer-events-none absolute inset-0 p-8'>
+                            <div className='relative size-full overflow-hidden rounded-4xl border border-login-800'>
+                                <div className='animate-scan-move absolute inset-0 bg-gradient-to-b
+                                    from-transparent via-login/5 to-transparent' />
                                 {/* Corner Accents */}
-                                <div className='absolute -top-1 -left-1 w-14 h-14 border-t-4
-                                    border-l-4 border-login rounded-tl-2xl' />
-                                <div className='absolute -top-1 -right-1 w-14 h-14 border-t-4
-                                    border-r-4 border-login rounded-tr-2xl' />
-                                <div className='absolute -bottom-1 -left-1 w-14 h-14 border-b-4
-                                    border-l-4 border-login rounded-bl-2xl' />
-                                <div className='absolute -bottom-1 -right-1 w-14 h-14 border-b-4
-                                    border-r-4 border-login rounded-br-2xl' />
+                                <div className='absolute -top-1 -left-1 size-14 rounded-tl-2xl border-t-4
+                                    border-l-4 border-login' />
+                                <div className='absolute -top-1 -right-1 size-14 rounded-tr-2xl border-t-4
+                                    border-r-4 border-login' />
+                                <div className='absolute -bottom-1 -left-1 size-14 rounded-bl-2xl border-b-4
+                                    border-l-4 border-login' />
+                                <div className='absolute -right-1 -bottom-1 size-14 rounded-br-2xl border-r-4
+                                    border-b-4 border-login' />
                             </div>
                         </div>
                     )}
 
                     {submission && !loadingSubmission && (
-                        <div className='relative z-10 flex flex-col items-center justify-center p-6 text-center gap-4'>
+                        <div className='relative z-10 flex flex-col items-center justify-center gap-4 p-6 text-center'>
                             {submission.already_scanned ? (
-                                <div className='flex flex-col items-center gap-2 mb-2 w-full'>
-                                    <div className='w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center
-                                                    text-yellow-500 mb-2 ring-1 ring-yellow-500/20'
+                                <div className='mb-2 flex w-full flex-col items-center gap-2'>
+                                    <div className='mb-2 flex size-16 items-center justify-center rounded-full bg-yellow-500/10
+                                                    text-yellow-500 ring-1 ring-yellow-500/20'
                                     >
-                                        <AlertCircle className='w-10 h-10' />
+                                        <AlertCircle className='size-10' />
                                     </div>
-                                    <h3 className='font-bold text-xl text-yellow-500'>
+                                    <h3 className='text-xl font-bold text-yellow-500'>
                                         Already Scanned
                                     </h3>
-                                    <p className='text-login-200 text-sm'>
+                                    <p className='text-sm text-login-200'>
                                         Scanned: {formatDateTime(submission.scanned_at!)}
                                     </p>
                                 </div>
                             ) : (
-                                <h3 className='font-bold text-xl text-white'>
+                                <h3 className='text-xl font-bold text-white'>
                                     Submission Scanned
                                 </h3>
                             )}
 
-                            <div className='bg-login-900 rounded-xl border border-login-800 p-4 w-full'>
-                                <div className='flex items-center gap-3 text-login-100 mb-1'>
-                                    <User className='w-4 h-4 text-login-400' />
+                            <div className='w-full card-row p-4'>
+                                <div className='mb-1 flex items-center gap-3 text-login-100'>
+                                    <User className='size-4 text-login-200' />
                                     <span className='text-sm font-medium'>Name</span>
                                 </div>
-                                <p className='text-lg font-semibold text-white pl-7 text-left'>
+                                <p className='pl-7 text-left text-lg font-semibold text-white'>
                                     {submission.user_name || 'Anonymous'}
                                 </p>
                             </div>
 
-                            <div className='bg-login-900 rounded-xl border border-login-800 p-4 w-full'>
-                                <div className='flex items-center gap-3 text-login-100 mb-2'>
-                                    <Clock className='w-4 h-4 text-login-400' />
+                            <div className='w-full card-row p-4'>
+                                <div className='mb-2 flex items-center gap-3 text-login-100'>
+                                    <Clock className='size-4 text-login-200' />
                                     <span className='text-sm font-medium'>Status</span>
                                 </div>
-                                <div className={`ml-7 flex w-fit gap-2 px-3 py-1.5 rounded-full text-sm font-semibold
+                                <div className={`ml-7 flex w-fit gap-2 rounded-full px-3 py-1.5 text-sm font-semibold
                                     ${getStatusColor(submission.status)}`}
                                 >
                                     {getStatusIcon(submission.status)}
@@ -311,11 +311,11 @@ export default function Page() {
 
                 {!scannedData && !loadingSubmission && (
                     <div className='w-full space-y-6'>
-                        <div className='bg-login-900 rounded-2xl p-6 border border-login-800 shadow-sm'>
+                        <div className='card p-6 shadow-sm'>
                             <div className='flex flex-col gap-6'>
                                 <div className='space-y-1'>
-                                    <h3 className='text-sm font-semibold text-white uppercase tracking-wider'>Manual Search</h3>
-                                    <p className='text-xs text-login-400'>Search for a submission if the QR code cannot be scanned.</p>
+                                    <h3 className='text-sm font-semibold tracking-wider text-white uppercase'>Manual Search</h3>
+                                    <p className='text-xs text-login-200'>Search for a submission if the QR code cannot be scanned.</p>
                                 </div>
                                 <div className='flex flex-col gap-4'>
                                     <Input
@@ -329,8 +329,8 @@ export default function Page() {
                                             }
                                         }}
                                         placeholder='Enter name or email...'
-                                        icon={<Search size={18} className='text-login-400' />}
-                                        className='bg-login-950 border-login-800'
+                                        icon={<Search size={18} className='text-login-200' />}
+                                        className='border-login-800 bg-login-950'
                                     />
                                     <Button
                                         text={searching ? 'Searching...' : 'Search Submissions'}
@@ -345,7 +345,7 @@ export default function Page() {
                         </div>
 
                         {searchResults.length > 0 && (
-                            <div className='mt-6 space-y-3 max-h-96 overflow-y-auto w-full no-scrollbar'>
+                            <div className='mt-6 no-scrollbar max-h-96 w-full space-y-3 overflow-y-auto'>
                                 {searchResults.map(result => (
                                     <MobileCard
                                         key={result.id}

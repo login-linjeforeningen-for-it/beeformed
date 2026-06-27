@@ -35,7 +35,7 @@ export default function QRCodeGenerator({ data, size = 150 }: QRCodeGeneratorPro
 
     return (
         <div className='flex flex-col items-center'>
-            <canvas ref={canvasRef} className='border rounded-lg shadow-sm' />
+            <canvas ref={canvasRef} className='max-w-full rounded-lg border shadow-sm' />
         </div>
     )
 }

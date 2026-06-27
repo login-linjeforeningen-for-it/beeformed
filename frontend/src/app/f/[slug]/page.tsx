@@ -21,7 +21,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     } catch {
         return (
             <PageContainer title='Form Not Found'>
-                <div className='w-full h-full flex items-center justify-center'>
+                <div className='flex size-full items-center justify-center'>
                     <Alert variant='warning'>
                         <p>
                             The form you are looking for does not exist or is not published.

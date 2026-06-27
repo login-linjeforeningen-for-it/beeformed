@@ -70,14 +70,14 @@ export default function EditTemplatePermissionsPage({
     }))
 
     return (
-        <div className='space-y-6 w-full min-w-0'>
+        <div className='w-full min-w-0 space-y-6'>
             <div className='w-full max-w-2xl'>
-                <h2 className='text-xl font-semibold text-login-50 mb-6'>Add Permission</h2>
-                <p className='text-login-200 mb-6'>
+                <h2 className='mb-6 text-xl font-semibold text-login-50'>Add Permission</h2>
+                <p className='mb-6 text-login-200'>
                     Adding permissions grants users or groups the ability to edit this template.
                 </p>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className='space-y-4'>
                     <Input
                         name='email'
                         type='text'
@@ -95,17 +95,17 @@ export default function EditTemplatePermissionsPage({
                     />
 
                     {bothFilled && (
-                        <p className='text-red-400 text-sm'>Email or Group, not both.</p>
+                        <p className='text-sm text-red-400'>Email or Group, not both.</p>
                     )}
 
-                    <div className='flex flex-col sm:flex-row gap-3 pt-4'>
+                    <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
                         <button
                             type='submit'
                             disabled={loading || neitherFilled || bothFilled}
-                            className='flex-1 px-4 py-2 bg-login text-login-900 rounded-md
-                                hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed
-                                transition-colors focus:outline-none focus:ring-2 focus:ring-login
-                                focus:ring-offset-2 focus:ring-offset-login-700 font-medium cursor-pointer'
+                            className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
+                                font-medium text-white transition-colors
+                                hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
+                                focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                         >
                             {loading ? 'Adding...' : 'Add Permission'}
                         </button>
@@ -114,7 +114,7 @@ export default function EditTemplatePermissionsPage({
             </div>
 
             <div className='w-full max-w-2xl'>
-                <h2 className='text-xl font-semibold text-login-50 mb-6'>Current Permissions</h2>
+                <h2 className='mb-6 text-xl font-semibold text-login-50'>Current Permissions</h2>
 
                 {permissions && permissions.data.length > 0 ? (
                     <Table

@@ -26,32 +26,32 @@ export default function MobileCard({ title, subtitle, status, details, actions, 
     return (
         <div
             onClick={onClick}
-            className={`p-4 mb-3 bg-login-700 border border-login-600 rounded-xl active:bg-login-600 transition-colors ${
+            className={`mb-3 card p-4 transition-colors active:bg-login-500 ${
                 onClick ? 'cursor-pointer' : ''}`}
         >
-            <div className='flex justify-between items-start mb-3'>
-                <div className='flex-1 min-w-0'>
-                    <h3 className='text-lg font-semibold text-login-50 truncate'>{title}</h3>
-                    {subtitle && <p className='text-sm text-login-200 truncate'>{subtitle}</p>}
+            <div className='mb-3 flex items-start justify-between'>
+                <div className='min-w-0 flex-1'>
+                    <h3 className='truncate text-lg font-semibold text-login-50'>{title}</h3>
+                    {subtitle && <p className='truncate text-sm text-login-100'>{subtitle}</p>}
                 </div>
                 {actions && (
-                    <div className='flex items-center ml-2' onClick={(e) => e.stopPropagation()}>
+                    <div className='ml-2 flex items-center' onClick={(e) => e.stopPropagation()}>
                         {actions}
                     </div>
                 )}
             </div>
 
-            <div className='flex flex-wrap items-center justify-between gap-3 mt-4'>
+            <div className='mt-4 flex flex-wrap items-center justify-between gap-3'>
                 <div className='flex flex-col gap-1'>
                     {details?.map((detail, i) => (
                         <div key={i} className='flex gap-2 text-xs'>
-                            <span className='text-login-300'>{detail.label}:</span>
-                            <span className='text-login-100 font-medium'>{detail.value}</span>
+                            <span className='text-login-200'>{detail.label}:</span>
+                            <span className='font-medium text-login-50'>{detail.value}</span>
                         </div>
                     ))}
                 </div>
                 {status && (
-                    <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
+                    <span className={`rounded-full border px-3 py-1 text-[11px] font-bold tracking-wider uppercase ${
                         statusColors[status.color || 'gray']}`}>
                         {status.label}
                     </span>

@@ -14,7 +14,8 @@ export async function deleteForm(formId: string) {
     return apiRequestClient({ method: 'DELETE', path: `forms/${formId}` })
 }
 
-export async function duplicateForm(formId: string, data: { title: string; slug: string; published_at: string; expires_at: string }): Promise<{ id: string }> {
+type DuplicateFormData = { title: string; slug: string; published_at: string; expires_at: string }
+export async function duplicateForm(formId: string, data: DuplicateFormData): Promise<{ id: string }> {
     return apiRequestClient({ method: 'POST', path: `forms/${formId}/duplicate`, data })
 }
 

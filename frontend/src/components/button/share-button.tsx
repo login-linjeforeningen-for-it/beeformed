@@ -13,9 +13,10 @@ export default function ShareButton({ slug }: { slug: string }) {
     return (
         <button
             onClick={handleShare}
-            className='px-4 py-2 bg-login-700 text-login-100 hover:bg-login-600 rounded transition-colors flex items-center'
+            className='flex min-h-11 cursor-pointer items-center rounded bg-login-700
+                px-4 py-3 text-login-100 transition-colors hover:bg-login-600'
         >
-            <Share className='w-4 h-4 mr-2' />
+            <Share className='mr-2 size-4' />
             Share
         </button>
     )

@@ -12,7 +12,7 @@ export default async function Home() {
     }
 
     return (
-        <div className='w-full min-h-full flex items-start sm:items-center justify-center px-4 py-6 sm:py-10'>
+        <div className='flex min-h-full w-full items-start justify-center px-4 py-6 sm:items-center sm:py-10'>
             <LoginPage
                 title='BeeFormed'
                 redirectPath={config.authPath.login}

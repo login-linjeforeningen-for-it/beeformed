@@ -45,7 +45,7 @@ export default async function Page({ params }: PageProps) {
 
     return (
         <PageContainer title={`Template - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
-            <div className='flex flex-wrap gap-2 mb-4'>
+            <div className='mb-4 flex flex-wrap gap-2'>
                 <LinkButton href={`/template/${id}/fields`} highlight={type === 'fields'}>
                     Fields
                 </LinkButton>
@@ -56,8 +56,8 @@ export default async function Page({ params }: PageProps) {
                     Permissions
                 </LinkButton>
             </div>
-            <div className='pt-6 pb-4 flex flex-col h-full'>
-                <div className='flex justify-between h-full min-w-0'>
+            <div className='flex h-full flex-col pt-6 pb-4'>
+                <div className='flex h-full min-w-0 justify-between'>
                     {renderContent(data)}
                 </div>
             </div>
@@ -69,7 +69,7 @@ function LinkButton({ href, highlight, children }: { href: string, highlight: bo
     return (
         <Link
             href={href}
-            className={`px-3 sm:px-4 py-2 rounded transition-colors text-sm sm:text-base ${highlight ?
+            className={`inline-flex min-h-11 items-center rounded p-3 text-sm transition-colors sm:px-4 sm:text-base ${highlight ?
                 'bg-login text-white' :
                 'bg-login-700 text-login-100 hover:bg-login-600'
             }`}

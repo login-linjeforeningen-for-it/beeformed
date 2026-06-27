@@ -14,7 +14,7 @@ export default function Confirm() {
         <>
             <Button
                 text='Delete Account'
-                icon={<Trash2 className='w-4 h-4' />}
+                icon={<Trash2 className='size-4' />}
                 onClick={() => setIsOpen(true)}
                 variant='danger'
             />

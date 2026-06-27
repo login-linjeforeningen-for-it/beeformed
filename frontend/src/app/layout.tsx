@@ -23,12 +23,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     const theme = Cookies.get('theme')?.value || 'dark'
 
     return (
-        <html lang='en' className={`${theme} ${poppins.className} min-h-screen`}>
-            <body className='bg-login-800 h-full flex flex-col'>
-                <header className='fixed top-0 w-full h-fit z-50'>
+        <html lang='en' className={`${theme} ${poppins.className} min-h-dvh`}>
+            <body className='flex h-full flex-col bg-login-800'>
+                <header className='fixed top-0 z-50 h-fit w-full'>
                     <Navbar />
                 </header>
-                <main className='min-h-screen flex pt-20 md:pt-22 w-full overflow-x-hidden'>
+                <main className='flex min-h-dvh w-full overflow-x-hidden pt-20 md:pt-22'>
                     {children}
                 </main>
                 <Footer />
