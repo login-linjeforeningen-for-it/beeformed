@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Input } from 'uibee/components'
-import { toast } from 'uibee/components'
+import { Button, Input, toast } from 'uibee/components'
 import { toISOWithOffset } from '@utils/dateTime'
 
 export type ModalMode = 'duplicate' | 'save-as-template' | 'use-template'
@@ -109,25 +108,21 @@ export default function FormActionModal({
                         />
                     </>)}
                     <div className='flex gap-3 pt-2'>
-                        <button
+                        <Button
+                            text='Cancel'
                             type='button'
                             onClick={onClose}
                             disabled={loading}
-                            className='flex-1 cursor-pointer rounded-md border border-login-600 px-4 py-3
-                                text-login-200 transition-colors hover:bg-login-700
-                                focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-                        >
-                            Cancel
-                        </button>
-                        <button
+                            variant='secondary'
+                            className='flex-1'
+                        />
+                        <Button
+                            text={loading ? loadingLabel : submitLabel}
                             type='submit'
                             disabled={loading || !isValid}
-                            className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
-                                font-medium text-white transition-colors
-                                hover:bg-orange-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-                        >
-                            {loading ? loadingLabel : submitLabel}
-                        </button>
+                            variant='primary'
+                            className='flex-1'
+                        />
                     </div>
                 </form>
             </div>

@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Table, MenuButton } from 'uibee/components'
+import { Table, MenuButton, ConfirmPopup, toast } from 'uibee/components'
 import { Edit, Trash, Settings, Shield, List, QrCode, Share, Copy, FilePlus2, MoreHorizontal } from 'lucide-react'
 import MobileCard from './mobile-card'
-import { toast } from 'uibee/components'
 import FormActionModal, { type ModalMode } from './form-action-modal'
 import {
     deleteForm,
@@ -31,13 +30,37 @@ type ModalState = {
     initialExpiresAt?: string
 }
 
+type ConfirmDeleteState = {
+    id: string
+    type: 'form' | 'template'
+}
+
 export default function FormsTable({ data, variant = 'minimal', resourceType = 'form' }: FormsTableProps) {
     const router = useRouter()
     const isTemplate = resourceType === 'template'
     const [modal, setModal] = useState<ModalState | null>(null)
+    const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteState | null>(null)
 
     function openModal(state: ModalState) {
         setModal(state)
+    }
+
+    async function handleConfirmDelete() {
+        if (!confirmDelete) return
+        try {
+            if (confirmDelete.type === 'template') {
+                await deleteTemplate(confirmDelete.id)
+                toast.success('Template deleted')
+            } else {
+                await deleteForm(confirmDelete.id)
+                toast.success('Form deleted')
+            }
+            router.refresh()
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Unable to delete')
+        } finally {
+            setConfirmDelete(null)
+        }
     }
 
     const actions = {
@@ -46,25 +69,11 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
         permissions: (id: string) => router.push(isTemplate ? `/template/${id}/permissions` : `/form/${id}/permissions`),
         submissions: (id: string) => router.push(`/form/${id}/submissions`),
         scanner: (id: string) => router.push(`/qr/${id}`),
-        delete: async (id: string) => {
-            if (!confirm('Are you sure you want to delete this form? This cannot be undone.')) return
-            try {
-                await deleteForm(id)
-                toast.success('Form deleted')
-                router.refresh()
-            } catch (error) {
-                toast.error(error instanceof Error ? error.message : 'Unable to delete form')
-            }
+        delete: (id: string) => {
+            setConfirmDelete({ id, type: 'form' })
         },
-        deleteTemplate: async (id: string) => {
-            if (!confirm('Are you sure you want to delete this template? This cannot be undone.')) return
-            try {
-                await deleteTemplate(id)
-                toast.success('Template deleted')
-                router.refresh()
-            } catch (error) {
-                toast.error(error instanceof Error ? error.message : 'Unable to delete template')
-            }
+        deleteTemplate: (id: string) => {
+            setConfirmDelete({ id, type: 'template' })
         },
         duplicate: (id: string, title: string, slug: string) => {
             const now = new Date()
@@ -154,6 +163,17 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
                     onClose={() => setModal(null)}
                 />
             )}
+
+            <ConfirmPopup
+                isOpen={confirmDelete !== null}
+                header={`Delete ${confirmDelete?.type === 'template' ? 'Template' : 'Form'}`}
+                description='This action cannot be undone.'
+                confirmText='Delete'
+                cancelText='Cancel'
+                variant='danger'
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setConfirmDelete(null)}
+            />
         </>
     )
 

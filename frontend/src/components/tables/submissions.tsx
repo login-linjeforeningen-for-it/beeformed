@@ -3,7 +3,7 @@
 import { cancelSubmission } from '@utils/api/client'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
-import { MenuButton, Table, toast } from 'uibee/components'
+import { ConfirmPopup, MenuButton, Table, toast } from 'uibee/components'
 import { Eye, QrCode, Trash, MoreHorizontal } from 'lucide-react'
 import MobileCard from './mobile-card'
 
@@ -12,28 +12,31 @@ interface SubmissionsTableProps {
 }
 
 
+type ConfirmCancelState = {
+    row: GetSubmissionsProps['data'][number]
+}
+
 export default function SubmissionsTable({ data }: SubmissionsTableProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [confirmCancel, setConfirmCancel] = useState<ConfirmCancelState | null>(null)
 
-    async function handleCancel(row: GetSubmissionsProps['data'][number]) {
+    function handleCancel(row: GetSubmissionsProps['data'][number]) {
         if (loading) return
+        setConfirmCancel({ row })
+    }
 
-        const isWaitlisted = row.status === 'waitlisted'
-        const message = isWaitlisted
-            ? 'Are you sure you want to leave the waitlist? You will lose your spot.'
-            : 'Are you sure you want to cancel your submission? This cannot be undone.'
-
-        if (confirm(message)) {
-            setLoading(true)
-            try {
-                await cancelSubmission(row.id)
-                router.refresh()
-            } catch (error) {
-                toast.error(error instanceof Error ? error.message : 'An error occurred')
-            } finally {
-                setLoading(false)
-            }
+    async function handleConfirmCancel() {
+        if (!confirmCancel) return
+        setLoading(true)
+        setConfirmCancel(null)
+        try {
+            await cancelSubmission(confirmCancel.row.id)
+            router.refresh()
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'An error occurred')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -49,6 +52,18 @@ export default function SubmissionsTable({ data }: SubmissionsTableProps) {
 
     return (
         <>
+            <ConfirmPopup
+                isOpen={confirmCancel !== null}
+                header={confirmCancel?.row.status === 'waitlisted' ? 'Leave Waitlist' : 'Cancel Submission'}
+                description={confirmCancel?.row.status === 'waitlisted'
+                    ? 'Are you sure you want to leave the waitlist? You will lose your spot.'
+                    : 'Are you sure you want to cancel your submission? This cannot be undone.'}
+                confirmText='Confirm'
+                cancelText='Keep'
+                variant='warning'
+                onConfirm={handleConfirmCancel}
+                onCancel={() => setConfirmCancel(null)}
+            />
             <div className='hidden md:block'>
                 <Table
                     data={data}

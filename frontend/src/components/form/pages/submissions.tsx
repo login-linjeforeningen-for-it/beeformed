@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Table, MenuButton, Pagination, SearchInput } from 'uibee/components'
+import { Button, MenuButton, Pagination, SearchInput, Table } from 'uibee/components'
 import { Eye } from 'lucide-react'
 import { formatDateTime } from '@utils/dateTime'
 
@@ -31,13 +30,11 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
                     variant='minimal'
                 />
                 {formId && (
-                    <Link
-                        href={`/form/${formId}/all-submissions`}
-                        className='flex min-h-11 items-center justify-center rounded bg-login
-                            px-4 py-3 text-white transition-colors hover:bg-login-600 sm:ml-4'
-                    >
-                        View All
-                    </Link>
+                    <Button
+                        text='View All'
+                        path={`/form/${formId}/all-submissions`}
+                        variant='primary'
+                    />
                 )}
             </div>
             {submissionsData.length === 0 ? (

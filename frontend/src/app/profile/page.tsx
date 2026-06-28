@@ -1,4 +1,4 @@
-import { PageContainer } from 'uibee/components'
+import { Alert, PageContainer } from 'uibee/components'
 import { getUser, getForms, getUserSubmissions } from '@utils/api/server'
 import { FilePlus, Files, FileText, User as UserIcon, Calendar, Mail } from 'lucide-react'
 import Link from 'next/link'
@@ -25,15 +25,10 @@ export default async function Page() {
         return (
             <PageContainer title='Profile'>
                 <div className='mx-auto w-full max-w-3xl'>
-                    <div className='flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-6 text-red-500'>
-                        <div className='rounded-full bg-red-500/20 p-2'>
-                            <UserIcon className='size-5' />
-                        </div>
-                        <div>
-                            <h3 className='font-semibold'>User not found</h3>
-                            <p className='text-sm opacity-80'>Please try logging in again.</p>
-                        </div>
-                    </div>
+                    <Alert variant='warning'>
+                        <p className='font-semibold'>User not found</p>
+                        <p className='text-sm'>Please try logging in again.</p>
+                    </Alert>
                 </div>
             </PageContainer>
         )

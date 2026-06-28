@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { toast, Input, Switch, Textarea } from 'uibee/components'
+import { Button, Input, Switch, Textarea, toast } from 'uibee/components'
 import { useRouter } from 'next/navigation'
 import { FileText, Settings } from 'lucide-react'
 import { postTemplate, putTemplate } from '@utils/api/client'
@@ -141,16 +141,13 @@ export default function EditTemplatePage({ template }: { template?: GetTemplateP
                 </div>
 
                 <div className='mt-8 flex flex-col gap-3 border-t border-login-500 pt-6 sm:flex-row'>
-                    <button
+                    <Button
+                        text={loading ? (template ? 'Updating...' : 'Creating...') : (template ? 'Update Template' : 'Create Template')}
                         type='submit'
                         disabled={loading || !templateData.title.trim()}
-                        className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
-                            font-medium text-white transition-colors
-                            hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
-                            focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-                    >
-                        {loading ? (template ? 'Updating...' : 'Creating...') : (template ? 'Update Template' : 'Create Template')}
-                    </button>
+                        variant='primary'
+                        className='flex-1'
+                    />
                 </div>
             </form>
         </div>

@@ -330,7 +330,6 @@ export default function Page() {
                                         }}
                                         placeholder='Enter name or email...'
                                         icon={<Search size={18} className='text-login-200' />}
-                                        className='border-login-800 bg-login-950'
                                     />
                                     <Button
                                         text={searching ? 'Searching...' : 'Search Submissions'}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Input, toast } from 'uibee/components'
+import { Button, Input, toast } from 'uibee/components'
 import { postTemplate } from '@utils/api/client'
 
 export default function CreateTemplateButton() {
@@ -64,16 +64,13 @@ export default function CreateTemplateButton() {
                 required
             />
 
-            <button
+            <Button
+                text={loading ? 'Creating...' : 'Create Template'}
                 type='button'
                 onClick={handleCreate}
                 disabled={loading || !title.trim()}
-                className='cursor-pointer rounded-md bg-login px-4 py-3 font-medium text-white
-                    transition-colors hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
-                    focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-            >
-                {loading ? 'Creating...' : 'Create Template'}
-            </button>
+                variant='primary'
+            />
         </div>
     )
 }

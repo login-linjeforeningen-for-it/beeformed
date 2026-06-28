@@ -1,7 +1,7 @@
 'use client'
 
 import { Share } from 'lucide-react'
-import { toast } from 'uibee/components'
+import { Button, toast } from 'uibee/components'
 
 export default function ShareButton({ slug }: { slug: string }) {
     function handleShare() {
@@ -11,13 +11,11 @@ export default function ShareButton({ slug }: { slug: string }) {
     }
 
     return (
-        <button
+        <Button
+            text='Share'
+            icon={<Share className='size-4' />}
             onClick={handleShare}
-            className='flex min-h-11 cursor-pointer items-center rounded bg-login-700
-                px-4 py-3 text-login-100 transition-colors hover:bg-login-600'
-        >
-            <Share className='mr-2 size-4' />
-            Share
-        </button>
+            variant='secondary'
+        />
     )
 }

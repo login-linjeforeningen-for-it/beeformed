@@ -1,6 +1,6 @@
 import { getSubmission, getUserSubmissions, getPublicForm } from '@utils/api/server'
 import { notFound } from 'next/navigation'
-import { Pagination, PageContainer, SearchInput } from 'uibee/components'
+import { Alert, Pagination, PageContainer, SearchInput } from 'uibee/components'
 import FormRenderer from '@components/form/renderer'
 import SubmissionsTable from '@components/tables/submissions'
 import { formatDateTime } from '@utils/dateTime'
@@ -41,27 +41,21 @@ export default async function Page(
             <PageContainer title='Submission Details'>
                 <div className='flex flex-col gap-4'>
                     {submission.status === 'registered' && (
-                        <div className='rounded-lg bg-green-500/20 px-4 py-3 text-green-400'>
-                            You are registered for this form.
-                        </div>
+                        <Alert variant='info'>You are registered for this form.</Alert>
                     )}
                     {submission.status === 'waitlisted' && (
-                        <div className='rounded-lg bg-yellow-500/20 px-4 py-3 text-yellow-400'>
+                        <Alert variant='warning'>
                             You are on the waitlist, this form is currently full.
                             {submission.waitlist_position != null && (
                                 <span className='ml-2 font-medium'>Position nr: {submission.waitlist_position}</span>
                             )}
-                        </div>
+                        </Alert>
                     )}
                     {submission.status === 'rejected' && (
-                        <div className='rounded-lg bg-red-500/20 px-4 py-3 text-red-400'>
-                            Your submission has been rejected.
-                        </div>
+                        <Alert variant='warning'>Your submission has been rejected.</Alert>
                     )}
                     {submission.status === 'cancelled' && (
-                        <div className='rounded-lg bg-gray-500/20 px-4 py-3 text-gray-400'>
-                            Your submission has been cancelled.
-                        </div>
+                        <Alert variant='info'>Your submission has been cancelled.</Alert>
                     )}
                     {form.description &&
                         <div className='highlighted-section'>

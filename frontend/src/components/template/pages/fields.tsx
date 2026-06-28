@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Textarea, toast, Input, Switch, Select } from 'uibee/components'
+import { Button, Input, Select, Switch, TagInput, Textarea, toast } from 'uibee/components'
 import { GripVertical, X, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { patchTemplateFields } from '@utils/api/client'
@@ -237,59 +237,15 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
                         />
 
                         {(field.field_type === 'select' || field.field_type === 'checkbox' || field.field_type === 'radio') && (
-                            <div>
-                                <label className='mb-2 block text-sm font-medium text-login-50'>Options</label>
-                                <div className='space-y-2'>
-                                    {Array.isArray(field.options) && field.options.map((option, optionIndex) => (
-                                        <div key={optionIndex} className='flex items-center gap-2'>
-                                            <div className='flex-1'>
-                                                <input
-                                                    type='text'
-                                                    value={option}
-                                                    onChange={(e) => {
-                                                        const newOptions = [...(field.options || [])]
-                                                        newOptions[optionIndex] = e.target.value
-                                                        setFieldsData(prev => prev.map((f, i) =>
-                                                            i === index ? { ...f, options: newOptions } : f
-                                                        ))
-                                                    }}
-                                                    placeholder={`Option ${optionIndex + 1}`}
-                                                    className='w-full rounded-md border border-login-500 bg-login-700 px-3 py-2
-                                                        text-login-50 focus:border-transparent focus:ring-2 focus:ring-login
-                                                        focus:outline-none'
-                                                />
-                                            </div>
-                                            <button
-                                                type='button'
-                                                onClick={() => {
-                                                    const newOptions = [...(field.options || [])]
-                                                    newOptions.splice(optionIndex, 1)
-                                                    setFieldsData(prev => prev.map((f, i) =>
-                                                        i === index ? { ...f, options: newOptions } : f
-                                                    ))
-                                                }}
-                                                className='rounded p-2 text-red-500 transition-colors hover:bg-login-600'
-                                            >
-                                                <X size={20} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button
-                                        type='button'
-                                        onClick={() => {
-                                            const newOptions = [...(field.options || []), '']
-                                            setFieldsData(prev => prev.map((f, i) =>
-                                                i === index ? { ...f, options: newOptions } : f
-                                            ))
-                                        }}
-                                        className='flex items-center gap-2 rounded px-3 py-2 text-sm text-login-50
-                                            transition-colors hover:bg-login-600 hover:text-white'
-                                    >
-                                        <Plus size={16} />
-                                        Add Option
-                                    </button>
-                                </div>
-                            </div>
+                            <TagInput
+                                name={`field_${index}_options`}
+                                label='Options'
+                                value={Array.isArray(field.options) ? field.options : []}
+                                onChange={(value) => setFieldsData(prev => prev.map((f, i) =>
+                                    i === index ? { ...f, options: value } : f
+                                ))}
+                                placeholder='Add option and press Enter...'
+                            />
                         )}
                     </div>,
                     <div key={`add-${index}`} className='flex justify-center opacity-0 transition-opacity duration-200 hover:opacity-100'>
@@ -308,23 +264,19 @@ export default function EditTemplateFieldsPage({ fields, templateId }: { fields:
             })}
 
             <div className='flex space-x-3 pt-4'>
-                <button
+                <Button
+                    text='Add Field'
                     type='button'
                     onClick={handleAddField}
-                    className='cursor-pointer rounded-md bg-login-500 px-4 py-3 text-login-50 transition-colors hover:bg-login-400'
-                >
-                    Add Field
-                </button>
-                <button
+                    variant='secondary'
+                />
+                <Button
+                    text={loading ? 'Saving...' : 'Save Fields'}
                     type='submit'
                     disabled={loading}
-                    className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
-                        font-medium text-white transition-colors
-                        hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
-                        focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-                >
-                    {loading ? 'Saving...' : 'Save Fields'}
-                </button>
+                    variant='primary'
+                    className='flex-1'
+                />
             </div>
         </form>
     )

@@ -1,10 +1,9 @@
-import { PageContainer } from 'uibee/components'
+import { Button, PageContainer } from 'uibee/components'
 import EditFormPage from '@components/form/pages/form'
 import EditFieldsPage from '@components/form/pages/fields'
 import { getFields, getForm, getPermissions, getSubmissions } from '@utils/api/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
+import { ScanQrCode } from 'lucide-react'
 import EditPermissionsPage from '@components/form/pages/permissions'
 import SubmissionsPage from '@components/form/pages/submissions'
 import AllSubmissionsPage from '@components/form/pages/all-submissions'
@@ -103,38 +102,33 @@ export default async function Page({ params, searchParams }: PageProps) {
     return (
         <PageContainer title={`Form - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
             <div className='mb-4 flex flex-col gap-2 pb-2 sm:flex-row'>
-                <div className='flex flex-col gap-2 sm:flex-row'>
-                    <LinkButton
-                        href={`/form/${id}/fields`}
-                        highlight={type === 'fields'}
-                    >
-                        Fields
-                    </LinkButton>
-                    <LinkButton
-                        href={`/form/${id}/settings`}
-                        highlight={type === 'settings'}
-                    >
-                        Settings
-                    </LinkButton>
-                    <LinkButton
-                        href={`/form/${id}/permissions`}
-                        highlight={type === 'permissions'}
-                    >
-                        Permissions
-                    </LinkButton>
-                    <LinkButton
-                        href={`/form/${id}/submissions`}
-                        highlight={type === 'submissions' || type === 'all-submissions'}
-                    >
-                        Submissions
-                    </LinkButton>
-                    <LinkButton
-                        href={`/qr/${id}`}
-                        highlight={type === 'qr'}
-                        icon={<ArrowUpRight size={14} />}
-                    >
-                        QR Scanner
-                    </LinkButton>
+                <div className='flex flex-wrap gap-2 sm:flex-row'>
+                    <Button
+                        text='Fields'
+                        path={`/form/${id}/fields`}
+                        variant={type === 'fields' ? 'primary' : 'secondary'}
+                    />
+                    <Button
+                        text='Settings'
+                        path={`/form/${id}/settings`}
+                        variant={type === 'settings' ? 'primary' : 'secondary'}
+                    />
+                    <Button
+                        text='Permissions'
+                        path={`/form/${id}/permissions`}
+                        variant={type === 'permissions' ? 'primary' : 'secondary'}
+                    />
+                    <Button
+                        text='Submissions'
+                        path={`/form/${id}/submissions`}
+                        variant={type === 'submissions' || type === 'all-submissions' ? 'primary' : 'secondary'}
+                    />
+                    <Button
+                        text='QR Scanner'
+                        path={`/qr/${id}`}
+                        icon={<ScanQrCode size={14} />}
+                        variant={type === 'qr' ? 'primary' : 'secondary'}
+                    />
                     {formData && <ShareButton slug={formData.slug} />}
                 </div>
             </div>
@@ -147,16 +141,3 @@ export default async function Page({ params, searchParams }: PageProps) {
     )
 }
 
-type LinkButtonProps = { href: string, highlight: boolean, icon?: React.ReactNode, children: React.ReactNode }
-function LinkButton({ href, highlight, icon, children }: LinkButtonProps) {
-    const c = highlight ? 'bg-login text-white' : 'bg-login-700 text-login-100 hover:bg-login-600'
-    return (
-        <Link
-            href={href}
-            className={`inline-flex min-h-11 items-center gap-1 rounded p-3 text-sm transition-colors sm:px-4 sm:text-base ${c}`}
-        >
-            {children}
-            {icon}
-        </Link>
-    )
-}

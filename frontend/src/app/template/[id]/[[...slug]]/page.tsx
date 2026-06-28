@@ -1,7 +1,6 @@
-import { PageContainer } from 'uibee/components'
+import { Button, PageContainer } from 'uibee/components'
 import { getTemplate, getTemplateFields, getTemplatePermissions } from '@utils/api/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import EditTemplateFieldsPage from '@components/template/pages/fields'
 import EditTemplatePermissionsPage from '@components/template/pages/permissions'
 import EditTemplatePage from '@components/template/pages/form'
@@ -46,15 +45,21 @@ export default async function Page({ params }: PageProps) {
     return (
         <PageContainer title={`Template - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
             <div className='mb-4 flex flex-wrap gap-2'>
-                <LinkButton href={`/template/${id}/fields`} highlight={type === 'fields'}>
-                    Fields
-                </LinkButton>
-                <LinkButton href={`/template/${id}/settings`} highlight={type === 'settings'}>
-                    Settings
-                </LinkButton>
-                <LinkButton href={`/template/${id}/permissions`} highlight={type === 'permissions'}>
-                    Permissions
-                </LinkButton>
+                <Button
+                    text='Fields'
+                    path={`/template/${id}/fields`}
+                    variant={type === 'fields' ? 'primary' : 'secondary'}
+                />
+                <Button
+                    text='Settings'
+                    path={`/template/${id}/settings`}
+                    variant={type === 'settings' ? 'primary' : 'secondary'}
+                />
+                <Button
+                    text='Permissions'
+                    path={`/template/${id}/permissions`}
+                    variant={type === 'permissions' ? 'primary' : 'secondary'}
+                />
             </div>
             <div className='flex h-full flex-col pt-6 pb-4'>
                 <div className='flex h-full min-w-0 justify-between'>
@@ -65,16 +70,3 @@ export default async function Page({ params }: PageProps) {
     )
 }
 
-function LinkButton({ href, highlight, children }: { href: string, highlight: boolean, children: React.ReactNode }) {
-    return (
-        <Link
-            href={href}
-            className={`inline-flex min-h-11 items-center rounded p-3 text-sm transition-colors sm:px-4 sm:text-base ${highlight ?
-                'bg-login text-white' :
-                'bg-login-700 text-login-100 hover:bg-login-600'
-            }`}
-        >
-            {children}
-        </Link>
-    )
-}

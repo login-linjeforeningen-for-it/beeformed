@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast, Input, Table, MenuButton } from 'uibee/components'
+import { Button, Input, MenuButton, Table, toast } from 'uibee/components'
 import { Trash } from 'lucide-react'
 import { deletePermission, postPermission } from '@utils/api/client'
 import { formatDateTime } from '@utils/dateTime'
@@ -93,16 +93,13 @@ export default function EditPermissionsPage({ permissions, formId }: { permissio
                     )}
 
                     <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
-                        <button
+                        <Button
+                            text={loading ? 'Adding...' : 'Add Permission'}
                             type='submit'
                             disabled={loading || neitherFilled || bothFilled}
-                            className='flex-1 cursor-pointer rounded-md bg-login px-4 py-3
-                                font-medium text-white transition-colors
-                                hover:bg-orange-400 focus:ring-2 focus:ring-login focus:ring-offset-2
-                                focus:ring-offset-login-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-                        >
-                            {loading ? 'Adding...' : 'Add Permission'}
-                        </button>
+                            variant='primary'
+                            className='flex-1'
+                        />
                     </div>
                 </form>
             </div>

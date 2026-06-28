@@ -6,6 +6,7 @@ import { formatDateTime } from '@utils/dateTime'
 import { Plus } from 'lucide-react'
 import FormsTable from '@components/tables/forms'
 import FAB from '@components/button/fab'
+import ViewToggle from '@components/button/view-toggle'
 
 type PageProps = {
     params: Promise<{ slug?: string[] | string }>
@@ -51,27 +52,12 @@ export default async function Page({ params, searchParams }: PageProps) {
 
     return (
         <PageContainer title='Forms'>
-            <div className='mb-4 flex flex-wrap gap-2 sm:gap-4'>
-                <Link
-                    href='/forms'
-                    className={`flex min-h-11 items-center rounded px-4 py-3 text-sm transition-colors sm:text-base ${
-                        type === 'forms'
-                            ? 'bg-login text-white'
-                            : 'bg-login-700 text-login-100 hover:bg-login-600'
-                    }`}
-                >
-                    My Forms
-                </Link>
-                <Link
-                    href='/forms/shared'
-                    className={`flex min-h-11 items-center rounded px-4 py-3 text-sm transition-colors sm:text-base ${
-                        type === 'shared'
-                            ? 'bg-login text-white'
-                            : 'bg-login-700 text-login-100 hover:bg-login-600'
-                    }`}
-                >
-                    Shared Forms
-                </Link>
+            <div className='mb-4'>
+                <ViewToggle
+                    current={type}
+                    left={{ value: 'forms', text: 'My Forms', path: '/forms' }}
+                    right={{ value: 'shared', text: 'Shared Forms', path: '/forms/shared' }}
+                />
             </div>
             <div className='flex h-full flex-col pt-6 pb-4'>
                 <div className='mb-4 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between'>
