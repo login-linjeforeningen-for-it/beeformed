@@ -1,10 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Table, MenuButton, ConfirmPopup, toast } from 'uibee/components'
-import { Edit, Trash, Settings, Shield, List, QrCode, Share, Copy, FilePlus2, MoreHorizontal } from 'lucide-react'
-import MobileCard from './mobile-card'
+import { Edit, Trash, Settings, Shield, List, QrCode, Share, Copy, FilePlus2 } from 'lucide-react'
 import FormActionModal, { type ModalMode } from './form-action-modal'
 import {
     deleteForm,
@@ -16,8 +15,7 @@ import {
 import { toDateTimeLocal } from '@utils/dateTime'
 
 type FormsTableProps = {
-    data: object[]
-    variant?: 'default' | 'minimal'
+    data: (GetFormProps | GetTemplateProps)[]
     resourceType?: 'form' | 'template'
 }
 
@@ -35,7 +33,7 @@ type ConfirmDeleteState = {
     type: 'form' | 'template'
 }
 
-export default function FormsTable({ data, variant = 'minimal', resourceType = 'form' }: FormsTableProps) {
+export default function FormsTable({ data, resourceType = 'form' }: FormsTableProps) {
     const router = useRouter()
     const isTemplate = resourceType === 'template'
     const [modal, setModal] = useState<ModalState | null>(null)
@@ -126,30 +124,18 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
 
     return (
         <>
-            <div className='hidden md:block'>
-                <Table
-                    data={data}
-                    variant={variant}
-                    columns={[
-                        { key: 'title' },
-                        { key: 'id' },
-                        { key: 'created_at' },
-                    ]}
-                    idKey='id'
-                    menuItems={renderMenuItems}
-                    redirectPath={{ path: isTemplate ? '/template' : '/form', key: 'id' }}
-                />
-            </div>
-            <div className='md:hidden'>
-                {(data as (GetFormProps | GetTemplateProps)[]).map((item) => (
-                    <FormsMobileCard
-                        key={item.id}
-                        item={item}
-                        renderMenuItems={renderMenuItems}
-                        actions={actions}
-                    />
-                ))}
-            </div>
+            <Table
+                data={data}
+                variant={'modern'}
+                columns={[
+                    { key: 'title' },
+                    { key: 'id' },
+                    { key: 'created_at' },
+                ]}
+                idKey='id'
+                menuItems={renderMenuItems}
+                redirectPath={{ path: isTemplate ? '/template' : '/form', key: 'id' }}
+            />
 
             {modal && (
                 <FormActionModal
@@ -177,55 +163,7 @@ export default function FormsTable({ data, variant = 'minimal', resourceType = '
         </>
     )
 
-    function FormsMobileCard({ item, renderMenuItems, actions }: {
-        item: GetFormProps | GetTemplateProps,
-        renderMenuItems: (item: GetFormProps | GetTemplateProps | object, id: string) => React.ReactNode,
-        actions: { edit: (id: string) => void }
-    }) {
-        const [showActions, setShowActions] = useState(false)
-
-        return (
-            <MobileCard
-                key={item.id}
-                title={item.title}
-                subtitle={item.id}
-                details={[
-                    { label: 'Created', value: item.created_at }
-                ]}
-                actions={
-                    <div className='relative'>
-                        <button
-                            className='flex min-h-11 min-w-11 items-center justify-center p-3 text-login-300 hover:text-login-100'
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setShowActions(!showActions)
-                            }}
-                        >
-                            <MoreHorizontal size={20} />
-                        </button>
-                        {showActions && (
-                            <>
-                                <div
-                                    className='fixed inset-0 z-40'
-                                    onClick={(e) => { e.stopPropagation(); setShowActions(false) }}
-                                />
-                                <div
-                                    className='absolute right-0 z-50 mt-2 flex w-48
-                                        flex-col rounded-lg border border-login-600 bg-login-800 p-1 shadow-xl'
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {renderMenuItems(item, item.id)}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                }
-                onClick={() => actions.edit(item.id)}
-            />
-        )
-    }
-
-    function renderMenuItems(item: GetFormProps | GetTemplateProps | object, id: string) {
+    function renderMenuItems(item: GetFormProps | GetTemplateProps, id: string) {
         const formItem = item as GetFormProps
         return (
             <>

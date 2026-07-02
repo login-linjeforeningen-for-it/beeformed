@@ -81,8 +81,6 @@ export default async function Page({ params, searchParams }: PageProps) {
             case 'submissions':
                 return <SubmissionsPage
                     submissions={data as GetSubmissionsProps}
-                    currentOrderBy={filter.orderBy}
-                    currentSort={filter.sort}
                     formId={id}
                 />
             case 'all-submissions':

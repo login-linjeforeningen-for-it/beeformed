@@ -57,12 +57,6 @@ export default function EditTemplatePermissionsPage({
         }
     }
 
-    const columns = [
-        { key: 'user_or_group', label: 'User/Group' },
-        { key: 'granted_by_email', label: 'Granted By' },
-        { key: 'created_at', label: 'Created At' }
-    ]
-
     const transformedData = permissions.data.map(perm => ({
         ...perm,
         created_at: formatDateTime(perm.created_at),
@@ -116,21 +110,22 @@ export default function EditTemplatePermissionsPage({
                 {permissions && permissions.data.length > 0 ? (
                     <Table
                         data={transformedData}
-                        columns={columns}
-                        variant='minimal'
+                        columns={[
+                            { key: 'user_or_group', label: 'User/Group' },
+                            { key: 'granted_by_email', label: 'Granted By' },
+                            { key: 'created_at', label: 'Created At' }
+                        ]}
+                        variant='modern'
                         idKey='id'
-                        menuItems={(item: object) => {
-                            const row = item as { id: string }
-                            return (
-                                <MenuButton
-                                    icon={<Trash />}
-                                    text='Delete'
-                                    hotKey='D'
-                                    onClick={() => handleDeletePermission(templateId, row.id)}
-                                    className='text-red-400'
-                                />
-                            )
-                        }}
+                        menuItems={(row) => (
+                            <MenuButton
+                                icon={<Trash />}
+                                text='Delete'
+                                hotKey='D'
+                                onClick={() => handleDeletePermission(templateId, row.id as string)}
+                                className='text-red-400'
+                            />
+                        )}
                     />
                 ) : (
                     <p className='text-login-200'>No permissions found.</p>

@@ -2,15 +2,13 @@
 
 import { cancelSubmission } from '@utils/api/client'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ConfirmPopup, MenuButton, Table, toast } from 'uibee/components'
-import { Eye, QrCode, Trash, MoreHorizontal } from 'lucide-react'
-import MobileCard from './mobile-card'
+import { Eye, QrCode, Trash } from 'lucide-react'
 
 interface SubmissionsTableProps {
     data: GetSubmissionsProps['data']
 }
-
 
 type ConfirmCancelState = {
     row: GetSubmissionsProps['data'][number]
@@ -64,93 +62,30 @@ export default function SubmissionsTable({ data }: SubmissionsTableProps) {
                 onConfirm={handleConfirmCancel}
                 onCancel={() => setConfirmCancel(null)}
             />
-            <div className='hidden md:block'>
-                <Table
-                    data={data}
-                    idKey='id'
-                    variant='minimal'
-                    columns={[
-                        { key: 'form_title' },
-                        {
-                            key: 'status',
-                            highlight: {
-                                'registered': 'green',
-                                'waitlisted': 'yellow',
-                                'cancelled': 'gray',
-                                'rejected': 'red'
-                            }
-                        },
-                        { key: 'submitted_at', label: 'Submitted At', sortable: true }
-                    ]}
-                    redirectPath={{ path: '/submissions', key: 'id' }}
-                    menuItems={renderMenuItems}
-                />
-            </div>
-            <div className='md:hidden'>
-                {data.map((row) => (
-                    <SubmissionsMobileCard
-                        key={row.id}
-                        row={row}
-                        renderMenuItems={renderMenuItems}
-                        router={router}
-                    />
-                ))}
-            </div>
+            <Table
+                data={data}
+                idKey='id'
+                variant='modern'
+                columns={[
+                    { key: 'form_title' },
+                    {
+                        key: 'status',
+                        highlight: {
+                            'registered': 'green',
+                            'waitlisted': 'yellow',
+                            'cancelled': 'gray',
+                            'rejected': 'red'
+                        }
+                    },
+                    { key: 'submitted_at', label: 'Submitted At', sortable: true }
+                ]}
+                redirectPath={{ path: '/submissions', key: 'id' }}
+                menuItems={renderMenuItems}
+            />
         </>
     )
 
-    function SubmissionsMobileCard({ row, renderMenuItems, router }: {
-        row: GetSubmissionsProps['data'][number],
-        renderMenuItems: (item: object, id: string) => React.ReactNode,
-        router: ReturnType<typeof useRouter>
-    }) {
-        const [showActions, setShowActions] = useState(false)
-
-        return (
-            <MobileCard
-                title={row.form_title}
-                subtitle={row.submitted_at}
-                status={{
-                    label: row.status,
-                    color: row.status === 'registered' ? 'green' :
-                        row.status === 'waitlisted' ? 'yellow' :
-                            row.status === 'rejected' ? 'red' : 'gray'
-                }}
-                actions={
-                    <div className='relative'>
-                        <button
-                            className='flex min-h-11 min-w-11 items-center justify-center p-3 text-login-300 hover:text-login-100'
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setShowActions(!showActions)
-                            }}
-                        >
-                            <MoreHorizontal size={20} />
-                        </button>
-                        {showActions && (
-                            <>
-                                <div
-                                    className='fixed inset-0 z-40'
-                                    onClick={(e) => { e.stopPropagation(); setShowActions(false) }}
-                                />
-                                <div
-                                    className='absolute right-0 z-50 mt-2 flex w-48
-                                        flex-col rounded-lg border border-login-600 bg-login-800 p-1 shadow-xl'
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {renderMenuItems(row, row.id)}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                }
-                onClick={() => router.push(`/submissions/${row.id}`)}
-            />
-        )
-    }
-
-    function renderMenuItems(item: object, id: string) {
-        const row = item as GetSubmissionsProps['data'][number]
+    function renderMenuItems(row: GetSubmissionsProps['data'][number], id: string) {
         return (
             <>
                 <MenuButton

@@ -1,14 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Button, MenuButton, Pagination, SearchInput, Table } from 'uibee/components'
+import { Button, MenuButton, SearchInput, Table } from 'uibee/components'
 import { Eye } from 'lucide-react'
 import { formatDateTime } from '@utils/dateTime'
 
 type SubmissionsPageProps = {
     submissions: GetSubmissionsProps
-    currentOrderBy?: string
-    currentSort?: 'asc' | 'desc'
     formId?: string
 }
 
@@ -44,40 +42,40 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
                     </p>
                 </div>
             ) : (
-                <div className='flex min-h-0 flex-1 flex-col justify-between'>
-                    <Table
-                        data={submissionsData}
-                        idKey='id'
-                        variant='minimal'
-                        columns={[
-                            { key: 'submitted_at', label: 'Submitted At', sortable: true },
-                            { key: 'user_email', label: 'User Email' },
-                            { key: 'user_name', label: 'User Name' },
-                            {
-                                key: 'status',
-                                label: 'Status',
-                                sortable: true,
-                                highlight: {
-                                    'registered': 'green',
-                                    'waitlisted': 'yellow',
-                                    'cancelled': 'gray',
-                                    'rejected': 'red'
-                                }
-                            },
-                            { key: 'scanned_at', label: 'Scanned At', sortable: true }
-                        ]}
-                        redirectPath={{ path: '/submissions', key: 'id' }}
-                        menuItems={(_: object, id: string) => (
-                            <MenuButton
-                                icon={<Eye />}
-                                text='View'
-                                hotKey='V'
-                                onClick={() => router.push(`/submissions/${id}`)}
-                            />
-                        )}
-                    />
-                    <Pagination pageSize={14} totalRows={submissions.total} />
-                </div>
+                <Table
+                    data={submissionsData}
+                    idKey='id'
+                    variant='modern'
+                    urlState
+                    pageSize={14}
+                    totalRows={submissions.total}
+                    columns={[
+                        { key: 'submitted_at', label: 'Submitted At', sortable: true },
+                        { key: 'user_email', label: 'User Email' },
+                        { key: 'user_name', label: 'User Name' },
+                        {
+                            key: 'status',
+                            label: 'Status',
+                            sortable: true,
+                            highlight: {
+                                'registered': 'green',
+                                'waitlisted': 'yellow',
+                                'cancelled': 'gray',
+                                'rejected': 'red'
+                            }
+                        },
+                        { key: 'scanned_at', label: 'Scanned At', sortable: true }
+                    ]}
+                    redirectPath={{ path: '/submissions', key: 'id' }}
+                    menuItems={(_, id) => (
+                        <MenuButton
+                            icon={<Eye />}
+                            text='View'
+                            hotKey='V'
+                            onClick={() => router.push(`/submissions/${id}`)}
+                        />
+                    )}
+                />
             )}
         </div>
     )
