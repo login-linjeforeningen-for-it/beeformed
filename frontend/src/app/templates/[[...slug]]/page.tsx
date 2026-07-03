@@ -1,8 +1,7 @@
 import { getTemplates, getSharedTemplates } from '@utils/api/server'
-import { Pagination, PageContainer, SearchInput } from 'uibee/components'
+import { PageContainer, SearchInput } from 'uibee/components'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { formatDateTime } from '@utils/dateTime'
 import { Plus } from 'lucide-react'
 import FormsTable from '@components/tables/forms'
 import FAB from '@components/button/fab'
@@ -44,10 +43,6 @@ export default async function Page({ params, searchParams }: PageProps) {
         notFound()
     }
 
-    const templateData = templates.data.map(template => ({
-        ...template,
-        created_at: formatDateTime(template.created_at)
-    }))
     const totalItems = templates.total
 
     return (
@@ -78,23 +73,13 @@ export default async function Page({ params, searchParams }: PageProps) {
                     )}
                 </div>
 
-                {templateData && templateData.length > 0 ? (
-                    <div className='flex min-h-0 flex-1 flex-col justify-between'>
-                        <FormsTable
-                            data={templateData}
-                            resourceType='template'
-                        />
-
-                        <Pagination
-                            pageSize={limit}
-                            totalRows={totalItems}
-                        />
-                    </div>
-                ) : (
-                    <div className='flex min-h-0 flex-1 flex-col items-center justify-center'>
-                        <p className='text-center text-gray-500'>No templates found</p>
-                    </div>
-                )}
+                <div className='flex min-h-0 flex-1 flex-col'>
+                    <FormsTable
+                        data={templates.data}
+                        resourceType='template'
+                        totalRows={totalItems}
+                    />
+                </div>
             </div>
             {listType === 'templates' && <FAB href='/templates/create' label='Create Template' />}
         </PageContainer>

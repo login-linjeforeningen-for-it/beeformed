@@ -12,11 +12,12 @@ import {
     createFormFromTemplate,
     deleteTemplate
 } from '@utils/api/client'
-import { toDateTimeLocal } from '@utils/dateTime'
+import { toDateTimeLocal, formatDateTime } from '@utils/dateTime'
 
 type FormsTableProps = {
     data: (GetFormProps | GetTemplateProps)[]
     resourceType?: 'form' | 'template'
+    totalRows?: number
 }
 
 type ModalState = {
@@ -33,7 +34,7 @@ type ConfirmDeleteState = {
     type: 'form' | 'template'
 }
 
-export default function FormsTable({ data, resourceType = 'form' }: FormsTableProps) {
+export default function FormsTable({ data, resourceType = 'form', totalRows }: FormsTableProps) {
     const router = useRouter()
     const isTemplate = resourceType === 'template'
     const [modal, setModal] = useState<ModalState | null>(null)
@@ -127,10 +128,13 @@ export default function FormsTable({ data, resourceType = 'form' }: FormsTablePr
             <Table
                 data={data}
                 variant={'modern'}
+                urlState
+                pageSize={14}
+                totalRows={totalRows}
+                className='flex-1'
                 columns={[
-                    { key: 'title' },
-                    { key: 'id' },
-                    { key: 'created_at' },
+                    { key: 'title', sortable: true },
+                    { key: 'created_at', sortable: true, render: (v) => formatDateTime(v as string) },
                 ]}
                 idKey='id'
                 menuItems={renderMenuItems}

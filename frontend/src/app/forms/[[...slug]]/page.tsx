@@ -1,8 +1,7 @@
 import { getForms, getSharedForms } from '@utils/api/server'
-import { Pagination, PageContainer, SearchInput } from 'uibee/components'
+import { PageContainer, SearchInput } from 'uibee/components'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { formatDateTime } from '@utils/dateTime'
 import { Plus } from 'lucide-react'
 import FormsTable from '@components/tables/forms'
 import FAB from '@components/button/fab'
@@ -44,10 +43,6 @@ export default async function Page({ params, searchParams }: PageProps) {
         notFound()
     }
 
-    const formsData = forms.data.map(form => ({
-        ...form,
-        created_at: formatDateTime(form.created_at)
-    }))
     const totalItems = forms.total
 
     return (
@@ -77,22 +72,12 @@ export default async function Page({ params, searchParams }: PageProps) {
                         </Link> }
                 </div>
 
-                {formsData && formsData.length > 0 ? (
-                    <div className='flex min-h-0 flex-1 flex-col justify-between'>
-                        <FormsTable
-                            data={formsData}
-                        />
-
-                        <Pagination
-                            pageSize={limit}
-                            totalRows={totalItems}
-                        />
-                    </div>
-                ) : (
-                    <div className='flex min-h-0 flex-1 flex-col items-center justify-center'>
-                        <p className='text-center text-gray-500'>No forms found</p>
-                    </div>
-                )}
+                <div className='flex min-h-0 flex-1 flex-col'>
+                    <FormsTable
+                        data={forms.data}
+                        totalRows={totalItems}
+                    />
+                </div>
             </div>
             { type === 'forms' && <FAB href='/forms/create' label='Create Form' /> }
         </PageContainer>

@@ -57,11 +57,6 @@ export default function EditTemplatePermissionsPage({
         }
     }
 
-    const transformedData = permissions.data.map(perm => ({
-        ...perm,
-        created_at: formatDateTime(perm.created_at),
-        user_or_group: perm.user_email || perm.group
-    }))
 
     return (
         <div className='w-full min-w-0 space-y-6'>
@@ -107,29 +102,25 @@ export default function EditTemplatePermissionsPage({
             <div className='w-full max-w-2xl'>
                 <h2 className='mb-6 text-xl font-semibold text-login-50'>Current Permissions</h2>
 
-                {permissions && permissions.data.length > 0 ? (
-                    <Table
-                        data={transformedData}
-                        columns={[
-                            { key: 'user_or_group', label: 'User/Group' },
-                            { key: 'granted_by_email', label: 'Granted By' },
-                            { key: 'created_at', label: 'Created At' }
-                        ]}
-                        variant='modern'
-                        idKey='id'
-                        menuItems={(row) => (
-                            <MenuButton
-                                icon={<Trash />}
-                                text='Delete'
-                                hotKey='D'
-                                onClick={() => handleDeletePermission(templateId, row.id as string)}
-                                className='text-red-400'
-                            />
-                        )}
-                    />
-                ) : (
-                    <p className='text-login-200'>No permissions found.</p>
-                )}
+                <Table
+                    data={permissions.data}
+                    columns={[
+                        { key: 'user_email', label: 'User/Group', render: (v, row) => row.user_email || row.group },
+                        { key: 'granted_by_email', label: 'Granted By' },
+                        { key: 'created_at', label: 'Created At', render: (v) => formatDateTime(v as string) }
+                    ]}
+                    variant='modern'
+                    idKey='id'
+                    menuItems={(row) => (
+                        <MenuButton
+                            icon={<Trash />}
+                            text='Delete'
+                            hotKey='D'
+                            onClick={() => handleDeletePermission(templateId, row.id as string)}
+                            className='text-red-400'
+                        />
+                    )}
+                />
             </div>
         </div>
     )

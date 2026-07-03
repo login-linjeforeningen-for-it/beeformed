@@ -1,9 +1,8 @@
 import { getSubmission, getUserSubmissions, getPublicForm } from '@utils/api/server'
 import { notFound } from 'next/navigation'
-import { Alert, Pagination, PageContainer, SearchInput } from 'uibee/components'
+import { Alert, PageContainer, SearchInput } from 'uibee/components'
 import FormRenderer from '@components/form/renderer'
 import SubmissionsTable from '@components/tables/submissions'
-import { formatDateTime } from '@utils/dateTime'
 
 export default async function Page(
     { params, searchParams }: { params: Promise<{ id?: string[] }>; searchParams: Promise<{ [key: string]: string | undefined }> }
@@ -68,11 +67,6 @@ export default async function Page(
         )
     } else {
         const submissions = data as GetSubmissionsProps
-        const submissionsData = submissions.data.map(submission => ({
-            ...submission,
-            submitted_at: formatDateTime(submission.submitted_at),
-        }))
-        const totalItems = submissions.total
 
         return (
             <PageContainer title='My Submissions'>
@@ -84,19 +78,11 @@ export default async function Page(
                                 variant='minimal'
                             />
                         </div>
-                        <div className='flex-1 overflow-auto'>
-                            {submissionsData.length === 0 ? (
-                                <div className='flex h-full items-center justify-center'>
-                                    <p>No submissions yet.</p>
-                                </div>
-                            ) : (
-                                <SubmissionsTable
-                                    data={submissionsData}
-                                />
-                            )}
-                        </div>
-                        <div className='mt-4'>
-                            <Pagination pageSize={14} totalRows={totalItems} />
+                        <div className='flex min-h-0 flex-1 flex-col'>
+                            <SubmissionsTable
+                                data={submissions.data}
+                                totalRows={submissions.total}
+                            />
                         </div>
                     </div>
                 </div>

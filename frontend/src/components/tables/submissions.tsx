@@ -5,16 +5,18 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ConfirmPopup, MenuButton, Table, toast } from 'uibee/components'
 import { Eye, QrCode, Trash } from 'lucide-react'
+import { formatDateTime } from '@utils/dateTime'
 
 interface SubmissionsTableProps {
     data: GetSubmissionsProps['data']
+    totalRows?: number
 }
 
 type ConfirmCancelState = {
     row: GetSubmissionsProps['data'][number]
 }
 
-export default function SubmissionsTable({ data }: SubmissionsTableProps) {
+export default function SubmissionsTable({ data, totalRows }: SubmissionsTableProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [confirmCancel, setConfirmCancel] = useState<ConfirmCancelState | null>(null)
@@ -66,6 +68,10 @@ export default function SubmissionsTable({ data }: SubmissionsTableProps) {
                 data={data}
                 idKey='id'
                 variant='modern'
+                urlState
+                pageSize={14}
+                totalRows={totalRows}
+                className='flex-1'
                 columns={[
                     { key: 'form_title' },
                     {
@@ -77,7 +83,7 @@ export default function SubmissionsTable({ data }: SubmissionsTableProps) {
                             'rejected': 'red'
                         }
                     },
-                    { key: 'submitted_at', label: 'Submitted At', sortable: true }
+                    { key: 'submitted_at', label: 'Submitted At', sortable: true, render: (v) => formatDateTime(v as string) }
                 ]}
                 redirectPath={{ path: '/submissions', key: 'id' }}
                 menuItems={renderMenuItems}
