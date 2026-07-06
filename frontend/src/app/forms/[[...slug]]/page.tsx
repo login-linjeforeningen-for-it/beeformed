@@ -55,7 +55,10 @@ export default async function Page({ params, searchParams }: PageProps) {
                 />
             </div>
             <div className='flex h-full flex-col pt-6 pb-4'>
-                <div className='mb-4 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between'>
+                <div
+                    className='mb-4 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between'
+                    style={{ viewTransitionName: 'list-controls' }}
+                >
                     <div className='w-full md:w-auto'>
                         <SearchInput
                             placeholder='Search forms...'

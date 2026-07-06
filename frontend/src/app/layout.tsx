@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import 'uibee/styles'
 import './globals.css'
+import { ViewTransition } from 'react'
 import { cookies } from 'next/headers'
 import Navbar from '@components/navbar/navbar'
 import { Toaster } from 'uibee/components'
@@ -29,7 +30,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     <Navbar />
                 </header>
                 <main className='flex min-h-dvh w-full overflow-x-hidden pt-20 md:pt-22'>
-                    {children}
+                    <ViewTransition>
+                        {children}
+                    </ViewTransition>
                 </main>
                 <Footer />
                 <BottomNav />

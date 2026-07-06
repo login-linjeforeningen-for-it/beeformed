@@ -14,6 +14,7 @@ export default function Navbar() {
 
     return (
         <NavBar
+            className='site-header [view-transition-name:site-header]'
             token={token}
             disableLanguageToggle
             disableThemeToggle

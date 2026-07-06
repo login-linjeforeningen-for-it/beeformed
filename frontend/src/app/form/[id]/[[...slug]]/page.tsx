@@ -99,7 +99,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 
     return (
         <PageContainer title={`Form - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
-            <div className='mb-4 flex flex-col gap-2 pb-2 sm:flex-row'>
+            <div className='mb-4 flex flex-col gap-2 pb-2 sm:flex-row' style={{ viewTransitionName: 'page-tabs' }}>
                 <div className='flex flex-wrap gap-2 sm:flex-row'>
                     <Button
                         text='Fields'

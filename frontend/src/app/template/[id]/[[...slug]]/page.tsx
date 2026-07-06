@@ -44,7 +44,7 @@ export default async function Page({ params }: PageProps) {
 
     return (
         <PageContainer title={`Template - ${(type.charAt(0).toUpperCase() + type.slice(1)).replace('-', ' ')}`}>
-            <div className='mb-4 flex flex-wrap gap-2'>
+            <div className='mb-4 flex flex-wrap gap-2' style={{ viewTransitionName: 'page-tabs' }}>
                 <Button
                     text='Fields'
                     path={`/template/${id}/fields`}

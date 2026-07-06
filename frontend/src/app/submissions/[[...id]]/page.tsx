@@ -72,7 +72,7 @@ export default async function Page(
             <PageContainer title='My Submissions'>
                 <div className='flex h-full flex-col pb-4'>
                     <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
-                        <div className='mb-4 flex justify-between'>
+                        <div className='mb-4 flex justify-between' style={{ viewTransitionName: 'list-controls' }}>
                             <SearchInput
                                 placeholder='Search submissions...'
                                 variant='minimal'

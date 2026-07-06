@@ -31,8 +31,10 @@ export default function BottomNav() {
     const pathname = usePathname()
 
     return (
-        <nav className='fixed inset-x-0 bottom-0 z-50 border-t border-login-700 bg-login-900
+        <nav
+            className='fixed inset-x-0 bottom-0 z-50 border-t border-login-700 bg-login-900
             px-2 pt-2 pb-[calc(0.5rem+var(--safe-area-inset-bottom))] md:hidden'
+            style={{ viewTransitionName: 'bottom-nav' }}
         >
             <div className='mx-auto flex max-w-lg items-center justify-around'>
                 {navItems.map((item) => {
