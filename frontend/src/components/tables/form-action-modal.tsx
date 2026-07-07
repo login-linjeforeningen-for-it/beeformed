@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Input, toast } from 'uibee/components'
+import { Button, Input, Modal, toast } from 'uibee/components'
 import { toISOWithOffset } from '@utils/dateTime'
 
 export type ModalMode = 'duplicate' | 'save-as-template' | 'use-template'
@@ -66,66 +66,60 @@ export default function FormActionModal({
     }
 
     return (
-        <div
-            className='fixed inset-0 z-50 flex items-center justify-center bg-black/60'
-            onClick={onClose}
-        >
-            <div className='mx-4 w-full max-w-sm card p-6 shadow-xl' onClick={(e) => e.stopPropagation()}>
-                <h2 className='mb-4 text-lg font-semibold text-login-100'>{TITLES[mode]}</h2>
-                <form onSubmit={handleSubmit} className='space-y-4'>
+        <Modal isOpen onClose={onClose} title={TITLES[mode]} size='sm'>
+            <form onSubmit={handleSubmit} className='space-y-4'>
+                <Input
+                    name='title'
+                    type='text'
+                    label='Title'
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                />
+                <Input
+                    name='slug'
+                    type='text'
+                    label='Slug'
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
+                    required
+                />
+                {showDates && (<>
                     <Input
-                        name='title'
-                        type='text'
-                        label='Title'
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        name='published_at'
+                        type='datetime-local'
+                        label='Publish date'
+                        value={publishedAt}
+                        onChange={(e) => setPublishedAt(e.target.value)}
                         required
                     />
                     <Input
-                        name='slug'
-                        type='text'
-                        label='Slug'
-                        value={slug}
-                        onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
+                        name='expires_at'
+                        type='datetime-local'
+                        label='Expiration date'
+                        value={expiresAt}
+                        onChange={(e) => setExpiresAt(e.target.value)}
                         required
                     />
-                    {showDates && (<>
-                        <Input
-                            name='published_at'
-                            type='datetime-local'
-                            label='Publish date'
-                            value={publishedAt}
-                            onChange={(e) => setPublishedAt(e.target.value)}
-                            required
-                        />
-                        <Input
-                            name='expires_at'
-                            type='datetime-local'
-                            label='Expiration date'
-                            value={expiresAt}
-                            onChange={(e) => setExpiresAt(e.target.value)}
-                            required
-                        />
-                    </>)}
-                    <div className='flex gap-3 pt-2'>
-                        <Button
-                            text='Cancel'
-                            type='button'
-                            onClick={onClose}
-                            disabled={loading}
-                            variant='secondary'
-                            className='flex-1'
-                        />
-                        <Button
-                            text={loading ? loadingLabel : submitLabel}
-                            type='submit'
-                            disabled={loading || !isValid}
-                            variant='primary'
-                            className='flex-1'
-                        />
-                    </div>
-                </form>
-            </div>
-        </div>
+                </>)}
+                <div className='flex gap-3 pt-2'>
+                    <Button
+                        text='Cancel'
+                        type='button'
+                        onClick={onClose}
+                        disabled={loading}
+                        variant='secondary'
+                        className='flex-1'
+                    />
+                    <Button
+                        text={loading ? loadingLabel : submitLabel}
+                        type='submit'
+                        disabled={loading || !isValid}
+                        variant='primary'
+                        className='flex-1'
+                    />
+                </div>
+            </form>
+        </Modal>
     )
 }

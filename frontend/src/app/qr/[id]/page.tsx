@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import jsQR from 'jsqr'
-import { AlertCircle, Loader2, User, Clock, CheckCircle2, XCircle, RotateCcw, ScanQrCode } from 'lucide-react'
+import { AlertCircle, User, Clock, CheckCircle2, XCircle, RotateCcw, ScanQrCode } from 'lucide-react'
 import { scanSubmission, searchSubmissions } from '@utils/api/client'
 import { useParams } from 'next/navigation'
 import { formatDateTime } from '@utils/dateTime'
-import { Button, PageContainer, Input } from 'uibee/components'
+import { Button, PageContainer, Input, Spinner } from 'uibee/components'
 import MobileCard from '@components/tables/mobile-card'
 import { Search } from 'lucide-react'
 
@@ -214,7 +214,7 @@ export default function Page() {
 
                     {(!isScanning && !scannedData && !error) || loadingSubmission ? (
                         <div className='absolute inset-0 flex flex-col items-center justify-center bg-login-950 text-login-200'>
-                            <Loader2 className='mb-4 size-8 animate-spin text-login' />
+                            <Spinner size='lg' className='mb-4' />
                             <p className='text-sm font-medium'>{loadingSubmission ? 'Fetching details...' : 'Starting camera...'}</p>
                         </div>
                     ) : null}
