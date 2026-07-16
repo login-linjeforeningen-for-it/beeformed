@@ -9,8 +9,11 @@ type PageProps = {
     params: Promise<{ id: string, slug?: string[] | string }>
 }
 
+const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export default async function Page({ params }: PageProps) {
     const { id, slug } = await params
+    if (!UUID_V7.test(id)) notFound()
     const rawType = Array.isArray(slug) ? slug[0] : slug
     const type = rawType || 'fields'
 
