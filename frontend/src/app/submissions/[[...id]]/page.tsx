@@ -4,17 +4,21 @@ import { Alert, PageContainer, SearchInput } from 'uibee/components'
 import FormRenderer from '@components/form/renderer'
 import SubmissionsTable from '@components/tables/submissions'
 
+const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export default async function Page(
     { params, searchParams }: { params: Promise<{ id?: string[] }>; searchParams: Promise<{ [key: string]: string | undefined }> }
 ) {
     const { id } = await params
+    const submissionId = Array.isArray(id) ? id[0] : id
+    if (submissionId !== undefined && !UUID_V7.test(submissionId)) notFound()
     const filters = await searchParams
 
     const orderBy = typeof filters.column === 'string' ? filters.column : 'submitted_at'
     const order = typeof filters.order === 'string' && (filters.order === 'asc' || filters.order === 'desc') ? filters.order : 'desc'
     let data
     try {
-        data = id ? await getSubmission(Array.isArray(id) ? id[0] : id) : await getUserSubmissions({
+        data = submissionId ? await getSubmission(submissionId) : await getUserSubmissions({
             search: typeof filters.q === 'string' ? filters.q : '',
             offset: typeof filters.page === 'string' ? (Number(filters.page) - 1) * 14 : undefined,
             limit: 14,
@@ -25,7 +29,7 @@ export default async function Page(
         notFound()
     }
 
-    if (id) {
+    if (submissionId) {
         const submission = data as Submission
         let formData
         try {
