@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function proxy(req: NextRequest) {
     const tokenCookie = req.cookies.get('access_token')
-    let validToken = false
-
     if (!pathIsAllowedWhileUnauthorized(req.nextUrl.pathname)) {
         if (!tokenCookie) {
             const res = NextResponse.redirect(new URL('/', req.url))
@@ -16,7 +14,7 @@ export async function proxy(req: NextRequest) {
 
         const token = tokenCookie.value
 
-        validToken = await tokenIsValid(token)
+        const validToken = await tokenIsValid(token)
         if (!validToken) {
             return NextResponse.redirect(new URL('/api/auth/logout', req.url))
         }

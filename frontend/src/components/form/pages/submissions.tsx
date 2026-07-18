@@ -50,7 +50,8 @@ export default function SubmissionsPage({ submissions, formId }: SubmissionsPage
                             'rejected': 'red'
                         }
                     },
-                    { key: 'scanned_at', label: 'Scanned At', sortable: true, render: (v) => v ? formatDateTime(v as string) : 'Not Scanned' }
+                    { key: 'scanned_at', label: 'Scanned At', sortable: true,
+                        render: (v) => v ? formatDateTime(v as string) : 'Not Scanned' }
                 ]}
                 redirectPath={{ path: '/submissions', key: 'id' }}
                 menuItems={(_, id) => (
