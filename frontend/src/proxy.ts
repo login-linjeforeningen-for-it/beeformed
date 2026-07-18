@@ -16,11 +16,9 @@ export async function proxy(req: NextRequest) {
 
         const token = tokenCookie.value
 
+        validToken = await tokenIsValid(token)
         if (!validToken) {
-            validToken = await tokenIsValid(token)
-            if (!validToken) {
-                return NextResponse.redirect(new URL('/api/auth/logout', req.url))
-            }
+            return NextResponse.redirect(new URL('/api/auth/logout', req.url))
         }
     }
 

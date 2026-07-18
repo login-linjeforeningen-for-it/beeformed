@@ -12,4 +12,6 @@ USER app
 
 COPY . .
 
+EXPOSE 8080
+
 CMD ["bun", "run", "start"]

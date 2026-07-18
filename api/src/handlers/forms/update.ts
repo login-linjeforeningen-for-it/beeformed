@@ -60,7 +60,7 @@ export default async function updateForm(
         const spotsToFill: number = newLimit === null ? MAX_BATCH_PROMOTION : Math.max(0, newLimit - registeredCount)
 
         const toPromote: { id: string; email: string | null }[] = []
-        if (spotsToFill === null || spotsToFill > 0) {
+        if (spotsToFill > 0) {
             const waitlistResult = await client.query(waitlistSql, [formId, spotsToFill])
             if (waitlistResult.rows.length > 0) {
                 const ids = waitlistResult.rows.map((r: { id: string }) => r.id)
