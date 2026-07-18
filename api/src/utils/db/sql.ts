@@ -49,7 +49,7 @@ export async function buildFilteredQuery(
 
     const parts = [
         `WITH _base AS (${base})`,
-        `SELECT *, COUNT(*) OVER() AS total_count FROM _base`,
+        'SELECT *, COUNT(*) OVER() AS total_count FROM _base',
         searchClause,
         `ORDER BY ${orderBy} ${sort} LIMIT $${params.length + 1}${offset > 0 ? ` OFFSET $${params.length + 2}` : ''}`,
     ]

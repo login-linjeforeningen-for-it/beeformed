@@ -75,7 +75,7 @@ async function dispatchEmail(type: QueuedEmailType, to: string, payload: unknown
 async function queueEmail(type: QueuedEmailType, to: string, payload: object): Promise<void> {
     try {
         await run(
-            `INSERT INTO email_queue ("to", email_type, payload) VALUES ($1, $2, $3)`,
+            'INSERT INTO email_queue ("to", email_type, payload) VALUES ($1, $2, $3)',
             [to, type, JSON.stringify(payload)]
         )
     } catch (err) {
@@ -84,7 +84,7 @@ async function queueEmail(type: QueuedEmailType, to: string, payload: object): P
 }
 
 async function processQueue(): Promise<void> {
-    await run(`DELETE FROM email_queue WHERE retry_count >= $1`, [MAX_RETRIES])
+    await run('DELETE FROM email_queue WHERE retry_count >= $1', [MAX_RETRIES])
 
     const claimed = await run(
         `UPDATE email_queue
@@ -105,10 +105,10 @@ async function processQueue(): Promise<void> {
     for (const row of claimed.rows) {
         try {
             await dispatchEmail(row.email_type as QueuedEmailType, row.to, row.payload)
-            await run(`DELETE FROM email_queue WHERE id = $1`, [row.id])
+            await run('DELETE FROM email_queue WHERE id = $1', [row.id])
             logInfo('Queued email sent successfully', { event: 'email.queue.retry_success', queueId: row.id })
         } catch (error) {
-            await run(`UPDATE email_queue SET retry_count = retry_count + 1 WHERE id = $1`, [row.id])
+            await run('UPDATE email_queue SET retry_count = retry_count + 1 WHERE id = $1', [row.id])
             logError('Queued email send failed', { event: 'email.queue.retry_failed', queueId: row.id, error })
         }
     }

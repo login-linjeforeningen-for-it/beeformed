@@ -9,6 +9,7 @@ COPY package.json bun.lock bunfig.toml ./
 RUN bun install --frozen-lockfile
 
 COPY . .
+RUN bun run lint
 RUN bun run build
 
 # Runtime

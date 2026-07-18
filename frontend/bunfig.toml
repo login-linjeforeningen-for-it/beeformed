@@ -1,4 +1,4 @@
 [install]
 registry = "https://registry.npmjs.org"
 minimumReleaseAge = 259200
-minimumReleaseAgeExcludes = ["uibee"]
+minimumReleaseAgeExcludes = ["uibee", "utilbee"]

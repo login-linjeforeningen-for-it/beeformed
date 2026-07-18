@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/max-len */
 import type { EmailContent, EmailTemplate } from '../sendSMTP.ts'
 import { generateQRCodeImage } from '#utils/qrGenerator.ts'
 import config from '#constants'
@@ -26,8 +27,8 @@ function generateSubmissionEmailHTML(content: EmailContent, qrCodeImageDataUrl?:
                         <tr>
                             <td align="center" valign="middle" style="width: 148px; height: 148px;">
                                 ${qrCodeImageDataUrl
-        ? `<img src="${qrCodeImageDataUrl}" alt="QR code (unblock to view / see attachments)" width="148" height="148" style="width: 148px; height: 148px; display: block; border-radius: 6px;" />`
-        : '<span style="display: inline-block; font-family: system-ui, -apple-system, \'Segoe UI\', Roboto, Arial, sans-serif; font-size: 11px; line-height: 14px; color: rgba(253, 135, 56, 0.7); letter-spacing: 1px; text-transform: uppercase; padding: 8px;">QR Unavailable</span>'}
+                                    ? `<img src="${qrCodeImageDataUrl}" alt="QR code (unblock to view / see attachments)" width="148" height="148" style="width: 148px; height: 148px; display: block; border-radius: 6px;" />`
+                                    : '<span style="display: inline-block; font-family: system-ui, -apple-system, \'Segoe UI\', Roboto, Arial, sans-serif; font-size: 11px; line-height: 14px; color: rgba(253, 135, 56, 0.7); letter-spacing: 1px; text-transform: uppercase; padding: 8px;">QR Unavailable</span>'}
                             </td>
                         </tr>
                     </table>

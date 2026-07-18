@@ -56,9 +56,11 @@ services:
             - postgres_data:/var/lib/postgresql
             - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U beeformed -d beeformed"]
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-beeformed} -d ${DB:-beeformed}"]
             interval: 5s
+            timeout: 5s
             retries: 5
+            start_period: 10s
         mem_limit: 1g
         cpus: "2.0"
 

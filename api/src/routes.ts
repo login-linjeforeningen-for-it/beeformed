@@ -133,19 +133,35 @@ export default async function apiRoutes(instance: FastifyInstance) {
         getPublicForm
     )
     fastify.put('/forms/:id',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: formPermissionMiddleware, schema: { params: idParamsSchema, body: createOrUpdateFormBodySchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: formPermissionMiddleware,
+            schema: { params: idParamsSchema, body: createOrUpdateFormBodySchema },
+        },
         updateForm
     )
     fastify.delete('/forms/:id',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: formPermissionMiddleware, schema: { params: idParamsSchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: formPermissionMiddleware,
+            schema: { params: idParamsSchema },
+        },
         deleteForm
     )
     fastify.post('/forms/:id/duplicate',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: formPermissionMiddleware, schema: { params: idParamsSchema, body: duplicateFormBodySchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: formPermissionMiddleware,
+            schema: { params: idParamsSchema, body: duplicateFormBodySchema },
+        },
         duplicateForm
     )
     fastify.post('/forms/:id/templates',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: formPermissionMiddleware, schema: { params: idParamsSchema, body: createTemplateFromFormBodySchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: formPermissionMiddleware,
+            schema: { params: idParamsSchema, body: createTemplateFromFormBodySchema },
+        },
         createTemplateFromForm
     )
 
@@ -167,15 +183,27 @@ export default async function apiRoutes(instance: FastifyInstance) {
         getTemplate
     )
     fastify.put('/templates/:id',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: templatePermissionMiddleware, schema: { params: idParamsSchema, body: updateTemplateBodySchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: templatePermissionMiddleware,
+            schema: { params: idParamsSchema, body: updateTemplateBodySchema },
+        },
         updateTemplate
     )
     fastify.delete('/templates/:id',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: templatePermissionMiddleware, schema: { params: idParamsSchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: templatePermissionMiddleware,
+            schema: { params: idParamsSchema },
+        },
         deleteTemplate
     )
     fastify.post('/templates/:id/form',
-        { onRequest: [authMiddleware, requireGroup('Aktiv')], preValidation: templatePermissionMiddleware, schema: { params: idParamsSchema, body: toFormBodySchema } },
+        {
+            onRequest: [authMiddleware, requireGroup('Aktiv')],
+            preValidation: templatePermissionMiddleware,
+            schema: { params: idParamsSchema, body: toFormBodySchema },
+        },
         createFormFromTemplate
     )
 
@@ -185,7 +213,11 @@ export default async function apiRoutes(instance: FastifyInstance) {
         listFormPermissions
     )
     fastify.post('/forms/:id/permissions',
-        { onRequest: authMiddleware, preValidation: formPermissionMiddleware, schema: { params: idParamsSchema, body: permissionGrantBodySchema } },
+        {
+            onRequest: authMiddleware,
+            preValidation: formPermissionMiddleware,
+            schema: { params: idParamsSchema, body: permissionGrantBodySchema },
+        },
         createFormPermission
     )
     fastify.delete('/forms/:formId/permissions/:id',
@@ -199,7 +231,11 @@ export default async function apiRoutes(instance: FastifyInstance) {
         listTemplatePermissions
     )
     fastify.post('/templates/:id/permissions',
-        { onRequest: authMiddleware, preValidation: templatePermissionMiddleware, schema: { params: idParamsSchema, body: permissionGrantBodySchema } },
+        {
+            onRequest: authMiddleware,
+            preValidation: templatePermissionMiddleware,
+            schema: { params: idParamsSchema, body: permissionGrantBodySchema },
+        },
         createTemplatePermission
     )
     fastify.delete('/templates/:templateId/permissions/:id',
@@ -213,7 +249,11 @@ export default async function apiRoutes(instance: FastifyInstance) {
         listFormFields
     )
     fastify.patch('/forms/:id/fields',
-        { onRequest: authMiddleware, preValidation: [requireGroup('Aktiv'), formPermissionMiddleware], schema: { params: idParamsSchema, body: bulkFormFieldBodySchema } },
+        {
+            onRequest: authMiddleware,
+            preValidation: [requireGroup('Aktiv'), formPermissionMiddleware],
+            schema: { params: idParamsSchema, body: bulkFormFieldBodySchema },
+        },
         syncFormFields
     )
 
@@ -223,7 +263,11 @@ export default async function apiRoutes(instance: FastifyInstance) {
         listTemplateFields
     )
     fastify.patch('/templates/:id/fields',
-        { onRequest: authMiddleware, preValidation: [requireGroup('Aktiv'), templatePermissionMiddleware], schema: { params: idParamsSchema, body: bulkTemplateFieldBodySchema } },
+        {
+            onRequest: authMiddleware,
+            preValidation: [requireGroup('Aktiv'), templatePermissionMiddleware],
+            schema: { params: idParamsSchema, body: bulkTemplateFieldBodySchema },
+        },
         syncTemplateFields
     )
 
@@ -235,7 +279,11 @@ export default async function apiRoutes(instance: FastifyInstance) {
 
     // Submissions
     fastify.get('/forms/:id/submissions',
-        { onRequest: authMiddleware, preValidation: formPermissionMiddleware, schema: { params: idParamsSchema, querystring: submissionsByFormQuerystringSchema } },
+        {
+            onRequest: authMiddleware,
+            preValidation: formPermissionMiddleware,
+            schema: { params: idParamsSchema, querystring: submissionsByFormQuerystringSchema },
+        },
         listSubmissionsByForm
     )
     fastify.post('/forms/:id/submissions',

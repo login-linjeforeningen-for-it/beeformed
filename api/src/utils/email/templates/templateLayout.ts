@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/max-len */
 import config from '#constants'
 
 const { COMPANY_INFO } = config

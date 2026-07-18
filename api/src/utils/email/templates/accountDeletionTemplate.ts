@@ -4,7 +4,8 @@ import { appendEmailFooter, buildWarningCard, renderEmailLayout } from './templa
 export function createAccountDeletionWarningTemplate(content: AccountDeletionWarningEmailContent): EmailTemplate {
     const name = content.name?.trim() || 'there'
     const subject = 'Account deletion warning'
-    const message = `Your forms account has been inactive for almost 6 months and is scheduled for automatic deletion in ${content.warningDays} days.`
+    const message = 'Your forms account has been inactive for almost 6 months and is scheduled '
+        + `for automatic deletion in ${content.warningDays} days.`
 
     return {
         subject,
