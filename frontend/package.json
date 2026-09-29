@@ -13,27 +13,27 @@
   },
   "dependencies": {
     "jsqr": "^1.4.0",
-    "lucide-react": "^1.21.0",
-    "next": "^16.2.9",
+    "lucide-react": "^1.48.0",
+    "next": "^16.3.6",
     "qrcode": "^1.5.4",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "uibee": "^3.3.2",
-    "utilbee": "^1.4.7"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "uibee": "^3.3.3",
+    "utilbee": "^1.4.9"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@tailwindcss/postcss": "^4.3.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/typography": "^0.5.20",
-    "@types/bun": "^1.3.14",
+    "@types/bun": "^1.4.2",
     "@types/qrcode": "^1.5.6",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "eslint": "^10.5.0",
-    "eslint-plugin-tailwindcss": "^4.0.4",
-    "tailwindcss": "^4.3.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-tailwindcss": "^4.4.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1"
+    "typescript-eslint": "^8.70.1"
   }
 }
