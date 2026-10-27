@@ -7,6 +7,9 @@ on:
 jobs:
   build:
     uses: login-linjeforeningen-for-it/.github/.github/workflows/build-image.yml@main
+    with:
+      build-args: |
+        NEXT_PUBLIC_API_URL=https://forms-api.login.no/api
     permissions:
       contents: read
       packages: write
