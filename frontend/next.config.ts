@@ -6,7 +6,6 @@ envLoad({ path: '../.env' })
 const nextConfig: NextConfig = {
     experimental: {
         authInterrupts: true,
-        viewTransition: true,
     },
     images: {
         remotePatterns: [
